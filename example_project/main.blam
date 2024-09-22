@@ -1,3 +1,14 @@
+import add, sub from math
+
+add_two(i8 a) {
+    return add(2, a)
+}
+
+add_three(i8 a) {
+    sub(4, 3)       // does nothing
+    return add(3, a)
+}
+
 main() {
-    print("hello world")
+    add()
 }
