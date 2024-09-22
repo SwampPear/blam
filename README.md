@@ -1,8 +1,13 @@
 # Blam
-
 The objective of Blam is to provide a programming language that combines
 ease-of-use, strong security, and interoperability between existing 
 technologies.
+
+# Programming Concepts
+[Variables](docs/programming_concepts/variables.md)
+[Data Types](docs/programming_concepts/data_types.md)
+[Comments](docs/programming_concepts/comments.md)
+[Functions](docs/programming_concepts/functions.md)
 
 # Syntax
 - file extensions: .blam
@@ -78,5 +83,3 @@ services without necessitating a refactoring of the code (hard)
 
 ### Thread
 - some type of threading (may be difficult)
-
-[test](docs/test.md)
