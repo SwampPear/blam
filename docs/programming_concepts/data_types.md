@@ -60,3 +60,6 @@ int & str intersection
 # Type Command
 
 type(variable)
+
+# String Type
+- one string type globally
