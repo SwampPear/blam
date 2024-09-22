@@ -1,3 +1,14 @@
+// this is some comment that should be parsed OUT
+
+/*
+this is a multiline comment that should be parsed out
+
+
+newlines    some tabs
+
+blah
+*/
+
 import add, sub from math
 
 add_two(i8 a) {
