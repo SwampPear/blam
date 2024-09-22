@@ -3,7 +3,11 @@ The objective of Blam is to provide a programming language that combines
 ease-of-use, strong security, and interoperability between existing 
 technologies.
 
-# Programming Concepts
+# Documentation
+### Bloop Package Manager
+[Bloop](docs/bloop_package_manager/bloop.md)
+
+### Programming Concepts
 [Variables](docs/programming_concepts/variables.md)
 [Data Types](docs/programming_concepts/data_types.md)
 [Comments](docs/programming_concepts/comments.md)
