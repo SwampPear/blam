@@ -17,8 +17,6 @@ int main() {
 
     std::cout << srcContents << std::endl;
 
-    return srcContents.foo()
-
     return EXIT_SUCCESS;
 }
 

@@ -1,3 +1,5 @@
+#include <sstream>
+
 // lexemes
 enum TOKEN_TYPE {
     STRING,
@@ -83,10 +85,24 @@ const std::string& tokenRe(TOKEN_TYPE tokenType) {
 }
 
 struct TokenizerNode {
+    TOKEN_TYPE tokenType;
     const std::string& src;
     int start;
     int end;
 };
+
+std::string &tokenizerNodeToString(TokenizerNode &tokenNode) {
+    std::stringstream ss;
+
+    // Writing to the stringstream
+    ss << "<" << tokenNode.tokenType << " ";
+    ss << tokenNode.start << " ";
+    ss << tokenNode.end << ">\n";
+
+    std::string output = ss.str();
+
+    return output;
+}
 
 int tokenize(const std::string& src) {
     return 0;
