@@ -1,15 +1,35 @@
 #include <iostream>
 #include <cstdlib>
 #include <filesystem>
+#include <string>
+#include <fstream>
+#include <sstream>
 
-std::filesystem::path get_cwd() {
+std::filesystem::path getCWD() {
     return std::filesystem::current_path();
 }
 
-int main() {
-    std::cout << get_cwd() << std::endl;
+std::string readFile(const std::string& filePath) {
+    std::ifstream fileStream(filePath);
 
-    //get_cwd();  // Call the get_cwd function to print the current working directory
+    if (!fileStream.is_open()) {
+        std::cerr << "Error opening file: " << filePath << std::endl;
+
+        return "";
+    }
+
+    std::stringstream buffer;
+
+    buffer << fileStream.rdbuf();
+
+    return buffer.str();
+}
+
+int main() {
+    std::filesystem::path cwd = getCWD();
+    std::string fileContents = readFile(cwd);
+
+    std::cout << fileContents << std::endl;
 
     return EXIT_SUCCESS;
 }
