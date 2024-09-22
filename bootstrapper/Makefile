@@ -1,7 +1,7 @@
 CC = g++
 
 TARGET = bootstrapper
-INCLUDE_PATH = src
+SRC_PATH = src
 SUB_DIR = src
 
 CFLAGS = -std=c++17 -Wall -I $(SRC_PATH)
