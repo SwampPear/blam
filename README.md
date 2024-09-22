@@ -53,3 +53,29 @@ services without necessitating a refactoring of the code (hard)
 
 # Auxiliary Features
 - interactive VSCODE plugin, shows content of data structures while coding
+
+# Standard Library
+### Argparse
+- argument parsing functionality similiar to how Python handles it
+
+### Http
+- http functionality similar to Python requests module
+
+### IO
+- for standard in, out, and error
+
+### FS
+- file system functionality
+
+### JSON
+- json serialization similar to Python module
+
+### Re
+- regex digestion and matching
+
+### OS
+- similar to python os module
+
+### Thread
+- some type of threading (may be difficult)
+
