@@ -4,6 +4,7 @@
 #include <string>
 #include <fstream>
 #include <sstream>
+#include <memory>
 #include "utils.hpp"
 #include "tokenizer.hpp"
 
@@ -13,9 +14,9 @@ int main() {
     std::string src = "main.blam";
 
     // 2. read src file and tokenize contents into token tree
-    std::string srcContents = readFile(cwd/src);
-
-    std::cout << srcContents << std::endl;
+    std::shared_ptr<std::string> srcContents = readFile(cwd/src);
+    //std::cout << *srcContents << std::endl;
+    tokenize(srcContents);
 
     return EXIT_SUCCESS;
 }

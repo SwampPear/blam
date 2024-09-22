@@ -1,4 +1,5 @@
 #include <sstream>
+#include <memory>
 
 // lexemes
 enum TOKEN_TYPE {
@@ -40,6 +41,7 @@ const std::string& tokenRe(TOKEN_TYPE tokenType) {
     switch (tokenType) {
     case STRING:
         return RE_STRING;
+
     case SINGLE_LINE_COMMENT:
         return RE_SINGLE_LINE_COMMENT;
 
@@ -84,26 +86,88 @@ const std::string& tokenRe(TOKEN_TYPE tokenType) {
     }
 }
 
+std::string tokenName(TOKEN_TYPE tokenType) {
+    switch (tokenType) {
+    case STRING:
+        return "STRING";
+
+    case CONTENT:
+        return "CONTENT";
+
+    case SINGLE_LINE_COMMENT:
+        return "SINGLE_LINE_COMMENT";
+
+    case MULTI_LINE_COMMENT:
+        return "MULTI_LINE_COMMENT";
+
+    case BEGIN_DELIMETER:
+        return "BEGIN_DELIMETER";
+
+    case END_DELIMETER:
+        return "END_DELIMETER";
+
+    case BEGIN_CURLY_DELIMETER:
+        return "BEGIN_CURLY_DELIMETER";
+
+    case END_CURLY_DELIMETER:
+        return "END_CURLY_DELIMETER";
+
+    case BEGIN_SQUARE_DELIMETER:
+        return "BEGIN_SQUARE_DELIMETER";
+
+    case END_SQUARE_DELIMETER:
+        return "END_SQUARE_DELIMETER";
+
+    case OP_DOT:
+        return "OP_DOT";
+
+    case OP_PLUS:
+        return "OP_PLUS";
+
+    case OP_MINUS:
+        return "OP_EQUALS";
+
+    case OP_SLASH:
+        return "OP_SLASH";
+
+    case SPACE:
+        return "SPACE";
+
+    default:
+        return "";
+    }
+}
+
 struct TokenizerNode {
     TOKEN_TYPE tokenType;
-    const std::string& src;
+    std::shared_ptr<std::string> src;
     int start;
     int end;
 };
 
-std::string &tokenizerNodeToString(TokenizerNode &tokenNode) {
+std::string tokenizerNodeToString(TokenizerNode &tokenNode) {
     std::stringstream ss;
 
     // Writing to the stringstream
-    ss << "<" << tokenNode.tokenType << " ";
+    ss << "<" << tokenName(tokenNode.tokenType) << " ";
     ss << tokenNode.start << " ";
     ss << tokenNode.end << ">\n";
+    ss << *tokenNode.src << std::endl;
 
     std::string output = ss.str();
 
     return output;
 }
 
-int tokenize(const std::string& src) {
+int tokenize(std::shared_ptr<std::string> srcContents) {
+    // init content node
+    std::shared_ptr<TokenizerNode> root = std::make_shared<TokenizerNode>();
+    root->tokenType = TOKEN_TYPE::CONTENT;
+    root->src = srcContents;
+    root->start = 0;
+    root->end = srcContents.get()->length();
+
+    std::cout << tokenizerNodeToString(*root) << std::endl;
+
     return 0;
 }
