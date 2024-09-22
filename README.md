@@ -1,3 +1,13 @@
+<p align="center">
+  <img alt="dream logo" src=".github/logo.svg" style="width: 25%">   
+</p>
+
+<p align="center" style="height: 32px">
+  <img align="middle" alt="license" src="https://img.shields.io/github/license/SwampPear/dream.svg">
+  <img align="middle" alt="last commit" src="https://img.shields.io/github/last-commit/SwampPear/dream.svg">
+  <img align="middle" style="height: 21px" alt="built with love <3" src="http://ForTheBadge.com/images/badges/built-with-love.svg">
+</p>
+
 # Blam
 The objective of Blam is to provide a programming language that combines
 ease-of-use, strong security, and interoperability between existing 
