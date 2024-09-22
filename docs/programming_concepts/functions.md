@@ -1,7 +1,7 @@
 # Functions
 
 ```
-const someFunc = (str a) -> str {
+someFunc(str a) -> str {
     return a
 }
 ```

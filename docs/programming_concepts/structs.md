@@ -23,7 +23,7 @@ CMD::CMD(project: str) {
 }
 
 // function definition
-CMD::initWorkspace = (project: str) -> str {
+CMD::initWorkspace(project: str) -> str {
     self.workspace = project
 }
 ```
