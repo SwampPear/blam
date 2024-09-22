@@ -1,5 +1,6 @@
 // lexemes
 enum TOKEN_TYPE {
+    STRING,
     CONTENT,                // ignore
     SINGLE_LINE_COMMENT,    // ignore
     MULTI_LINE_COMMENT,     // ignore
@@ -11,6 +12,7 @@ enum TOKEN_TYPE {
     END_SQUARE_DELIMETER
 };
 
+const std::string RE_STRING = "\"[a-zA-Z0-9\/\\\s]*\"";
 const std::string RE_SINGLE_LINE_COMMENT = "\/\/[\sa-zA-Z0-9]*\n*";
 const std::string RE_MULTI_LINE_COMMENT = "\/\*[\sa-zA-Z0-9]*\*\/";
 const std::string RE_BEGIN_DELIMETER = "\(";
@@ -22,6 +24,8 @@ const std::string RE_END_SQUARE_DELIMETER = "\]";
 
 const std::string& tokenRe(TOKEN_TYPE tokenType) {
     switch (tokenType) {
+    case STRING:
+        return RE_STRING;
     case SINGLE_LINE_COMMENT:
         return RE_SINGLE_LINE_COMMENT;
 

@@ -33,7 +33,7 @@ technologies.
 # Features
 - no data piping or explicit currying of functions (lacks reasonability)
 - data first functional programming with svo syntax
-- immutability by default (but with in-place mutations similar to rust)
+- mutability by default but with const values
 - content addressable code
 - eager evaluation
 - mostly call by value
