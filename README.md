@@ -75,25 +75,25 @@ services without necessitating a refactoring of the code (hard)
 - interactive VSCODE plugin, shows content of data structures while coding
 
 # Standard Library
-### Argparse
+### [Argparse](docs/argparse/argparse.md)
 - argument parsing functionality similiar to how Python handles it
 
-### Http
+### [Http](docs/http/http.md)
 - http functionality similar to Python requests module
 
-### IO
+### [IO](docs/io/io.md)
 - for standard in, out, and error
 
-### FS
+### [FS](docs/fs/fs.md)
 - file system functionality
 
-### JSON
+### [Json](docs/json/json.md)
 - json serialization similar to Python module
 
-### Re
+### [Re](docs/re/re.md)
 - regex digestion and matching
 
-### OS
+### [OS](docs/os/os.md)
 - similar to python os module
 
 ### Thread
