@@ -1,15 +1,21 @@
 // lexemes
 enum TOKEN_TYPE {
     STRING,
-    CONTENT,                // ignore
-    SINGLE_LINE_COMMENT,    // ignore
-    MULTI_LINE_COMMENT,     // ignore
+    CONTENT,
+    SINGLE_LINE_COMMENT,
+    MULTI_LINE_COMMENT,
     BEGIN_DELIMETER,
     END_DELIMETER,
     BEGIN_CURLY_DELIMETER,
     END_CURLY_DELIMETER,
     BEGIN_SQUARE_DELIMETER,
-    END_SQUARE_DELIMETER
+    END_SQUARE_DELIMETER,
+    OP_DOT,
+    OP_PLUS,
+    OP_MINUS,
+    OP_EQUALS,
+    OP_SLASH,
+    SPACE,
 };
 
 const std::string RE_STRING = "\"[a-zA-Z0-9\/\\\s]*\"";
@@ -21,6 +27,12 @@ const std::string RE_BEGIN_CURLY_DELIMETER = "{";
 const std::string RE_END_CURLY_DELIMETER = "}";
 const std::string RE_BEGIN_SQUARE_DELIMETER = "\[";
 const std::string RE_END_SQUARE_DELIMETER = "\]";
+const std::string RE_OP_DOT = ".";
+const std::string RE_OP_PLUS = "\+";
+const std::string RE_OP_MINUS = "-";
+const std::string RE_OP_EQUALS = "=";
+const std::string RE_OP_SLASH = "/";
+const std::string RE_SPACE = "\s*";
 
 const std::string& tokenRe(TOKEN_TYPE tokenType) {
     switch (tokenType) {
@@ -49,6 +61,21 @@ const std::string& tokenRe(TOKEN_TYPE tokenType) {
 
     case END_SQUARE_DELIMETER:
         return RE_END_SQUARE_DELIMETER;
+
+    case OP_DOT:
+        return RE_OP_DOT;
+
+    case OP_PLUS:
+        return RE_OP_PLUS;
+
+    case OP_MINUS:
+        return RE_OP_EQUALS;
+
+    case OP_SLASH:
+        return RE_OP_SLASH;
+
+    case SPACE:
+        return RE_SPACE;
 
     default:
         return "";
