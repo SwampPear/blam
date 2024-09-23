@@ -1,0 +1,28 @@
+// this is some comment that should be parsed OUT
+
+/*
+this is a multiline comment that should be parsed out
+
+
+newlines    some tabs
+
+blah
+*/
+
+import add, sub from math
+
+add_two(i8 a) {
+    return add(2, a)
+}
+
+// some more nothing
+
+add_three(i8 a) {
+    let string = "this is a string"
+    sub(4, 3)       // does nothing
+    return add(3, a)
+}
+
+main() {
+    add()
+}
