@@ -67,14 +67,14 @@ const std::map<TOKEN_TYPE, std::string> tokenNames {
 
 struct TokenizerNode {
     TOKEN_TYPE tokenType;
-    std::shared_ptr<std::string> src;
+    std::string *src;
     int start;
     int end;
-    std::shared_ptr<TokenizerNode> prev;
-    std::shared_ptr<TokenizerNode> next;
+    TokenizerNode *prev;
+    TokenizerNode *next;
 };
 
-std::string tokenizerNodeToString(std::shared_ptr<TokenizerNode> tokenNode) {
+std::string tokenizerNodeToString(TokenizerNode *tokenNode) {
     std::stringstream ss;
 
     while(tokenNode != nullptr) {
@@ -95,28 +95,25 @@ std::string tokenizerNodeToString(std::shared_ptr<TokenizerNode> tokenNode) {
     return output;
 }
 
-void tokenizeContentNode(std::shared_ptr<TokenizerNode> node, TOKEN_TYPE tokenType) {
+void tokenizeContentNode(TokenizerNode *node, TOKEN_TYPE tokenType) {
     std::string lexeme = tokenExpressions.at(tokenType);
 
     // old state
-    std::shared_ptr<TokenizerNode> oldPrev = node->prev;
-    std::shared_ptr<TokenizerNode> oldNext = node->next;
+    TokenizerNode *oldPrev = node->prev;
+    TokenizerNode *oldNext = node->next;
     int oldEnd = node->end;
+    std::string *src = node->src;           // will be copied to all nodes
 
-    // new root node for within content node scope
-    std::shared_ptr<TokenizerNode> newRoot = nullptr;
-    std::shared_ptr<TokenizerNode> currNode = node;
-
-    // src file content (should be same for all nodes)
-    std::string src = *node->src;
+    TokenizerNode *newRoot = nullptr;
+    TokenizerNode *currNode = node;
 
     // src file content for within content node scope
-    std::string input = src.substr(node->start, node->end - node->start);
+    std::string input = *src;
+    input = input.substr(node->start, node->end - node->start);
 
-    std::regex regex(lexeme);   // digested regex pattern
-    std::smatch match;          // match results
-
-    // search for all matches
+    // match lexeme
+    std::regex regex(lexeme);
+    std::smatch match;
     auto begin = std::sregex_iterator(input.begin(), input.end(), regex);
     auto end = std::sregex_iterator();
 
@@ -131,101 +128,130 @@ void tokenizeContentNode(std::shared_ptr<TokenizerNode> node, TOKEN_TYPE tokenTy
 
         match = *it;
 
-        // extract match information
+        // match info
         std::string matchContents = match.str(0);
         matchStart = match.position(0);
         matchEnd = matchStart + match.length(0);
 
-        // create and insert new content node
+        // create and insert new content node if needed
         if (currIndex != matchStart) {
-            std::shared_ptr<TokenizerNode> newNode = std::make_shared<TokenizerNode>();
+            // create node
+            TokenizerNode *newNode = new TokenizerNode;
             newNode->tokenType = TOKEN_TYPE::CONTENT;
-            newNode->src = node->src;
+            newNode->src = src;
             newNode->start = currIndex;
             newNode->end = matchStart;
+
+            // update position
             newNode->prev = currNode;
             newNode->next = nullptr;
 
-            // update new root if not set
+            // update current node
+            currNode = newNode;
+
+            // set new root if not set
             if (newRoot == nullptr) {
-                newRoot = newNode;
-                node = newRoot;
+                newRoot = currNode;
             }
 
-            // iterate current node and index
-            currNode->next = newNode;
-            currNode = newNode;
+            // update index
             currIndex = matchStart;
+
+            // update position relative to node before
+            if (currNode->prev != nullptr) {
+                currNode->prev->next = currNode;
+            }
         }
 
         // create and insert new lexical node
-        std::shared_ptr<TokenizerNode> newNode = std::make_shared<TokenizerNode>();
+        TokenizerNode *newNode = new TokenizerNode;
         newNode->tokenType = tokenType;
-        newNode->src = node->src;
+        newNode->src = src;
         newNode->start = matchStart;
         newNode->end = matchEnd;
+        
+        // update position
         newNode->prev = currNode;
         newNode->next = nullptr;
 
-        // update new root if not set
+        // update current node
+        currNode = newNode;
+
+        // set new root if not set
         if (newRoot == nullptr) {
-            newRoot = newNode;
-            node = newRoot;
+            newRoot = currNode;
         }
 
-        // iterate current node
-        currNode->next = newNode;
-        currNode = newNode;
+        // update index
         currIndex = matchEnd;
+
+        // update position relative to node before
+        if (currNode->prev != nullptr) {
+            currNode->prev->next = currNode;
+        }
     }
 
     // create and insert new content node at end
     if (currIndex != oldEnd && matchFound) {
+        std::cout << "asdfasdf" << std::endl;
         // create and insert post content node
-        std::shared_ptr<TokenizerNode> newNode = std::make_shared<TokenizerNode>();
+        TokenizerNode *newNode = new TokenizerNode;
         newNode->tokenType = TOKEN_TYPE::CONTENT;
         newNode->src = node->src;
         newNode->start = currIndex;
         newNode->end = oldEnd;
+
+        // update position
         newNode->prev = currNode;
-        newNode->next = oldNext;
+        newNode->next = nullptr;
 
-        // iterate current node
-        currNode->next = newNode;
+        // update current node
         currNode = newNode;
-        currIndex = matchEnd;
+
+        // set new root if not set
+        if (newRoot == nullptr) {
+            newRoot = currNode;
+        }
+
+        // update position relative to node before
+        if (currNode->prev != nullptr) {
+            currNode->prev->next = currNode;
+        }
     }
 
-    // connect to previous
+    // connect to old nodes
+    currNode->next = oldNext;
+
     if (oldPrev != nullptr) {
-        currNode->next = oldNext;
         oldPrev->next = newRoot;
-    } else {
-        currNode->next = oldNext;
     }
 
-    return node;
+    std::cout << tokenizerNodeToString(newRoot) << std::endl << std::endl << std::endl;
+
+    node = newRoot;
 }
 
-std::shared_ptr<TokenizerNode> tokenizeNode(std::shared_ptr<TokenizerNode> node, TOKEN_TYPE tokenType) {
+/*
+void tokenizeNode(std::shared_ptr<TokenizerNode> node, TOKEN_TYPE tokenType) {
     node = tokenizeContentNode(node, tokenType);
 
     return node;
 }
+*/
 
-int tokenize(std::shared_ptr<std::string> srcContents) {
+int tokenize(std::string *srcContents) {
     // init root content node
-    std::shared_ptr<TokenizerNode> root = std::make_shared<TokenizerNode>();
+    TokenizerNode *root = new TokenizerNode;
     root->tokenType = TOKEN_TYPE::CONTENT;
     root->src = srcContents;
     root->start = 0;
-    root->end = srcContents.get()->length();
+    root->end = srcContents->length();
     root->prev = nullptr;
     root->next = nullptr;
 
     // tokenize for each lexeme
-    root = tokenizeNode(root, TOKEN_TYPE::STRING);
-    std::cout << tokenizerNodeToString(root) << std::endl << std::endl << std::endl;
+    tokenizeContentNode(root, TOKEN_TYPE::STRING);
+    //std::cout << tokenizerNodeToString(root) << std::endl << std::endl << std::endl;
     //root = tokenizeNode(root, TOKEN_TYPE::L_CURLY_DELIMETER);
 
     return 0;
