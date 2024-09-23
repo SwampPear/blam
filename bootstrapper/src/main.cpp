@@ -15,7 +15,6 @@ int main() {
 
     // 2. read src file and tokenize contents into token tree
     std::shared_ptr<std::string> srcContents = readFile(cwd/src);
-    //std::cout << *srcContents << std::endl;
     tokenize(srcContents);
 
     return EXIT_SUCCESS;

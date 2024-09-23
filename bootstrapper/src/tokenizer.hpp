@@ -1,18 +1,19 @@
 #include <sstream>
 #include <memory>
+#include <map>
 
-// lexemes
+// lexeme types of token
 enum TOKEN_TYPE {
     STRING,
     CONTENT,
     SINGLE_LINE_COMMENT,
     MULTI_LINE_COMMENT,
-    BEGIN_DELIMETER,
-    END_DELIMETER,
-    BEGIN_CURLY_DELIMETER,
-    END_CURLY_DELIMETER,
-    BEGIN_SQUARE_DELIMETER,
-    END_SQUARE_DELIMETER,
+    L_DELIMETER,
+    R_DELIMETER,
+    L_CURLY_DELIMETER,
+    R_CURLY_DELIMETER,
+    L_SQUARE_DELIMETER,
+    R_SQUARE_DELIMETER,
     OP_DOT,
     OP_PLUS,
     OP_MINUS,
@@ -21,135 +22,56 @@ enum TOKEN_TYPE {
     SPACE,
 };
 
-const std::string RE_STRING = "\"[a-zA-Z0-9\/\\\s]*\"";
-const std::string RE_SINGLE_LINE_COMMENT = "\/\/[\sa-zA-Z0-9]*\n*";
-const std::string RE_MULTI_LINE_COMMENT = "\/\*[\sa-zA-Z0-9]*\*\/";
-const std::string RE_BEGIN_DELIMETER = "\(";
-const std::string RE_END_DELIMETER = "\)";
-const std::string RE_BEGIN_CURLY_DELIMETER = "{";
-const std::string RE_END_CURLY_DELIMETER = "}";
-const std::string RE_BEGIN_SQUARE_DELIMETER = "\[";
-const std::string RE_END_SQUARE_DELIMETER = "\]";
-const std::string RE_OP_DOT = ".";
-const std::string RE_OP_PLUS = "\+";
-const std::string RE_OP_MINUS = "-";
-const std::string RE_OP_EQUALS = "=";
-const std::string RE_OP_SLASH = "/";
-const std::string RE_SPACE = "\s*";
+// maps pertinent token type to corresponding regular expression
+const std::map<TOKEN_TYPE, std::string> tokenExpressions {
+    {TOKEN_TYPE::STRING, "\"[a-zA-Z0-9\/\\\s]*\""},
+    {TOKEN_TYPE::SINGLE_LINE_COMMENT, "\/\/[\sa-zA-Z0-9]*\n*"},
+    {TOKEN_TYPE::MULTI_LINE_COMMENT, "\/\*[\sa-zA-Z0-9]*\*\/"},
+    {TOKEN_TYPE::L_DELIMETER, "\("},
+    {TOKEN_TYPE::R_DELIMETER, "\)"},
+    {TOKEN_TYPE::L_CURLY_DELIMETER, "{"},
+    {TOKEN_TYPE::R_CURLY_DELIMETER, "}"},
+    {TOKEN_TYPE::L_SQUARE_DELIMETER, "\["},
+    {TOKEN_TYPE::R_SQUARE_DELIMETER, "\]"},
+    {TOKEN_TYPE::OP_DOT, "."},
+    {TOKEN_TYPE::OP_PLUS, "\+"},
+    {TOKEN_TYPE::OP_MINUS, "-"},
+    {TOKEN_TYPE::OP_EQUALS, "="},
+    {TOKEN_TYPE::OP_SLASH, "/"},
+    {TOKEN_TYPE::SPACE, "\s*"}
+};
 
-const std::string& tokenRe(TOKEN_TYPE tokenType) {
-    switch (tokenType) {
-    case STRING:
-        return RE_STRING;
-
-    case SINGLE_LINE_COMMENT:
-        return RE_SINGLE_LINE_COMMENT;
-
-    case MULTI_LINE_COMMENT:
-        return RE_MULTI_LINE_COMMENT;
-
-    case BEGIN_DELIMETER:
-        return RE_BEGIN_DELIMETER;
-
-    case END_DELIMETER:
-        return RE_END_DELIMETER;
-
-    case BEGIN_CURLY_DELIMETER:
-        return RE_BEGIN_CURLY_DELIMETER;
-
-    case END_CURLY_DELIMETER:
-        return RE_END_CURLY_DELIMETER;
-
-    case BEGIN_SQUARE_DELIMETER:
-        return RE_BEGIN_SQUARE_DELIMETER;
-
-    case END_SQUARE_DELIMETER:
-        return RE_END_SQUARE_DELIMETER;
-
-    case OP_DOT:
-        return RE_OP_DOT;
-
-    case OP_PLUS:
-        return RE_OP_PLUS;
-
-    case OP_MINUS:
-        return RE_OP_EQUALS;
-
-    case OP_SLASH:
-        return RE_OP_SLASH;
-
-    case SPACE:
-        return RE_SPACE;
-
-    default:
-        return "";
-    }
-}
-
-std::string tokenName(TOKEN_TYPE tokenType) {
-    switch (tokenType) {
-    case STRING:
-        return "STRING";
-
-    case CONTENT:
-        return "CONTENT";
-
-    case SINGLE_LINE_COMMENT:
-        return "SINGLE_LINE_COMMENT";
-
-    case MULTI_LINE_COMMENT:
-        return "MULTI_LINE_COMMENT";
-
-    case BEGIN_DELIMETER:
-        return "BEGIN_DELIMETER";
-
-    case END_DELIMETER:
-        return "END_DELIMETER";
-
-    case BEGIN_CURLY_DELIMETER:
-        return "BEGIN_CURLY_DELIMETER";
-
-    case END_CURLY_DELIMETER:
-        return "END_CURLY_DELIMETER";
-
-    case BEGIN_SQUARE_DELIMETER:
-        return "BEGIN_SQUARE_DELIMETER";
-
-    case END_SQUARE_DELIMETER:
-        return "END_SQUARE_DELIMETER";
-
-    case OP_DOT:
-        return "OP_DOT";
-
-    case OP_PLUS:
-        return "OP_PLUS";
-
-    case OP_MINUS:
-        return "OP_EQUALS";
-
-    case OP_SLASH:
-        return "OP_SLASH";
-
-    case SPACE:
-        return "SPACE";
-
-    default:
-        return "";
-    }
-}
+// maps token type to corresponding token name
+const std::map<TOKEN_TYPE, std::string> tokenNames {
+    {TOKEN_TYPE::CONTENT, "CONTENT"},
+    {TOKEN_TYPE::STRING, "STRING"},
+    {TOKEN_TYPE::SINGLE_LINE_COMMENT, "SINGLE_LINE_COMMENT"},
+    {TOKEN_TYPE::MULTI_LINE_COMMENT, "MULTI_LINE_COMMENT"},
+    {TOKEN_TYPE::L_DELIMETER, "L_DELIMETER"},
+    {TOKEN_TYPE::R_DELIMETER, "R_DELIMETER"},
+    {TOKEN_TYPE::L_CURLY_DELIMETER, "L_CURLY_DELIMETER"},
+    {TOKEN_TYPE::R_CURLY_DELIMETER, "R_CURLY_DELIMETER"},
+    {TOKEN_TYPE::L_SQUARE_DELIMETER, "L_SQUARE_DELIMETER"},
+    {TOKEN_TYPE::R_SQUARE_DELIMETER, "L_SQUARE_DELIMETER"},
+    {TOKEN_TYPE::OP_DOT, "OP_DOT"},
+    {TOKEN_TYPE::OP_PLUS, "OP_PLUS"},
+    {TOKEN_TYPE::OP_MINUS, "OP_MINUS"},
+    {TOKEN_TYPE::OP_EQUALS, "OP_EQUALS"},
+    {TOKEN_TYPE::OP_SLASH, "OP_SLASH"},
+    {TOKEN_TYPE::SPACE, "SPACE"}
+};
 
 struct TokenizerNode {
     TOKEN_TYPE tokenType;
     std::shared_ptr<std::string> src;
     int start;
     int end;
+    std::shared_ptr<TokenizerNode> next;
 };
 
 std::string tokenizerNodeToString(TokenizerNode &tokenNode) {
     std::stringstream ss;
-
-    // Writing to the stringstream
-    ss << "<" << tokenName(tokenNode.tokenType) << " ";
+    ss << "<" << tokenNames.at(tokenNode.tokenType) << " ";
     ss << tokenNode.start << " ";
     ss << tokenNode.end << ">\n";
     ss << *tokenNode.src << std::endl;
@@ -159,13 +81,18 @@ std::string tokenizerNodeToString(TokenizerNode &tokenNode) {
     return output;
 }
 
+void tokenizeNode(TokenizerNode &root, std::string lexeme) {
+
+}
+
 int tokenize(std::shared_ptr<std::string> srcContents) {
-    // init content node
+    // init root content node
     std::shared_ptr<TokenizerNode> root = std::make_shared<TokenizerNode>();
     root->tokenType = TOKEN_TYPE::CONTENT;
     root->src = srcContents;
     root->start = 0;
     root->end = srcContents.get()->length();
+    root->next = nullptr;
 
     std::cout << tokenizerNodeToString(*root) << std::endl;
 
