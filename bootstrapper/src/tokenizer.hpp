@@ -152,6 +152,8 @@ void tokenizeContentNode(TokenNode *node, TOKEN_TYPE tokenType) {
     bool matchFound = false;
 
     std::cout << "d" << std::endl;
+    std::cout << input << std::endl;
+    
 
     for (auto it = begin; it != end; ++it) {
         std::cout << "x" << std::endl;
@@ -236,7 +238,10 @@ void tokenizeContentNode(TokenNode *node, TOKEN_TYPE tokenType) {
         }
         oldPrev->next = newRoot;
     } else {
-        *node = *newRoot;
+        std::cout << "y" << std::endl;
+        if (newRoot != nullptr) {
+            *node = *newRoot;
+        }
     }
 
     if (oldNext != nullptr) {
@@ -275,10 +280,13 @@ int tokenize(std::string *srcContents) {
 
     // tokenize for each lexeme
     tokenizeNode(root, TOKEN_TYPE::STRING);
-    std::cout << tokenNodeToString(root, true) << std::endl << std::endl << std::endl;
+    //std::cout << tokenNodeToString(root, true) << std::endl << std::endl << std::endl;
     tokenizeNode(root, TOKEN_TYPE::L_DELIMETER);
-    std::cout << tokenNodeToString(root, true) << std::endl << std::endl << std::endl;
-    tokenizeContentNode(root, TOKEN_TYPE::L_DELIMETER);
+    tokenizeNode(root, TOKEN_TYPE::R_DELIMETER);
+    tokenizeNode(root, TOKEN_TYPE::L_CURLY_DELIMETER);
+    tokenizeNode(root, TOKEN_TYPE::R_CURLY_DELIMETER);
+    //std::cout << tokenNodeToString(root, true) << std::endl << std::endl << std::endl;
+    tokenizeNode(root, TOKEN_TYPE::R_DELIMETER);
     std::cout << tokenNodeToString(root, true) << std::endl << std::endl << std::endl;
     //tokenizeContentNode(root->next->next, TOKEN_TYPE::R_DELIMETER);
     //std::cout << tokenNodeToString(root, true) << std::endl << std::endl << std::endl;
