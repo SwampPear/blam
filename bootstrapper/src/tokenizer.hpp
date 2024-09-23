@@ -70,8 +70,8 @@ struct TokenNode {
     std::string *src;
     int start;
     int end;
-    TokenNode *prev;
     TokenNode *next;
+    TokenNode *prev;
 };
 
 std::string TokenNodeToString(TokenNode *node) {
@@ -83,19 +83,16 @@ std::string TokenNodeToString(TokenNode *node) {
         ss << node->start << " ";
         ss << node->end << ">";
         ss << " -> ";
-        
-        // prev node
+
+        // next node
         if (node->prev == nullptr) {
-            ss << "<nullptr>";
+            ss << "<nullptr> ";
         } else {
             ss << "<" << tokenNames.at(node->prev->tokenType) << " ";
             ss << node->prev->start << " ";
-            ss << node->prev->end << ">";
-            ss << " -> ";
+            ss << node->prev->end << "> ";
         }
-
-        ss << ", ";
-
+        
         // next node
         if (node->next == nullptr) {
             ss << "<nullptr>";
@@ -103,7 +100,6 @@ std::string TokenNodeToString(TokenNode *node) {
             ss << "<" << tokenNames.at(node->next->tokenType) << " ";
             ss << node->next->start << " ";
             ss << node->next->end << ">";
-            ss << " -> ";
         }
 
         ss << "\n";
@@ -125,14 +121,13 @@ void tokenizeContentNode(TokenNode *node, TOKEN_TYPE tokenType) {
     std::string lexeme = tokenExpressions.at(tokenType);
 
     // old state
-    TokenNode *oldNode = node;
     TokenNode *oldPrev = node->prev;
     TokenNode *oldNext = node->next;
+    TokenNode *newRoot = nullptr;
+    TokenNode *currNode = nullptr;
+
     int oldEnd = node->end;
     std::string *src = node->src;           // will be copied to all nodes
-
-    TokenNode *newRoot = nullptr;
-    TokenNode *currNode = node;
 
     // src file content for within content node scope
     std::string input = *src;
@@ -152,78 +147,55 @@ void tokenizeContentNode(TokenNode *node, TOKEN_TYPE tokenType) {
     bool matchFound = false;
 
     for (auto it = begin; it != end; ++it) {
-        matchFound = true;
-
-        match = *it;
-
         // match info
+        matchFound = true;
+        match = *it;
         std::string matchContents = match.str(0);
         matchStart = match.position(0);
         matchEnd = matchStart + match.length(0);
 
-        // create and insert new content node if needed
         if (currIndex != matchStart) {
-            // create node
             TokenNode *newNode = new TokenNode;
             newNode->tokenType = TOKEN_TYPE::CONTENT;
             newNode->src = src;
             newNode->start = currIndex + offset;
             newNode->end = matchStart + offset;
 
-            // update position
-            if (currNode != oldNode) {
-                newNode->prev = currNode;
-            }
-            newNode->next = nullptr;
-
-            // update current node
-            currNode = newNode;
-
-            // set new root if not set
-            if (newRoot == nullptr) {
-                newRoot = currNode;
-            }
-
             // update index
             currIndex = matchStart;
 
-            // update position relative to node before
-            if (currNode->prev != nullptr) {
-                currNode->prev->next = currNode;
+            // update positions
+            if (newRoot == nullptr) {
+                newRoot = newNode;
+            } else {
+                newNode->prev = currNode;
+                currNode->next = newNode;
             }
+
+            currNode = newNode;
         }
 
-        // create and insert new lexical node
+        // lexical node
         TokenNode *newNode = new TokenNode;
         newNode->tokenType = tokenType;
         newNode->src = src;
         newNode->start = matchStart + offset;
         newNode->end = matchEnd + offset;
-        
-        // update position
-        if (currNode != oldNode) {
-            newNode->prev = currNode;
-        }
-        newNode->next = nullptr;
-
-        // update current node
-        currNode = newNode;
-
-        // set new root if not set
-        if (newRoot == nullptr) {
-            newRoot = currNode;
-        }
 
         // update index
         currIndex = matchEnd;
 
-        // update position relative to node before
-        if (currNode->prev != nullptr) {
-            currNode->prev->next = currNode;
+        // update position
+        if (newRoot == nullptr) {
+            newRoot = newNode;
+        } else {
+            newNode->prev = currNode;
+            currNode->next = newNode;
         }
+
+        currNode = newNode;
     }
 
-    // create and insert new content node at end
     if (currIndex + offset != oldEnd && matchFound) {
         // create and insert post content node
         TokenNode *newNode = new TokenNode;
@@ -233,37 +205,202 @@ void tokenizeContentNode(TokenNode *node, TOKEN_TYPE tokenType) {
         newNode->end = oldEnd;
 
         // update position
-        if (currNode != oldNode) {
-            newNode->prev = currNode;
+        if (newRoot == nullptr) {
+            newRoot = newNode;
+        } else {
+            currNode->next = newNode;
         }
-        newNode->next = nullptr;
 
-        // update current node
         currNode = newNode;
+    }
 
-        // set new root if not set
-        //if (newRoot == nullptr) {
-        //    newRoot = currNode;
-        //}
 
-        // update position relative to node before
-        if (currNode->prev != nullptr) {
-            currNode->prev->next = currNode;
+    if (oldPrev != nullptr) {
+        std::cout << "a" << std::endl;
+        *oldPrev->next = *newRoot;
+    } else {
+        *node = *newRoot;
+    }
+
+    if (oldNext != nullptr) {
+        std::cout << "b" << std::endl;
+        *newRoot->next = *oldNext;
+    }
+}
+
+/*
+void tokenizeContentNode(TokenNode *node, TOKEN_TYPE tokenType) {
+    std::string lexeme = tokenExpressions.at(tokenType);
+
+    // old state
+    TokenNode *oldNext = node->next;
+    TokenNode *oldPrev = node->prev;
+    int oldEnd = node->end;
+    std::string *src = node->src;           // will be copied to all nodes
+
+    TokenNode *currNode = nullptr;
+
+    // src file content for within content node scope
+    std::string input = *src;
+    input = input.substr(node->start, node->end - node->start);
+
+    // match lexeme
+    std::regex regex(lexeme);
+    std::smatch match;
+    auto begin = std::sregex_iterator(input.begin(), input.end(), regex);
+    auto end = std::sregex_iterator();
+
+    // current index of search
+    int offset = node->start;
+    int currIndex = 0;
+    int matchStart = 0;
+    int matchEnd = 0;
+    bool matchFound = false;
+
+    for (auto it = begin; it != end; ++it) {
+        // match info
+        matchFound = true;
+        match = *it;
+        std::string matchContents = match.str(0);
+        matchStart = match.position(0);
+        matchEnd = matchStart + match.length(0);
+
+        std::cout << "Start: " << matchStart << std::endl;
+        std::cout << "End: " << matchEnd << std::endl;
+
+        if (currNode == nullptr) {                         // first node case
+            // optional padding node
+            if (currIndex != matchStart) {
+                TokenNode *newNode = new TokenNode;
+                newNode->tokenType = TOKEN_TYPE::CONTENT;
+                newNode->src = src;
+                newNode->start = currIndex + offset;
+                newNode->end = matchStart + offset;
+
+                // update position
+                newNode->prev = oldPrev;
+                newNode->next = nullptr;
+
+                if (oldPrev != nullptr) {
+                    oldPrev->next = newNode;
+                } else {
+                    *node = *newNode;
+                }
+
+                // update current node
+                currNode = newNode;
+
+                // update index
+                currIndex = matchStart;
+            }
+
+            if (currNode == nullptr) {
+                // lexical node
+                TokenNode *newNode = new TokenNode;
+                newNode->tokenType = tokenType;
+                newNode->src = src;
+                newNode->start = matchStart + offset;
+                newNode->end = matchEnd + offset;
+
+                // update position
+                newNode->prev = oldPrev;
+                newNode->next = nullptr;
+
+                if (oldPrev != nullptr) {
+                    oldPrev->next = newNode;
+                } else {
+                    *node = *newNode;
+                }
+
+                // update current node
+                currNode = newNode;
+
+                // update index
+                currIndex = matchEnd;
+            } else {
+                std::cout << "ASDf" << std::endl;
+                // lexical node
+                TokenNode *newNode = new TokenNode;
+                newNode->tokenType = tokenType;
+                newNode->src = src;
+                newNode->start = matchStart + offset;
+                newNode->end = matchEnd + offset;
+
+                // update position
+                newNode->prev = currNode;
+                newNode->next = nullptr;
+
+                currNode->next = newNode;
+
+                // update current node
+                currNode = newNode;
+
+                // update index
+                currIndex = matchEnd;
+            }
+        } else {                                    // other node case
+            // optional padding node
+            if (currIndex != matchStart) {
+                TokenNode *newNode = new TokenNode;
+                newNode->tokenType = TOKEN_TYPE::CONTENT;
+                newNode->src = src;
+                newNode->start = currIndex + offset;
+                newNode->end = matchStart + offset;
+
+                // update position
+                newNode->prev = currNode;
+                newNode->next = nullptr;
+
+                currNode->next = newNode;
+
+                // update current node
+                currNode = newNode;
+
+                // update index
+                currIndex = matchStart;
+            }
+
+            std::cout << "string" << std::endl;
+
+            // lexical node
+            TokenNode *newNode = new TokenNode;
+            newNode->tokenType = tokenType;
+            newNode->src = src;
+            newNode->start = matchStart + offset;
+            newNode->end = matchEnd + offset;
+
+            // update position
+            currNode->next = newNode;
+            newNode->prev = currNode;
+            newNode->next = nullptr;
+
+            // update current node
+            currNode = newNode;
+
+            // update index
+            currIndex = matchEnd;
         }
     }
 
-    // connect to old nodes
-    currNode->next = oldNext;
+    if (currIndex + offset != oldEnd && matchFound) {
+        // create and insert post content node
+        TokenNode *newNode = new TokenNode;
+        newNode->tokenType = TOKEN_TYPE::CONTENT;
+        newNode->src = src;
+        newNode->start = currIndex + offset;
+        newNode->end = oldEnd;
 
-    if (oldPrev != nullptr) {
-        oldPrev->next = newRoot;
-        newRoot->prev = oldPrev;
-    } else {
-        if (newRoot != nullptr) {
-            *node = *newRoot;
+        // update position
+        currNode->next = newNode;
+        newNode->prev = currNode;
+        newNode->next = oldNext;
+
+        if (oldNext != nullptr) {
+            oldNext->prev = currNode;
         }
     }
 }
+*/
 
 
 void tokenizeNode(TokenNode *node, TOKEN_TYPE tokenType) {
@@ -294,7 +431,7 @@ void tokenizeNode(TokenNode *node, TOKEN_TYPE tokenType) {
         TokenNode *nextNode = currNode->next;
 
         if (currNode->tokenType == TOKEN_TYPE::CONTENT) {
-            tokenizeContentNode(currNode, tokenType);
+            //tokenizeContentNode(currNode, tokenType);
         }
 
         currNode = nextNode;
@@ -309,12 +446,11 @@ int tokenize(std::string *srcContents) {
     root->src = srcContents;
     root->start = 0;
     root->end = srcContents->length();
-    root->prev = nullptr;
     root->next = nullptr;
 
     // tokenize for each lexeme
-    tokenizeNode(root, TOKEN_TYPE::STRING);
-    tokenizeNode(root, TOKEN_TYPE::R_CURLY_DELIMETER);
+    tokenizeContentNode(root, TOKEN_TYPE::STRING);
+    //tokenizeNode(root, TOKEN_TYPE::R_CURLY_DELIMETER);
     //tokenizeNode(root, TOKEN_TYPE::R_CURLY_DELIMETER);
     //tokenizeNode(root->next->next, TOKEN_TYPE::R_CURLY_DELIMETER);
     //tokenizeNode(root->next->next->next->next->next->next, TOKEN_TYPE::R_CURLY_DELIMETER);
