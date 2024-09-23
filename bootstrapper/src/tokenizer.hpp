@@ -26,21 +26,21 @@ enum TOKEN_TYPE {
 
 // maps pertinent token type to corresponding regular expression
 const std::map<TOKEN_TYPE, std::string> tokenExpressions {
-    {TOKEN_TYPE::STRING, "\"[a-zA-Z0-9\/\\\s]*\""},
-    {TOKEN_TYPE::SINGLE_LINE_COMMENT, "\/\/[\sa-zA-Z0-9]*\n*"},
-    {TOKEN_TYPE::MULTI_LINE_COMMENT, "\/\*[\sa-zA-Z0-9]*\*\/"},
-    {TOKEN_TYPE::L_DELIMETER, "\("},
-    {TOKEN_TYPE::R_DELIMETER, "\)"},
-    {TOKEN_TYPE::L_CURLY_DELIMETER, "{"},
-    {TOKEN_TYPE::R_CURLY_DELIMETER, "}"},
-    {TOKEN_TYPE::L_SQUARE_DELIMETER, "\["},
-    {TOKEN_TYPE::R_SQUARE_DELIMETER, "\]"},
+    {TOKEN_TYPE::STRING, "\"[a-zA-Z0-9\\/\\\\s]*\""},
+    {TOKEN_TYPE::SINGLE_LINE_COMMENT, "\\/\\/[\\sa-zA-Z0-9]*\n*"},
+    {TOKEN_TYPE::MULTI_LINE_COMMENT, "\\/\\*[\\sa-zA-Z0-9]*\\*\\/"},
+    {TOKEN_TYPE::L_DELIMETER, "\\("},
+    {TOKEN_TYPE::R_DELIMETER, "\\)"},
+    {TOKEN_TYPE::L_CURLY_DELIMETER, "\\{"},
+    {TOKEN_TYPE::R_CURLY_DELIMETER, "\\}"},
+    {TOKEN_TYPE::L_SQUARE_DELIMETER, "\\["},
+    {TOKEN_TYPE::R_SQUARE_DELIMETER, "\\]"},
     {TOKEN_TYPE::OP_DOT, "."},
-    {TOKEN_TYPE::OP_PLUS, "\+"},
+    {TOKEN_TYPE::OP_PLUS, "\\+"},
     {TOKEN_TYPE::OP_MINUS, "-"},
     {TOKEN_TYPE::OP_EQUALS, "="},
     {TOKEN_TYPE::OP_SLASH, "/"},
-    {TOKEN_TYPE::SPACE, "\s*"},
+    {TOKEN_TYPE::SPACE, "\\s*"},
     {TOKEN_TYPE::KEYWORD, "return"}
 };
 
@@ -96,19 +96,15 @@ std::string tokenizerNodeToString(std::shared_ptr<TokenizerNode> tokenNode) {
 }
 
 void tokenizeContentNode(std::shared_ptr<TokenizerNode> node, TOKEN_TYPE tokenType) {
-    // lexical expression for token of tokenType
     std::string lexeme = tokenExpressions.at(tokenType);
 
-    // record old state
+    // old state
     std::shared_ptr<TokenizerNode> oldPrev = node->prev;
     std::shared_ptr<TokenizerNode> oldNext = node->next;
-    int oldStart = node->start;
     int oldEnd = node->end;
 
-    // make new root node for within content node scope
+    // new root node for within content node scope
     std::shared_ptr<TokenizerNode> newRoot = nullptr;
-
-    // record current node
     std::shared_ptr<TokenizerNode> currNode = node;
 
     // src file content (should be same for all nodes)
@@ -140,22 +136,22 @@ void tokenizeContentNode(std::shared_ptr<TokenizerNode> node, TOKEN_TYPE tokenTy
         // create and insert new content node
         if (currIndex != matchStart) {
             std::shared_ptr<TokenizerNode> newNode = std::make_shared<TokenizerNode>();
-
             newNode->tokenType = TOKEN_TYPE::CONTENT;
             newNode->src = node->src;
             newNode->start = currIndex;
             newNode->end = matchStart;
-            newNode->prev = nullptr;
+            newNode->prev = currNode;
             newNode->next = nullptr;
-
-            // iterate current node
-            currNode = newNode;
-            currIndex = matchEnd;
 
             // update new root if not set
             if (newRoot == nullptr) {
                 newRoot = newNode;
             }
+
+            // iterate current node and index
+            currNode->next = newNode;
+            currNode = newNode;
+            currIndex = matchStart;
         }
 
         // create and insert new lexical node
@@ -167,27 +163,29 @@ void tokenizeContentNode(std::shared_ptr<TokenizerNode> node, TOKEN_TYPE tokenTy
         newNode->prev = currNode;
         newNode->next = nullptr;
 
+        // update new root if not set
+        if (newRoot == nullptr) {
+            newRoot = newNode;
+            node = newRoot;
+        }
+
         // iterate current node
         currNode->next = newNode;
         currNode = newNode;
         currIndex = matchEnd;
 
-        // update new root if not set
-        if (newRoot == nullptr) {
-            newRoot = newNode;
-        }
-
-        // connect new node previous
+        // connect to previous
         if (oldPrev == nullptr) {
-            node = newRoot;
+            std::cout << "sdfafadf" << std::endl;
+            //node = newRoot;
         } else {
-            newRoot->next = oldNext;
+            currNode->next = oldNext;
             oldPrev->next = newRoot;
         }
     }
 
+    // create and insert new content node at end
     if (currIndex != oldEnd) {
-        std::cout << "adsf" << std::endl;
         // create and insert post content node
         std::shared_ptr<TokenizerNode> newNode = std::make_shared<TokenizerNode>();
         newNode->tokenType = TOKEN_TYPE::CONTENT;
@@ -202,7 +200,10 @@ void tokenizeContentNode(std::shared_ptr<TokenizerNode> node, TOKEN_TYPE tokenTy
         currNode = newNode;
         currIndex = matchEnd;
     }
+}
 
+void tokenizeNode(std::shared_ptr<TokenizerNode> node, TOKEN_TYPE tokenType) {
+    tokenizeContentNode(node, tokenType);
     std::cout << tokenizerNodeToString(node) << std::endl;
 }
 
@@ -217,7 +218,7 @@ int tokenize(std::shared_ptr<std::string> srcContents) {
     root->next = nullptr;
 
     // tokenize for each lexeme
-    tokenizeContentNode(root, TOKEN_TYPE::STRING);
+    tokenizeNode(root, TOKEN_TYPE::L_CURLY_DELIMETER);
 
     return 0;
 }
