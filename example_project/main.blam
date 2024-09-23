@@ -4,3 +4,7 @@ import add, sub from math
 main() {
     let a = "what is this string"
 }
+
+main2() {
+    let b = "this is another string"
+}

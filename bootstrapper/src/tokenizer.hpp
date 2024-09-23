@@ -83,7 +83,7 @@ std::string tokenizerNodeToString(std::shared_ptr<TokenizerNode> tokenNode) {
         ss << tokenNode->end << ">\n";
 
         std::string src = *tokenNode->src;
-        std::string srcInd = src.substr(tokenNode->start, tokenNode->end);
+        std::string srcInd = src.substr(tokenNode->start, tokenNode->end - tokenNode->start);
 
         ss << srcInd << std::endl;
 
@@ -115,7 +115,7 @@ void tokenizeContentNode(std::shared_ptr<TokenizerNode> node, TOKEN_TYPE tokenTy
     std::string src = *node->src;
 
     // src file content for within content node scope
-    std::string input = src.substr(node->start, node->end);
+    std::string input = src.substr(node->start, node->end - node->start);
 
     std::regex regex(lexeme);   // digested regex pattern
     std::smatch match;          // match results
@@ -187,7 +187,7 @@ void tokenizeContentNode(std::shared_ptr<TokenizerNode> node, TOKEN_TYPE tokenTy
     }
 
     if (currIndex != oldEnd) {
-        std::cout << "asdfasdfasd" << std::endl;
+        std::cout << "adsf" << std::endl;
         // create and insert post content node
         std::shared_ptr<TokenizerNode> newNode = std::make_shared<TokenizerNode>();
         newNode->tokenType = TOKEN_TYPE::CONTENT;
@@ -199,8 +199,8 @@ void tokenizeContentNode(std::shared_ptr<TokenizerNode> node, TOKEN_TYPE tokenTy
 
         // iterate current node
         currNode->next = newNode;
-        //currNode = newNode;
-        //currIndex = matchEnd;
+        currNode = newNode;
+        currIndex = matchEnd;
     }
 
     std::cout << tokenizerNodeToString(node) << std::endl;
