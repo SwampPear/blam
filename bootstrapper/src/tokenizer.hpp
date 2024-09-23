@@ -106,6 +106,8 @@ std::string TokenNodeToString(TokenNode *node) {
             ss << " -> ";
         }
 
+        ss << "\n";
+
         std::string src = *node->src;
         std::string srcInd = src.substr(node->start, node->end - node->start);
 
@@ -247,6 +249,8 @@ TokenNode *tokenizeContentNode(TokenNode *node, TOKEN_TYPE tokenType) {
 
     if (oldPrev != nullptr) {
         oldPrev->next = newRoot;
+    } else {
+        newRoot->prev = nullptr;
     }
 
     return newRoot;
