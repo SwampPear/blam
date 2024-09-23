@@ -95,7 +95,7 @@ std::string tokenizerNodeToString(std::shared_ptr<TokenizerNode> tokenNode) {
     return output;
 }
 
-std::shared_ptr<TokenizerNode> tokenizeContentNode(std::shared_ptr<TokenizerNode> node, TOKEN_TYPE tokenType) {
+void tokenizeContentNode(std::shared_ptr<TokenizerNode> node, TOKEN_TYPE tokenType) {
     std::string lexeme = tokenExpressions.at(tokenType);
 
     // old state
@@ -207,10 +207,10 @@ std::shared_ptr<TokenizerNode> tokenizeContentNode(std::shared_ptr<TokenizerNode
     return node;
 }
 
-void tokenizeNode(std::shared_ptr<TokenizerNode> node, TOKEN_TYPE tokenType) {
+std::shared_ptr<TokenizerNode> tokenizeNode(std::shared_ptr<TokenizerNode> node, TOKEN_TYPE tokenType) {
     node = tokenizeContentNode(node, tokenType);
-    
-    std::cout << tokenizerNodeToString(node) << std::endl;
+
+    return node;
 }
 
 int tokenize(std::shared_ptr<std::string> srcContents) {
@@ -224,7 +224,9 @@ int tokenize(std::shared_ptr<std::string> srcContents) {
     root->next = nullptr;
 
     // tokenize for each lexeme
-    tokenizeNode(root, TOKEN_TYPE::STRING);
+    root = tokenizeNode(root, TOKEN_TYPE::STRING);
+    std::cout << tokenizerNodeToString(root) << std::endl << std::endl << std::endl;
+    //root = tokenizeNode(root, TOKEN_TYPE::L_CURLY_DELIMETER);
 
     return 0;
 }
