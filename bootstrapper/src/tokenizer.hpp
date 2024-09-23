@@ -121,10 +121,11 @@ std::string TokenNodeToString(TokenNode *node) {
     return output;
 }
 
-TokenNode *tokenizeContentNode(TokenNode *node, TOKEN_TYPE tokenType) {
+void tokenizeContentNode(TokenNode *node, TOKEN_TYPE tokenType) {
     std::string lexeme = tokenExpressions.at(tokenType);
 
     // old state
+    TokenNode *oldNode = node;
     TokenNode *oldPrev = node->prev;
     TokenNode *oldNext = node->next;
     int oldEnd = node->end;
@@ -169,7 +170,9 @@ TokenNode *tokenizeContentNode(TokenNode *node, TOKEN_TYPE tokenType) {
             newNode->end = matchStart;
 
             // update position
-            newNode->prev = currNode;
+            if (currNode != oldNode) {
+                newNode->prev = currNode;
+            }
             newNode->next = nullptr;
 
             // update current node
@@ -197,7 +200,9 @@ TokenNode *tokenizeContentNode(TokenNode *node, TOKEN_TYPE tokenType) {
         newNode->end = matchEnd;
         
         // update position
-        newNode->prev = currNode;
+        if (currNode != oldNode) {
+            newNode->prev = currNode;
+        }
         newNode->next = nullptr;
 
         // update current node
@@ -222,12 +227,14 @@ TokenNode *tokenizeContentNode(TokenNode *node, TOKEN_TYPE tokenType) {
         // create and insert post content node
         TokenNode *newNode = new TokenNode;
         newNode->tokenType = TOKEN_TYPE::CONTENT;
-        newNode->src = node->src;
+        newNode->src = src;
         newNode->start = currIndex;
         newNode->end = oldEnd;
 
         // update position
-        newNode->prev = currNode;
+        if (currNode != oldNode) {
+            newNode->prev = currNode;
+        }
         newNode->next = nullptr;
 
         // update current node
@@ -248,20 +255,17 @@ TokenNode *tokenizeContentNode(TokenNode *node, TOKEN_TYPE tokenType) {
     currNode->next = oldNext;
 
     if (oldPrev != nullptr) {
+        std::cout << "oldPrev not null" << std::endl;
         oldPrev->next = newRoot;
     } else {
-        newRoot->prev = nullptr;
+        std::cout << "oldPrev null" << std::endl;
+        *node = *newRoot;
     }
-
-    return newRoot;
 }
 
 
 void tokenizeNode(TokenNode *node, TOKEN_TYPE tokenType) {
-    node = tokenizeContentNode(node, tokenType);
-
-    std::cout << TokenNodeToString(node) << std::endl << std::endl << std::endl;
-
+    tokenizeContentNode(node, tokenType);
 }
 
 
@@ -277,6 +281,12 @@ int tokenize(std::string *srcContents) {
 
     // tokenize for each lexeme
     tokenizeNode(root, TOKEN_TYPE::STRING);
+    tokenizeNode(root, TOKEN_TYPE::L_CURLY_DELIMETER);
+    //tokenizeNode(root->next->next, TOKEN_TYPE::R_CURLY_DELIMETER);
+
+    std::cout << TokenNodeToString(root) << std::endl << std::endl << std::endl;
+
+    //std::cout << TokenNodeToString(root) << std::endl << std::endl << std::endl;
     //std::cout << TokenNodeToString(root) << std::endl << std::endl << std::endl;
     //tokenizeNode(root, TOKEN_TYPE::L_CURLY_DELIMETER);
 
