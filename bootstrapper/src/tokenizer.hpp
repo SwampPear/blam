@@ -26,7 +26,7 @@ enum TOKEN_TYPE {
 
 // maps pertinent token type to corresponding regular expression
 const std::map<TOKEN_TYPE, std::string> tokenExpressions {
-    {TOKEN_TYPE::STRING, "\"[a-zA-Z0-9\\s]*\""},
+    {TOKEN_TYPE::STRING, "\"[a-zA-Z0-9\\s\\}]*\""},
     {TOKEN_TYPE::SINGLE_LINE_COMMENT, "\\/\\/[\\sa-zA-Z0-9]*\n*"},
     {TOKEN_TYPE::MULTI_LINE_COMMENT, "\\/\\*[\\sa-zA-Z0-9]*\\*\\/"},
     {TOKEN_TYPE::L_DELIMETER, "\\("},
@@ -145,6 +145,7 @@ void tokenizeContentNode(TokenNode *node, TOKEN_TYPE tokenType) {
     auto end = std::sregex_iterator();
 
     // current index of search
+    int offset = node->start;
     int currIndex = 0;
     int matchStart = 0;
     int matchEnd = 0;
@@ -166,8 +167,8 @@ void tokenizeContentNode(TokenNode *node, TOKEN_TYPE tokenType) {
             TokenNode *newNode = new TokenNode;
             newNode->tokenType = TOKEN_TYPE::CONTENT;
             newNode->src = src;
-            newNode->start = currIndex;
-            newNode->end = matchStart;
+            newNode->start = currIndex + offset;
+            newNode->end = matchStart + offset;
 
             // update position
             if (currNode != oldNode) {
@@ -196,8 +197,8 @@ void tokenizeContentNode(TokenNode *node, TOKEN_TYPE tokenType) {
         TokenNode *newNode = new TokenNode;
         newNode->tokenType = tokenType;
         newNode->src = src;
-        newNode->start = matchStart;
-        newNode->end = matchEnd;
+        newNode->start = matchStart + offset;
+        newNode->end = matchEnd + offset;
         
         // update position
         if (currNode != oldNode) {
@@ -223,12 +224,12 @@ void tokenizeContentNode(TokenNode *node, TOKEN_TYPE tokenType) {
     }
 
     // create and insert new content node at end
-    if (currIndex != oldEnd && matchFound) {
+    if (currIndex + offset != oldEnd && matchFound) {
         // create and insert post content node
         TokenNode *newNode = new TokenNode;
         newNode->tokenType = TOKEN_TYPE::CONTENT;
         newNode->src = src;
-        newNode->start = currIndex;
+        newNode->start = currIndex + offset;
         newNode->end = oldEnd;
 
         // update position
@@ -241,9 +242,9 @@ void tokenizeContentNode(TokenNode *node, TOKEN_TYPE tokenType) {
         currNode = newNode;
 
         // set new root if not set
-        if (newRoot == nullptr) {
-            newRoot = currNode;
-        }
+        //if (newRoot == nullptr) {
+        //    newRoot = currNode;
+        //}
 
         // update position relative to node before
         if (currNode->prev != nullptr) {
@@ -255,17 +256,49 @@ void tokenizeContentNode(TokenNode *node, TOKEN_TYPE tokenType) {
     currNode->next = oldNext;
 
     if (oldPrev != nullptr) {
-        std::cout << "oldPrev not null" << std::endl;
         oldPrev->next = newRoot;
+        newRoot->prev = oldPrev;
     } else {
-        std::cout << "oldPrev null" << std::endl;
-        *node = *newRoot;
+        if (newRoot != nullptr) {
+            *node = *newRoot;
+        }
     }
 }
 
 
 void tokenizeNode(TokenNode *node, TOKEN_TYPE tokenType) {
-    tokenizeContentNode(node, tokenType);
+    /*
+    oldPrev null
+    <CONTENT 0 98> -> <nullptr>, <STRING 98 119> ->
+        // this is some comment that should be parsed OUT
+        import add, sub from math
+
+        main() {
+        let a =
+    <STRING 98 119> -> <CONTENT 0 98> -> , <CONTENT 119 144> ->
+        "what is this string"
+    <CONTENT 119 144> -> <STRING 98 119> -> , <STRING 144 168> ->
+        }
+
+        main2() {
+        let b =
+    <STRING 144 168> -> <CONTENT 119 144> -> , <CONTENT 168 170> ->
+        "this is another string"
+    <CONTENT 168 170> -> <STRING 144 168> -> , <nullptr>
+
+        }
+    */
+    TokenNode *currNode = node;
+
+    while (currNode != nullptr) {
+        TokenNode *nextNode = currNode->next;
+
+        if (currNode->tokenType == TOKEN_TYPE::CONTENT) {
+            tokenizeContentNode(currNode, tokenType);
+        }
+
+        currNode = nextNode;
+    }
 }
 
 
@@ -281,14 +314,14 @@ int tokenize(std::string *srcContents) {
 
     // tokenize for each lexeme
     tokenizeNode(root, TOKEN_TYPE::STRING);
-    tokenizeNode(root, TOKEN_TYPE::L_CURLY_DELIMETER);
+    tokenizeNode(root, TOKEN_TYPE::R_CURLY_DELIMETER);
+    //tokenizeNode(root, TOKEN_TYPE::R_CURLY_DELIMETER);
+    //tokenizeNode(root->next->next, TOKEN_TYPE::R_CURLY_DELIMETER);
+    //tokenizeNode(root->next->next->next->next->next->next, TOKEN_TYPE::R_CURLY_DELIMETER);
+    //tokenizeNode(root, TOKEN_TYPE::L_CURLY_DELIMETER);
     //tokenizeNode(root->next->next, TOKEN_TYPE::R_CURLY_DELIMETER);
 
     std::cout << TokenNodeToString(root) << std::endl << std::endl << std::endl;
-
-    //std::cout << TokenNodeToString(root) << std::endl << std::endl << std::endl;
-    //std::cout << TokenNodeToString(root) << std::endl << std::endl << std::endl;
-    //tokenizeNode(root, TOKEN_TYPE::L_CURLY_DELIMETER);
 
     return 0;
 }
