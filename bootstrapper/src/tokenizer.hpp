@@ -226,18 +226,16 @@ void tokenizeContentNode(TokenizerNode *node, TOKEN_TYPE tokenType) {
         oldPrev->next = newRoot;
     }
 
-    std::cout << tokenizerNodeToString(newRoot) << std::endl << std::endl << std::endl;
-
     node = newRoot;
 }
 
-/*
-void tokenizeNode(std::shared_ptr<TokenizerNode> node, TOKEN_TYPE tokenType) {
-    node = tokenizeContentNode(node, tokenType);
 
-    return node;
+void tokenizeNode(TokenizerNode *node, TOKEN_TYPE tokenType) {
+    tokenizeContentNode(node, tokenType);
+
+    std::cout << tokenizerNodeToString(node) << std::endl << std::endl << std::endl;
 }
-*/
+
 
 int tokenize(std::string *srcContents) {
     // init root content node
@@ -250,9 +248,7 @@ int tokenize(std::string *srcContents) {
     root->next = nullptr;
 
     // tokenize for each lexeme
-    tokenizeContentNode(root, TOKEN_TYPE::STRING);
-    //std::cout << tokenizerNodeToString(root) << std::endl << std::endl << std::endl;
-    //root = tokenizeNode(root, TOKEN_TYPE::L_CURLY_DELIMETER);
+    tokenizeNode(root, TOKEN_TYPE::STRING);
 
     return 0;
 }
