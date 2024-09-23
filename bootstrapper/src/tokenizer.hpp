@@ -65,29 +65,53 @@ const std::map<TOKEN_TYPE, std::string> tokenNames {
     {TOKEN_TYPE::KEYWORD, "KEYWORD"}
 };
 
-struct TokenizerNode {
+struct TokenNode {
     TOKEN_TYPE tokenType;
     std::string *src;
     int start;
     int end;
-    TokenizerNode *prev;
-    TokenizerNode *next;
+    TokenNode *prev;
+    TokenNode *next;
 };
 
-std::string tokenizerNodeToString(TokenizerNode *tokenNode) {
+std::string TokenNodeToString(TokenNode *node) {
     std::stringstream ss;
 
-    while(tokenNode != nullptr) {
-        ss << "<" << tokenNames.at(tokenNode->tokenType) << " ";
-        ss << tokenNode->start << " ";
-        ss << tokenNode->end << ">\n";
+    while(node != nullptr) {
+        // this node
+        ss << "<" << tokenNames.at(node->tokenType) << " ";
+        ss << node->start << " ";
+        ss << node->end << ">";
+        ss << " -> ";
+        
+        // prev node
+        if (node->prev == nullptr) {
+            ss << "<nullptr>";
+        } else {
+            ss << "<" << tokenNames.at(node->prev->tokenType) << " ";
+            ss << node->prev->start << " ";
+            ss << node->prev->end << ">";
+            ss << " -> ";
+        }
 
-        std::string src = *tokenNode->src;
-        std::string srcInd = src.substr(tokenNode->start, tokenNode->end - tokenNode->start);
+        ss << ", ";
+
+        // next node
+        if (node->next == nullptr) {
+            ss << "<nullptr>";
+        } else {
+            ss << "<" << tokenNames.at(node->next->tokenType) << " ";
+            ss << node->next->start << " ";
+            ss << node->next->end << ">";
+            ss << " -> ";
+        }
+
+        std::string src = *node->src;
+        std::string srcInd = src.substr(node->start, node->end - node->start);
 
         ss << srcInd << std::endl;
 
-        tokenNode = tokenNode->next;
+        node = node->next;
     }
 
     std::string output = ss.str();
@@ -95,17 +119,17 @@ std::string tokenizerNodeToString(TokenizerNode *tokenNode) {
     return output;
 }
 
-void tokenizeContentNode(TokenizerNode *node, TOKEN_TYPE tokenType) {
+TokenNode *tokenizeContentNode(TokenNode *node, TOKEN_TYPE tokenType) {
     std::string lexeme = tokenExpressions.at(tokenType);
 
     // old state
-    TokenizerNode *oldPrev = node->prev;
-    TokenizerNode *oldNext = node->next;
+    TokenNode *oldPrev = node->prev;
+    TokenNode *oldNext = node->next;
     int oldEnd = node->end;
     std::string *src = node->src;           // will be copied to all nodes
 
-    TokenizerNode *newRoot = nullptr;
-    TokenizerNode *currNode = node;
+    TokenNode *newRoot = nullptr;
+    TokenNode *currNode = node;
 
     // src file content for within content node scope
     std::string input = *src;
@@ -136,7 +160,7 @@ void tokenizeContentNode(TokenizerNode *node, TOKEN_TYPE tokenType) {
         // create and insert new content node if needed
         if (currIndex != matchStart) {
             // create node
-            TokenizerNode *newNode = new TokenizerNode;
+            TokenNode *newNode = new TokenNode;
             newNode->tokenType = TOKEN_TYPE::CONTENT;
             newNode->src = src;
             newNode->start = currIndex;
@@ -164,7 +188,7 @@ void tokenizeContentNode(TokenizerNode *node, TOKEN_TYPE tokenType) {
         }
 
         // create and insert new lexical node
-        TokenizerNode *newNode = new TokenizerNode;
+        TokenNode *newNode = new TokenNode;
         newNode->tokenType = tokenType;
         newNode->src = src;
         newNode->start = matchStart;
@@ -193,9 +217,8 @@ void tokenizeContentNode(TokenizerNode *node, TOKEN_TYPE tokenType) {
 
     // create and insert new content node at end
     if (currIndex != oldEnd && matchFound) {
-        std::cout << "asdfasdf" << std::endl;
         // create and insert post content node
-        TokenizerNode *newNode = new TokenizerNode;
+        TokenNode *newNode = new TokenNode;
         newNode->tokenType = TOKEN_TYPE::CONTENT;
         newNode->src = node->src;
         newNode->start = currIndex;
@@ -226,20 +249,21 @@ void tokenizeContentNode(TokenizerNode *node, TOKEN_TYPE tokenType) {
         oldPrev->next = newRoot;
     }
 
-    node = newRoot;
+    return newRoot;
 }
 
 
-void tokenizeNode(TokenizerNode *node, TOKEN_TYPE tokenType) {
-    tokenizeContentNode(node, tokenType);
+void tokenizeNode(TokenNode *node, TOKEN_TYPE tokenType) {
+    node = tokenizeContentNode(node, tokenType);
 
-    std::cout << tokenizerNodeToString(node) << std::endl << std::endl << std::endl;
+    std::cout << TokenNodeToString(node) << std::endl << std::endl << std::endl;
+
 }
 
 
 int tokenize(std::string *srcContents) {
     // init root content node
-    TokenizerNode *root = new TokenizerNode;
+    TokenNode *root = new TokenNode;
     root->tokenType = TOKEN_TYPE::CONTENT;
     root->src = srcContents;
     root->start = 0;
@@ -249,6 +273,8 @@ int tokenize(std::string *srcContents) {
 
     // tokenize for each lexeme
     tokenizeNode(root, TOKEN_TYPE::STRING);
+    //std::cout << TokenNodeToString(root) << std::endl << std::endl << std::endl;
+    //tokenizeNode(root, TOKEN_TYPE::L_CURLY_DELIMETER);
 
     return 0;
 }
