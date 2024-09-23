@@ -104,7 +104,8 @@ void tokenizeContentNode(std::shared_ptr<TokenizerNode> node, TOKEN_TYPE tokenTy
     int oldEnd = node->end;
 
     // new root node for within content node scope
-    std::shared_ptr<TokenizerNode> newRoot = nullptr;
+    //std::shared_ptr<TokenizerNode> newRoot = nullptr;
+    std::shared_ptr<TokenizerNode> oldNode = node;
     std::shared_ptr<TokenizerNode> currNode = node;
 
     // src file content (should be same for all nodes)
@@ -144,9 +145,17 @@ void tokenizeContentNode(std::shared_ptr<TokenizerNode> node, TOKEN_TYPE tokenTy
             newNode->next = nullptr;
 
             // update new root if not set
-            if (newRoot == nullptr) {
-                newRoot = newNode;
+            if (oldNode == node) {
+                node = newNode;
             }
+
+            /*
+            if (newRoot == nullptr) {
+                std::cout << "node set" << std::endl;
+                newRoot = newNode;
+                node = newRoot;
+                //currNode = newRoot;
+            }*/
 
             // iterate current node and index
             currNode->next = newNode;
@@ -164,24 +173,14 @@ void tokenizeContentNode(std::shared_ptr<TokenizerNode> node, TOKEN_TYPE tokenTy
         newNode->next = nullptr;
 
         // update new root if not set
-        if (newRoot == nullptr) {
-            newRoot = newNode;
-            node = newRoot;
+        if (oldNode == node) {
+            node = newNode;
         }
 
         // iterate current node
         currNode->next = newNode;
         currNode = newNode;
         currIndex = matchEnd;
-
-        // connect to previous
-        if (oldPrev == nullptr) {
-            std::cout << "sdfafadf" << std::endl;
-            //node = newRoot;
-        } else {
-            currNode->next = oldNext;
-            oldPrev->next = newRoot;
-        }
     }
 
     // create and insert new content node at end
@@ -199,6 +198,14 @@ void tokenizeContentNode(std::shared_ptr<TokenizerNode> node, TOKEN_TYPE tokenTy
         currNode->next = newNode;
         currNode = newNode;
         currIndex = matchEnd;
+    }
+
+    // connect to previous
+    if (oldPrev != nullptr) {
+        currNode->next = oldNext;
+        oldPrev->next = node;
+    } else {
+        currNode->next = oldNext;
     }
 }
 
