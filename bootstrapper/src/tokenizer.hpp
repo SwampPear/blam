@@ -5,7 +5,7 @@
 #include <regex>
 #include <sstream>
 #include <string>
-#include "src/linked_list.hpp"
+#include "linked_list.hpp"
 
 // lexeme types of token
 enum TOKEN_TYPE {
