@@ -34,7 +34,7 @@ technologies.
 - no data piping or explicit currying of functions (lacks reasonability)
 - data first functional programming with svo syntax
 - mutability by default but with const values
-- content addressable code
+- content addressable code (for const values and functions)
 - eager evaluation
 - mostly call by value
 - pointer syntax for call by reference

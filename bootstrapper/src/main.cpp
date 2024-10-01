@@ -57,6 +57,7 @@ int main() {
     tokenizer.addRule("KEYWORD_STRUCT", "struct");
     tokenizer.addRule("KEYWORD_FROM", "from");
     tokenizer.addRule("KEYWORD_CONST", "const");
+    tokenizer.addRule("KEYWORD_CONST", "let");
     tokenizer.addRule("SPACE", "\\s+");
     tokenizer.addRule("ALPHANUM", "^[a-zA-Z][a-zA-Z0-9]+");
     tokenizer.addRule("NUM", "[0-9]+");
