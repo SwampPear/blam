@@ -17,13 +17,6 @@ technologies.
 ### Bloop Package Manager
 [Bloop](docs/bloop_package_manager/bloop.md)
 
-### Programming Concepts
-[Variables](docs/programming_concepts/variables.md)
-[Data Types](docs/programming_concepts/data_types.md)
-[Comments](docs/programming_concepts/comments.md)
-[Control Flow](docs/programming_concepts/control_flow.md)
-[Functions](docs/programming_concepts/functions.md)
-
 # Syntax
 - file extensions: .blam
 - readability left to right and top to down
