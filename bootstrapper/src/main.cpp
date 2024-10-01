@@ -18,7 +18,7 @@
 
 int main() {
     // read file to string
-    std::string path = std::filesystem::current_path()/"example_project/main.blam";
+    std::string path = "example_project/main.blam";
     std::string src = Lexi::readFile(path);
 
     // build tokenizer
