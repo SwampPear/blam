@@ -55,7 +55,10 @@ int main() {
     tokenizer.addRule("KEYWORD_IMPORT", "import");
     tokenizer.addRule("KEYWORD_PUBLIC", "pub");
     tokenizer.addRule("KEYWORD_STRUCT", "struct");
+    tokenizer.addRule("KEYWORD_FROM", "from");
     tokenizer.addRule("SPACE", "\\s+");
+    tokenizer.addRule("ALPHANUM", "^[a-zA-Z][a-zA-Z0-9]+");
+    tokenizer.addRule("NUM", "[0-9]+");
     
     // tokenize
     Lexi::TokenNode root = tokenizer.tokenize(&src);
