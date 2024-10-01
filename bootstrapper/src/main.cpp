@@ -13,22 +13,37 @@
 """
 */
 
-#include <iostream>
-#include <cstdlib>
 #include <filesystem>
-#include <string>
-#include <fstream>
-#include <sstream>
-#include <memory>
-#include "utils.hpp"
-#include "tokenizer.hpp"
+#include "lexi.hpp"
 
 int main() {
-    std::filesystem::path cwd = getCWD();
-    std::string src = "main.blam";
+    // read file to string
+    std::string path = std::filesystem::current_path()/"example_project/main.blam";
+    std::string src = Lexi::readFile(path);
 
-    std::string srcContents = readFile(cwd/src);
-    LLNode<TokenData> *root = tokenize(&srcContents);
+    // build tokenizer
+    Lexi::Tokenizer tokenizer = Lexi::Tokenizer();
+    tokenizer.addRule("STRING", "\"[a-zA-Z0-9\\s\\}]*\"");
+    tokenizer.addRule("SINGLE_LINE_COMMENT", "\\/\\/[\\sa-zA-Z0-9]*\n*");
+    tokenizer.addRule("MULTI_LINE_COMMENT", "\\/\\*[\\sa-zA-Z0-9]*\\*\\/");
+    tokenizer.addRule("L_DELIMETER", "\\(");
+    tokenizer.addRule("R_DELIMETER", "\\)");
+    tokenizer.addRule("L_CURLY_DELIMETER", "\\{");
+    tokenizer.addRule("R_CURLY_DELIMETER", "\\}");
+    tokenizer.addRule("L_SQUARE_DELIMETER", "\\[");
+    tokenizer.addRule("R_SQUARE_DELIMETER", "\\]");
+    tokenizer.addRule("OP_DOT", "\\.");
+    tokenizer.addRule("OP_PLUS", "\\+");
+    tokenizer.addRule("OP_MINUS", "\\-");
+    tokenizer.addRule("OP_EQUALS", "=");
+    tokenizer.addRule("OP_SLASH", "/");
+    tokenizer.addRule("KEYWORD", "return");
+    tokenizer.addRule("SPACE", "\\s+");
+    
+    // tokenize
+    Lexi::TokenNode root = tokenizer.tokenize(&src);
+
+    std::cout << tokenizer.tokenToString(root, true) << std::endl;
 
     return EXIT_SUCCESS;
 }
