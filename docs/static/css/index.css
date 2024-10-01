@@ -129,6 +129,40 @@ body {
     z-index: 990;
 }
 
+.menu__header {
+    display: flex;
+    align-items: center;
+    color: var(--white);
+    font-family: 'Lato', sans-serif;
+    font-size: 1.125rem;
+    font-weight: 600;
+    height: 2.5rem;
+    width: 16rem;
+    padding: 1rem 0 0 1rem;
+}
+
+.menu__button {
+    display: flex;
+    align-items: center;
+    background-color: transparent;
+    border-radius: .25rem;
+    border: none;
+    color: var(--light-gray);
+    font-family: 'Lato', sans-serif;
+    font-size: 1rem;
+    font-weight: 500;
+    height: 1.75rem;
+    width: 16rem;
+    padding: 0 0 0 1rem;
+    text-decoration: none;
+    transition: .125s ease-in-out;
+    margin: .125rem 0;
+}
+
+.menu__button:hover {
+    background-color: var(--dark-gray);
+}
+
 .content {
     margin: 0 0 0 16rem;
     padding: 4rem 8rem;
@@ -137,7 +171,7 @@ body {
 .content__h1 {
     color: var(--white);
     font-family: 'Lato', sans-serif;
-    font-size: 3rem;
+    font-size: 2.5rem;
     font-weight: 600;
 }
 
