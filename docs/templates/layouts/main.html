@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Blam</title>
+        <meta name="description" content="dscription">
+        <meta name="keywords" content="this">
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,100;0,300;0,400;0,700;0,900;1,100;1,300;1,400;1,700;1,900&display=swap" rel="stylesheet">
+        <link rel="icon" href="/ico/favicon.ico" type="image/x-icon">
+        <link rel="shortcut icon" href="/ico/favicon.ico" type="image/x-icon">
+        <link rel="stylesheet" href="/css/index.css">
+    </head>
+    <body>
+        <div class="nav">
+            <div class="nav__brand">
+                <img class="nav__brand__image" src="/svg/logo.svg" />
+                <div class="nav__brand__title">
+                    Blam
+                </div>
+            </div>
+            <div class="nav__links">
+                <a class="nav__link__active" href="/">Docs</a>
+                <a class="nav__link" href="/">Community</a>
+                <a class="nav__link" href="/">Roadmap</a>
+            </div>
+            <div class="nav__grow"></div>
+            <div class="nav__utils">
+                <button class="nav__search__button">
+                    {{template "partials/search" .}}
+                    <div class="nav__search__text">
+                        Search
+                    </div>
+                </button>
+            </div>
+        </div>
+        <div class="main">
+            <div class="menu">
+                
+            </div>
+            <div class="content">
+                {{embed}}
+            </div>
+        </div>
+    </body>
+</html>

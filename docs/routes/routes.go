@@ -7,5 +7,6 @@ import (
 
 func SetupRoutes(app *fiber.App) {
 	app.Get("/", handlers.Index)
+	app.Get("/comments", handlers.Index)
 	app.Use(handlers.Error404)
 }
