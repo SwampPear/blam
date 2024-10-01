@@ -24,7 +24,7 @@ int main() {
     // build tokenizer
     Lexi::Tokenizer tokenizer = Lexi::Tokenizer();
     tokenizer.addRule("STRING", "\"[a-zA-Z0-9\\s\\}]*\"");
-    tokenizer.addRule("SINGLE_LINE_COMMENT", "\\/\\/[\\sa-zA-Z0-9]*\n*");
+    tokenizer.addRule("SINGLE_LINE_COMMENT", "\\/\\/[\\sa-zA-Z0-9]*\n");
     tokenizer.addRule("MULTI_LINE_COMMENT", "\\/\\*[\\sa-zA-Z0-9]*\\*\\/");
     tokenizer.addRule("L_DELIMETER", "\\(");
     tokenizer.addRule("R_DELIMETER", "\\)");
@@ -32,12 +32,20 @@ int main() {
     tokenizer.addRule("R_CURLY_DELIMETER", "\\}");
     tokenizer.addRule("L_SQUARE_DELIMETER", "\\[");
     tokenizer.addRule("R_SQUARE_DELIMETER", "\\]");
+    tokenizer.addRule("OP_ARROW", "->");
+    tokenizer.addRule("OP_LEQ", "<=");
+    tokenizer.addRule("OP_GEQ", ">=");
+    tokenizer.addRule("OP_LT", "<");
+    tokenizer.addRule("OP_GT", ">");
+    tokenizer.addRule("OP_MINUS", "\\-");
     tokenizer.addRule("OP_DOT", "\\.");
     tokenizer.addRule("OP_PLUS", "\\+");
     tokenizer.addRule("OP_MINUS", "\\-");
     tokenizer.addRule("OP_EQUALS", "=");
     tokenizer.addRule("OP_SLASH", "/");
-    tokenizer.addRule("KEYWORD", "return");
+    tokenizer.addRule("OP_COMMA", ",");
+    tokenizer.addRule("KEYWORD_RETURN", "return");
+    tokenizer.addRule("KEYWORD_IMPORT", "import");
     tokenizer.addRule("SPACE", "\\s+");
     
     // tokenize
