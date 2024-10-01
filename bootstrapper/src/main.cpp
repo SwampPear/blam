@@ -44,6 +44,8 @@ int main() {
     tokenizer.addRule("OP_EQUALS", "=");
     tokenizer.addRule("OP_SLASH", "/");
     tokenizer.addRule("OP_COMMA", ",");
+    tokenizer.addRule("OP_SCOPE", "::");
+    tokenizer.addRule("OP_COLON", ":");
     tokenizer.addRule("KEYWORD_RETURN", "return");
     tokenizer.addRule("KEYWORD_IMPORT", "import");
     tokenizer.addRule("SPACE", "\\s+");
