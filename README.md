@@ -1,5 +1,5 @@
 <p align="center">
-  <img alt="dream logo" src=".github/logo.svg" style="width: 25%">   
+  <img alt="dream logo" src="assets/logo.svg" style="width: 25%">   
 </p>
 
 <p align="center" style="height: 32px">

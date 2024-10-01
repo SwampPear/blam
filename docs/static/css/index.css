@@ -1,0 +1,115 @@
+:root {
+    --black: #1f1f1f;
+    --white: #e6e6e6;
+    --light-gray: #b1b1b1;
+    --dark-gray: #2d2d2d;
+    --dark-gray-lighter: #363636;
+    --medium-gray: #424242;
+    --yellow: #f2ee81;
+}
+
+html,
+body {
+    background: var(--black);
+}
+
+.nav {
+    --h-padding: 12rem;
+    align-items: center;
+    display: flex;
+    background: var(--black);
+    border-bottom: 1px solid var(--dark-gray);
+    position: absolute;
+    top: 0;
+    left: 0;
+    padding: 0 var(--h-padding);
+    width: calc(100vw - (var(--h-padding) * 2));
+    height: 4rem;
+}
+
+.nav__brand {
+    align-items: center;
+    display: flex;
+}
+
+.nav__brand__image {
+    height: 1.375rem;
+    width: 1.375rem;
+}
+
+.nav__brand__title {
+    color: var(--white);
+    font-family: 'Lato', sans-serif;
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin: 0 0 0 1.25rem;
+}
+
+.nav__links {
+    align-items: center;
+    display: flex;
+    margin: 0 0 0 3rem;
+}
+
+.nav__link,
+.nav__link__active {
+    font-family: 'Lato', sans-serif;
+    font-size: 1rem;
+    font-weight: 600;
+    text-decoration: none;
+    margin: 0 1.25rem 0 0;
+}
+
+.nav__link {
+    color: var(--light-gray);
+    transition: .125s ease-in-out;
+}
+
+.nav__link:hover {
+    color: var(--white);
+}
+
+.nav__link__active {
+    color: var(--white);
+}
+
+.nav__grow {
+    flex: 1;
+}
+
+.nav__utils {
+    align-items: center;
+    display: flex;
+}
+
+.nav__search__button {
+    display: flex;
+    align-items: center;
+    background: var(--dark-gray);
+    border: none;
+    border-radius: .25rem;
+    height: 2rem;
+    padding: .1rem .75rem .25rem .75rem;
+    cursor: pointer;
+    transition: .125s ease-in-out;
+}
+
+.nav__search__button:hover {
+    background: var(--dark-gray-lighter);
+}
+
+.nav__search__text {
+    color: var(--white);
+    font-family: 'Lato', sans-serif;
+    font-size: 1rem;
+    font-weight: 600;
+    text-decoration: none;
+    height: fit-content;
+}
+
+.nav__search__button > svg {
+    fill: var(--white);
+    height: .75rem;
+    width: .75rem;
+    margin: 0 .5rem 0 0;
+}
