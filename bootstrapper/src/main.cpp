@@ -54,6 +54,7 @@ int main() {
     tokenizer.addRule("KEYWORD_RETURN", "return");
     tokenizer.addRule("KEYWORD_IMPORT", "import");
     tokenizer.addRule("KEYWORD_PUBLIC", "pub");
+    tokenizer.addRule("KEYWORD_STRUCT", "struct");
     tokenizer.addRule("SPACE", "\\s+");
     
     // tokenize
