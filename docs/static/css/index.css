@@ -156,7 +156,8 @@ body {
     width: 12rem;
     text-decoration: none;
     transition: .125s ease-in-out;
-    margin: .125rem 0;
+    margin: .125rem 0 0 0;
+    padding: 0 0 .125rem .5rem;
 }
 
 .menu__button:hover {
@@ -181,6 +182,7 @@ body {
     font-size: 1.25rem;
     font-weight: 600;
     line-height: .75rem;
+    margin: 2rem 0 0 0;
 }
 
 .content__p {

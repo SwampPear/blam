@@ -13,10 +13,6 @@ The objective of Blam is to provide a programming language that combines
 ease-of-use, strong security, and interoperability between existing 
 technologies.
 
-# Documentation
-### Bloop Package Manager
-[Bloop](docs/bloop_package_manager/bloop.md)
-
 # Syntax
 - file extensions: .blam
 - readability left to right and top to down
@@ -66,28 +62,3 @@ services without necessitating a refactoring of the code (hard)
 
 # Auxiliary Features
 - interactive VSCODE plugin, shows content of data structures while coding
-
-# Standard Library
-### [Argparse](docs/argparse/argparse.md)
-- argument parsing functionality similiar to how Python handles it
-
-### [Http](docs/http/http.md)
-- http functionality similar to Python requests module
-
-### [IO](docs/io/io.md)
-- for standard in, out, and error
-
-### [FS](docs/fs/fs.md)
-- file system functionality
-
-### [Json](docs/json/json.md)
-- json serialization similar to Python module
-
-### [Re](docs/re/re.md)
-- regex digestion and matching
-
-### [OS](docs/os/os.md)
-- similar to python os module
-
-### Thread
-- some type of threading (may be difficult)
