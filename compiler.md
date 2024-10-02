@@ -63,7 +63,5 @@ linker registry:
 
 5. 
 
-
-
 4. repeat 1-3 recursively until no imports are found (scrub any duplicate imports)
 5. tokenize down
