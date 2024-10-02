@@ -192,6 +192,15 @@ body {
     font-weight: 400;
 }
 
+.content__li {
+    list-style: disc outside none;
+    display: list-item;
+    color: var(--light-gray);
+    font-family: 'Lato', sans-serif;
+    font-size: 1.125rem;
+    font-weight: 400;
+}
+
 .content__code {
     background-color: var(--dark-gray);
     border-radius: .25rem;
