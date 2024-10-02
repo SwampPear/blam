@@ -1,6 +1,8 @@
 <h1 class="content__h1">Data Types</h1>
+<h2 class="content__h2">Weak and Strong Types</h2>
 <p class="content__p">
-    Variables can either be weakly typed or strongly typed.
+    Variables can either be weakly typed or strongly typed, mostly for ease of
+    prototyping and then type security for production-level code.
 </p>
 <pre class="content__code">
 // weak typing
@@ -9,24 +11,35 @@ a = 0
 // strong typing
 i8 a = 0
 </pre>
+<h2 class="content__h2">Primitive Data Types</h2>
 <p class="content__p">
-    There are several primitive data types that Blam offers.
+    Blam offers the conventional primitive data types.
 </p>
 <pre class="content__code">
-i8  - 8 bit integer
-i16 - 16 bit integer
-i32 - 32 bit integer
-i64 - 32 bit integer
+// i8  - 8 bit integer
+// i16 - 16 bit integer
+// i32 - 32 bit integer
+// i64 - 64 bit integer
+// int - alias for 32 bit integer
 
-u8  - 8 bit unsigned integer
-u16 - 16 bit unsigned integer
-u32 - 32 bit unsigned integer
-u64 - 64 bit unsigned integer
+// u8  - 8 bit unsigned integer
+// u16 - 16 bit unsigned integer
+// u32 - 32 bit unsigned integer
+// u64 - 64 bit unsigned integer
+// uint - alias for 32 bit unsigned integer
 
-bool - boolean
+// bool - 8 bit booleans
 
-char - character
+// char - 8 bit character
 </pre>
+<h2 class="content__h2">Strings</h2>
+<p class="content__p">
+    Unlike other languages, Blam only support one type of dynamic string.
+</p>
+<pre class="content__code">
+str a = "this is a string"
+</pre>
+<h2 class="content__h2">Arrays, Collections, and Vectors</h2>
 <p class="content__p">
     Arrays should always be strongly typed.
 </p>
@@ -35,7 +48,7 @@ i16 array[3]
 i16 array[] = [1, 2, 3]
 </pre>
 <p class="content__p">
-    Collections can be weakly typed and contain any data type.
+    Collections can be weakly typed and can contain any data type.
 </p>
 <pre class="content__code">
 collection = [1, true]
@@ -44,19 +57,14 @@ collection = [1, true]
     Vector arrays and vector collections do not have a static size.
 </p>
 <pre class="content__code">
-i8 array = <1, 2, 3>
-collection = <1, true>
+i8 array = &lt;1, 2, 3&gt;
+collection = &lt;1, true&gt;
 </pre>
+<h2 class="content__h2">Complex Types</h2>
 <p class="content__p">
     Blam supports union and intersection types.
 </p>
 <pre class="content__code">
 int | str union
 int & str intersection
-</pre>
-<p class="content__p">
-    Blam supports one type of dynamic string type
-</p>
-<pre class="content__code">
-str a = "this is a string"
 </pre>
