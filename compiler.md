@@ -65,3 +65,13 @@ linker registry:
 
 4. repeat 1-3 recursively until no imports are found (scrub any duplicate imports)
 5. tokenize down
+
+compilation should be done by llvm and linking should be with lld
+but should be intermediately be executed with as and lld to get bootstrapper working
+IR should be general assembly
+
+1. tokenization
+2. semantic analysis (asts)
+3. optimization
+4. code generation
+5. executable generation (linking, etc)

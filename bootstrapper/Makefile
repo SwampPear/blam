@@ -10,6 +10,7 @@ all: $(TARGET)
 
 $(TARGET): $(wildcard *.cpp $(foreach fd, ${SUB_DIR}, $(fd)/*.cpp)) $(wildcard *.hpp $(foreach fd, ${SUB_DIR}, $(fd)/*.hpp))
 	$(CC) $(CFLAGS) -o $(TARGET) $(wildcard *.cpp $(foreach fd, ${SUB_DIR}, $(fd)/*.cpp))
+	mv bootstrapper ../example_project
 
 clean:
 	$(RM) $(TARGET)
