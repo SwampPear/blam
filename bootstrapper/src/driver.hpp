@@ -5,9 +5,9 @@
 
 namespace BlamDriver {
 
-void compile() {
+Lexi::TokenNode tokenize(std::string &path) {
     // read file to string
-    std::string path = "src/main.blam";     // begin from main file, later should search for this
+
     std::string src = Blam::readFile(path);
 
     // build tokenizer
@@ -54,7 +54,19 @@ void compile() {
     // tokenize
     Lexi::TokenNode root = tokenizer.tokenize(&src);
 
-    //std::cout << tokenizer.tokenToString(root, true) << std::endl;
+    return root;
+}
+
+void compile() {
+    // start from main TODO: incorporate more robust file selection
+    std::string path = "src/main.blam";
+
+    // tokenize main file
+    Lexi::TokenNode root = tokenize(path);
+
+    // convert tokens into syntax tree
+    // generate intermediate representation from syntax trees
+    // generate machine code and executable from IR
     BlamIRCompiler::executable();
 }
 

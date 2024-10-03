@@ -19,8 +19,11 @@ void executable() {
     const char* assemblyCommand = "as -o build/main.o build/main.s";
     const char* linkerCommand = "ld -o build/main build/main.o -lSystem -syslibroot `xcrun -sdk macosx --show-sdk-path` -e _start -arch arm64";
 
-    std::system(assemblyCommand);
-    std::system(linkerCommand);
+    std::system(assemblyCommand);       // assemble
+    std::system(linkerCommand);         // link
+
+    // remove temporary files
+    std::system("rm build/main.o");
 }
 
 }  // namespace Blam
