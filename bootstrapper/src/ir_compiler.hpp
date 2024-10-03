@@ -1,8 +1,26 @@
 #pragma once
 
-// compile ir code to machine code using llvm
-// and then links with lld
+#include <cstdlib>
+#include <iostream>
+#include <string>
 
-namespace Blam {
+/**
+ * Intermediate compiler for intermediate representation code. This code exists
+ * so that bootstrapper can be implemented independent of machine code
+ * generation and linking.
+ */
+namespace BlamIRCompiler {
+
+/**
+ * Creates an executable from assembly code. Generates code with as and links
+ * with ld.
+ */
+void executable() {
+    const char* assemblyCommand = "as -o build/main.o build/main.s";
+    const char* linkerCommand = "ld -o build/main build/main.o -lSystem -syslibroot `xcrun -sdk macosx --show-sdk-path` -e _start -arch arm64";
+
+    std::system(assemblyCommand);
+    std::system(linkerCommand);
+}
 
 }  // namespace Blam

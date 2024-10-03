@@ -1,13 +1,14 @@
 #pragma once
 
 #include "lexi.hpp"
+#include "ir_compiler.hpp"
 
-namespace Blam {
+namespace BlamDriver {
 
 void compile() {
     // read file to string
     std::string path = "src/main.blam";     // begin from main file, later should search for this
-    std::string src = Lexi::readFile(path);
+    std::string src = Blam::readFile(path);
 
     // build tokenizer
     Lexi::Tokenizer tokenizer = Lexi::Tokenizer();
@@ -53,7 +54,8 @@ void compile() {
     // tokenize
     Lexi::TokenNode root = tokenizer.tokenize(&src);
 
-    std::cout << tokenizer.tokenToString(root, true) << std::endl;
+    //std::cout << tokenizer.tokenToString(root, true) << std::endl;
+    BlamIRCompiler::executable();
 }
 
 }  // Blam

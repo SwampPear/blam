@@ -1,7 +1,7 @@
 #include "driver.hpp"
 
 int main() {
-    Blam::compile();
+    BlamDriver::compile();
 
     return EXIT_SUCCESS;
 }
