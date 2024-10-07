@@ -210,3 +210,7 @@ body {
     font-weight: 400;
     padding: 1rem;
 }
+
+.content__img {
+    border-radius: .25rem;
+}

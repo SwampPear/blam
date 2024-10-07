@@ -1,0 +1,26 @@
+<h1 class="content__h1">Compiler</h1>
+<p class="content__p">
+    The details laid out here are mostly for documenting the implementation
+    process, but here they are nonetheless.
+</p>
+<h2 class="content__h2">Tokenization</h2>
+<p class="content__p">
+    The compilation process begins by reading the contents of a source file,
+    namely the main.blam file. Once the source contents are read, the tokenizer
+    creates a CONTENT node using the entirety of the file. CONTENT nodes are then
+    iteratively tokenized according to a rule specified by a certain regular
+    expression. Tokenization of source content is complete when either CONTENT
+    nodes have been parsed or until all rules have been parsed.
+</p>
+<p class="content__p">
+    For example take the following source which will be tokenized with the 
+    STRING, OP_EQ, ANUM, and SPACE rules, enumerated by B, C, D, and E 
+    respectively (with A enumerating CONTENT):
+</p>
+<pre class="content__code">
+str a = "this is a string"
+</pre>
+<p class="content__p">
+    This will be tokenized in the following steps:
+</p>
+<img class="content__img" src="/svg/tokenizer_diagram.svg">

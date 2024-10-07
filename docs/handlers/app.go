@@ -10,6 +10,10 @@ func Bloop(c *fiber.Ctx) error {
 	return c.Render("bloop", fiber.Map{}, "layouts/main")
 }
 
+func Compiler(c *fiber.Ctx) error {
+	return c.Render("compiler", fiber.Map{}, "layouts/main")
+}
+
 func Comments(c *fiber.Ctx) error {
 	return c.Render("comments", fiber.Map{}, "layouts/main")
 }
