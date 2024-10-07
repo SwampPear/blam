@@ -3,7 +3,7 @@
 #include <iostream>
 #include <sstream>
 
-namespace Blam {
+namespace BlamUtils {
 
 std::string readFile(const std::string& filePath) {
     std::ifstream fileStream(filePath);

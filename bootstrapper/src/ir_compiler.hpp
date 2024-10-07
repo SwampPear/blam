@@ -1,5 +1,3 @@
-#pragma once
-
 #include <cstdlib>
 #include <iostream>
 #include <string>
@@ -11,11 +9,7 @@
  */
 namespace BlamIRCompiler {
 
-/**
- * Creates an executable from assembly code. Generates code with as and links
- * with ld.
- */
-void executable() {
+void generateExecutable() {
     const char* assemblyCommand = "as -o build/main.o build/main.s";
     const char* linkerCommand = "ld -o build/main build/main.o -lSystem -syslibroot `xcrun -sdk macosx --show-sdk-path` -e _start -arch arm64";
 
@@ -26,4 +20,4 @@ void executable() {
     std::system("rm build/main.o");
 }
 
-}  // namespace Blam
+}  // BlamIRCompiler

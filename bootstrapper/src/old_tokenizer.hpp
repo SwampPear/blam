@@ -1,7 +1,5 @@
 // Copyright 2024 Michael Vaden
 
-#pragma once
-
 #include <fstream>
 #include <iostream>
 #include <map>
@@ -10,9 +8,8 @@
 #include <sstream>
 #include <stdexcept>
 #include <string>
-#include "utils.hpp"
 
-namespace Lexi {
+namespace BlamTokenizer {
 
 struct TokenData {
     int tokenType;
@@ -32,7 +29,7 @@ struct LLNode {
     std::shared_ptr<LLNode> prev;
 };
 
-typedef std::shared_ptr<Lexi::LLNode> TokenNode;
+typedef std::shared_ptr<BlamTokenizer::LLNode> TokenNode;
 
 class Tokenizer {
  public:
@@ -223,7 +220,7 @@ class Tokenizer {
                 }
             }
 
-            // lexical node
+            // BlamTokenizercal node
             std::shared_ptr<LLNode> node = createNode(
                 tokenType, src, matchStart + offset, matchEnd + offset);
             node->next = nullptr;
@@ -283,4 +280,4 @@ class Tokenizer {
     }
 };
 
-}  // namespace Lexi
+}  // namespace BlamTokenizer

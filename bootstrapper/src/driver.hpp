@@ -1,17 +1,16 @@
-#pragma once
-
-#include "lexi.hpp"
+#include "tokenizer.hpp"
 #include "ir_compiler.hpp"
+#include "utils.hpp"
 
 namespace BlamDriver {
 
-Lexi::TokenNode tokenize(std::string &path) {
+BlamTokenizer::TokenNode tokenize(std::string &path) {
     // read file to string
 
-    std::string src = Blam::readFile(path);
+    std::string src = BlamUtils::readFile(path);
 
     // build tokenizer
-    Lexi::Tokenizer tokenizer = Lexi::Tokenizer();
+    BlamTokenizer::Tokenizer tokenizer = BlamTokenizer::Tokenizer();
     tokenizer.addRule("STRING", "\"[a-zA-Z0-9\\s\\}]*\"");
     tokenizer.addRule("SINGLE_LINE_COMMENT", "\\/\\/[\\sa-zA-Z0-9]*\n");
     tokenizer.addRule("MULTI_LINE_COMMENT", "\\/\\*[\\sa-zA-Z0-9]*\\*\\/");
@@ -48,11 +47,11 @@ Lexi::TokenNode tokenize(std::string &path) {
     tokenizer.addRule("KEYWORD_CONST", "const");
     tokenizer.addRule("KEYWORD_CONST", "let");
     tokenizer.addRule("SPACE", "\\s+");
-    tokenizer.addRule("ALPHANUM", "^[a-zA-Z][a-zA-Z0-9]+");
+    tokenizer.addRule("ALPHANUM", "^[a-zA-Z][a-zA-Z0-9]*");
     tokenizer.addRule("NUM", "[0-9]+");
     
     // tokenize
-    Lexi::TokenNode root = tokenizer.tokenize(&src);
+    BlamTokenizer::TokenNode root = tokenizer.tokenize(&src);
 
     std::cout << tokenizer.tokenToString(root, true) << std::endl;
 
@@ -64,12 +63,12 @@ void compile() {
     std::string path = "src/main.blam";
 
     // tokenize main file
-    Lexi::TokenNode root = tokenize(path);
+    BlamTokenizer::TokenNode root = tokenize(path);
 
     // convert tokens into syntax tree
     // generate intermediate representation from syntax trees
     // generate machine code and executable from IR
-    BlamIRCompiler::executable();
+    BlamIRCompiler::generateExecutable();
 }
 
-}  // Blam
+}  // BlamDriver
