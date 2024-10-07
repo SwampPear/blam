@@ -2,14 +2,15 @@
 #include <sstream>
 
 /**
- * Generates intermediate code (assembly) from abstract tokens.
+ * Generates intermediate representation code from ASTs.
  */
 namespace BlamIRGenerator {
 
 /**
  * Generates a header for this program.
+ * TODO: should be replaced with LLVM IR
  */
-std::string generateHeader() {
+std::string generate_header() {
     std::stringstream ss;
 
     ss << ".section __TEXT,__text,regular,pure_instructions\n";

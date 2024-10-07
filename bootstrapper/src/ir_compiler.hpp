@@ -9,7 +9,11 @@
  */
 namespace BlamIRCompiler {
 
-void generateExecutable() {
+/**
+ * Generates an intermediate Mach-O executable for bootstrapper.
+ * TODO: change to LLVM IR
+ */
+void generate_executable() {
     const char* assemblyCommand = "as -o build/main.o build/main.s";
     const char* linkerCommand = "ld -o build/main build/main.o -lSystem -syslibroot `xcrun -sdk macosx --show-sdk-path` -e _start -arch arm64";
 

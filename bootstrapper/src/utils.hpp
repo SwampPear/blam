@@ -3,9 +3,12 @@
 #include <iostream>
 #include <sstream>
 
+/**
+ * Some useful functionality.
+ */
 namespace BlamUtils {
 
-std::string readFile(const std::string& filePath) {
+std::string read_file(const std::string& filePath) {
     std::ifstream fileStream(filePath);
 
     if (!fileStream.is_open()) {
@@ -21,4 +24,4 @@ std::string readFile(const std::string& filePath) {
     return std::string(buffer.str());
 }
 
-}  // Blam
+}  // namespace BlamUtils

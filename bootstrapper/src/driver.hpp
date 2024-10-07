@@ -4,6 +4,7 @@
 
 namespace BlamDriver {
 
+/*
 BlamTokenizer::TokenNode tokenize(std::string &path) {
     // read file to string
 
@@ -56,19 +57,24 @@ BlamTokenizer::TokenNode tokenize(std::string &path) {
     std::cout << tokenizer.tokenToString(root, true) << std::endl;
 
     return root;
-}
+}*/
 
+/**
+ * Compiles a Blam program.
+ */
 void compile() {
     // start from main TODO: incorporate more robust file selection
     std::string path = "src/main.blam";
+    std::string source_contents = BlamUtils::read_file(source_contents);
+
 
     // tokenize main file
-    BlamTokenizer::TokenNode root = tokenize(path);
+    //BlamTokenizer::TokenNode root = tokenize(path);
 
     // convert tokens into syntax tree
     // generate intermediate representation from syntax trees
     // generate machine code and executable from IR
-    BlamIRCompiler::generateExecutable();
+    //BlamIRCompiler::generateExecutable();
 }
 
 }  // BlamDriver
