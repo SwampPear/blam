@@ -15,6 +15,8 @@
         <link rel="icon" href="/ico/favicon.ico" type="image/x-icon">
         <link rel="shortcut icon" href="/ico/favicon.ico" type="image/x-icon">
         <link rel="stylesheet" href="/css/index.css">
+        <script src="/lib/lexi/lexi-wasm.js"></script>
+        <script src="/lib/lexi/lexi.js"></script>
     </head>
     <body>
         <div class="nav">
@@ -61,5 +63,94 @@
                 {{embed}}
             </div>
         </div>
+        <script>
+            const codeBlocks = document.querySelectorAll( '.content__code' )
+
+            const rules = [
+                ["STRING", "\"[a-zA-Z0-9\\s\\}]*\""],
+                ["SINGLE_LINE_COMMENT", "\\/\\/[\\sa-zA-Z0-9]*\n+"],
+                ["MULTI_LINE_COMMENT", "\\/\\*\n*[\\sa-zA-Z0-9]*\\*\\/"],
+                ["L_DELIMETER", "\\("],
+                ["R_DELIMETER", "\\)"],
+                ["L_CURLY_DELIMETER", "\\{"],
+                ["R_CURLY_DELIMETER", "\\}"],
+                ["L_SQUARE_DELIMETER", "\\["],
+                ["R_SQUARE_DELIMETER", "\\]"],
+                ["OP_ARROW", "\\->"],
+                ["OP_DOT", "\\."],
+                ["OP_PLUS", "\\+"],
+                ["OP_MINUS", "\\-"],
+                ["OP_EQUALS", "="],
+                ["OP_SLASH", "/"],
+                ["KEYWORD", "return|true|false"],
+                ["SPACE", "\\s+"],
+                ["NUM", "[0-9]+"]
+            ]
+
+            const color = ( tokenType ) => {
+                switch( tokenType ) {
+                    case "STRING":
+                        return '#D5FF80'
+                    case "SINGLE_LINE_COMMENT":
+                        return '#b1b1b1'
+                    case "L_DELIMETER":
+                        return '#FFD173'
+                    case "R_DELIMETER":
+                        return '#FFD173'
+                    case "L_CURLY_DELIMETER":
+                        return '#FFD173'
+                    case "R_CURLY_DELIMETER":
+                        return '#FFD173'
+                    case "L_SQUARE_DELIMETER":
+                        return '#FFD173'
+                    case "R_SQUARE_DELIMETER":
+                        return '#FFD173'
+                    case "OP_ARROW":
+                        return '#FFAD66'
+                    case "OP_DOT":
+                        return '#FFAD66'
+                    case "OP_PLUS":
+                        return '#FFAD66'
+                    case "OP_MINUS":
+                        return '#FFAD66'
+                    case "OP_EQUALS":
+                        return '#FFAD66'
+                    case "OP_SLASH":
+                        return '#FFAD66'
+                    case "NUM":
+                        return '#DFBFFF'
+                    default:
+                        return '#b1b1b1'
+                }
+            }
+
+            Array.from( codeBlocks ).forEach( element => {
+                const src = element.textContent
+
+                console.log( src )
+
+                const lexi = new Lexi( src, rules, ( tokens ) => {
+                    // reset text content
+                    element.textContent = ""
+
+                    console.log( tokens )
+
+                    Array.from( tokens ).forEach( token => {
+                        let tokenType = token.name
+                        const start = token.start
+                        const end = token.end - token.start
+                        const fragmentText = src.substr( start, end )
+
+                        const span = document.createElement( 'span' )
+                        span.style.color = color( tokenType )
+                        span.textContent = fragmentText
+
+                        element.appendChild( span )
+
+                        console.log( fragmentText )
+                    })
+                })
+            })
+        </script>
     </body>
 </html>
