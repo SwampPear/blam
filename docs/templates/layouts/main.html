@@ -82,7 +82,8 @@
                 ["OP_MINUS", "\\-"],
                 ["OP_EQUALS", "="],
                 ["OP_SLASH", "/"],
-                ["KEYWORD", "return|true|false"],
+                ["KEYWORD", "return|if|for|while"],
+                ["TYPE", "i8|i16|bool"],
                 ["SPACE", "\\s+"],
                 ["NUM", "[0-9]+"]
             ]
@@ -117,6 +118,10 @@
                         return '#FFAD66'
                     case "OP_SLASH":
                         return '#FFAD66'
+                    case "KEYWORD":
+                        return '#FFAD66'
+                    case "TYPE":
+                        return '#DFBFFF'
                     case "NUM":
                         return '#DFBFFF'
                     default:
