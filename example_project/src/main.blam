@@ -1,34 +1,6 @@
 // this is some comment that should be parsed OUT
-import add, sub from math
-
-/*
-this is a multiline comment that should be parsed out
-
-newlines    some tabs
-
-
-
-blah
-*/
-
-struct CMD {
-    pub CMD(project: str) -> Self     // associated public constructor
-
-    project: str
-    workspace: str
-    cwd: str
-    nums: u8[]
-
-    initWorkspace() -> str            // associated public function
-}
-
-CMD::initWorkspace() {
-    // this does not do anything
-    b = a <= 8 < 9 >= 7 > 3
-
-    return "this should be the workspace"
-}
 
 main() {
-    let a = "what is this str}ing"
+    str a = "what is this string"
+    print(a)
 }

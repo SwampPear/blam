@@ -54,6 +54,8 @@ Lexi::TokenNode tokenize(std::string &path) {
     // tokenize
     Lexi::TokenNode root = tokenizer.tokenize(&src);
 
+    std::cout << tokenizer.tokenToString(root, true) << std::endl;
+
     return root;
 }
 

@@ -62,6 +62,10 @@ class Tokenizer {
         return root;
     }
 
+    void parse(TokenNode root) {
+
+    }
+
     std::string tokenToString(std::shared_ptr<LLNode> node, bool displayContent) {
         std::stringstream ss;
 
