@@ -96,79 +96,32 @@ Token* createToken(int id, int start, int end) {
  * @param last - the last token in the range to replace
  * @param replacement - the token to replace the range with
  */
-/*
+
 void replaceRange(Token* first, Token* last, Token* replacement) {
-    // validate args
-    if (first == nullptr) {
-        throw std::runtime_error("\'first\' token must not be null");
-    }
-
-    if (last == nullptr) {
-        throw std::runtime_error("\'last\' token must not be null");
-    }
-
-    if (replacement == nullptr) {
-        throw std::runtime_error("\'replacement\' token must not be null");
-    }
-
     // old state
-    Token* oldFirstPrev = first->prev;
-    Token* oldLastNext = last->next;
+    Token* oldPrev = first->prev;
+    Token* oldNext = last->next;
 
-    // link replacement to previous
-    replacement->prev = oldFirstPrev;
-
-    if (oldFirstPrev != nullptr) {
-        oldFirstPrev->next = replacement;
-    } else {
-        *first = *replacement;
-    }
-
-    // link replacement to nexts
-    Token *curr = replacement;
-
-    while(curr->next != nullptr) {
+    // link next
+    Token* curr = replacement;
+    while (curr->next != nullptr) {
         curr = curr->next;
     }
 
-    curr->next = oldLastNext;
+    curr->next = oldNext;
 
-    if (oldLastNext != nullptr) {
-        oldLastNext->prev = curr;
+    if (oldNext != nullptr) {
+        oldNext->prev = curr;
     }
-}*/
-void replace(Token* replaced, Token* replacement) {
-        if (replaced == nullptr) {
-            throw std::runtime_error("Replaced node cannot be null.");
-        }
 
-        if (replacement == nullptr) {
-            throw std::runtime_error("Replacement node cannot be null.");
-        }
-
-        // record next node before replacement
-        Token* oldNext = replaced->next;
-
-        // link replacement to replaced previous node 
-        replacement->prev = replaced->prev;
-
-        // locate last node of replacement
-        Token* currNode = replacement;
-
-        while (currNode->next != nullptr) {
-            currNode = currNode->next;
-        }
-
-        // replace next node of replacement with replaced next
-        currNode->next = oldNext;
-
-        if (oldNext != nullptr) {
-            oldNext->prev = currNode;
-        }
-
-        // finally replace the replacement
-        *replaced = *replacement;
+    // link prev
+    if (oldPrev != nullptr) {
+        oldPrev->next = replacement;
+        replacement->prev = oldPrev;
     }
+
+    *first = *replacement;
+}
 
 /**
  * Converts a single token to a string representation for debugging.
@@ -339,7 +292,7 @@ void tokenizeContentNode(Token* node, std::string* src, int id) {
 
     // insert new node tree in place of old
     if (rootNode != nullptr) {
-        replace(node, rootNode);
+        replaceRange(node, node, rootNode);
     }
 }
 
