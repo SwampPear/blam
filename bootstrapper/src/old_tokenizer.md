@@ -87,54 +87,6 @@ class Tokenizer {
     //int currentRule;
     std::unordered_map<int, Lexeme> lexemes;
 
-    std::shared_ptr<LLNode> createNode(int tokenType, std::string *src, int start, int end) {
-        std::shared_ptr<LLNode> node = std::make_shared<LLNode>();
-
-        std::shared_ptr<TokenData> tokenData = std::make_shared<TokenData>();
-        tokenData->tokenType = tokenType;
-        tokenData->src = src;
-        tokenData->start = start;
-        tokenData->end = end;
-
-        node->data = tokenData;
-
-        return node;
-    }
-
-    /*
-    std::string singleNodeToString(std::shared_ptr<LLNode> node) {
-        if (node == nullptr) return "<null>";
-
-        std::stringstream ss;
-
-        ss << "<" << lexemes.at(node->data->tokenType).name << " ";
-        ss << node->data->start << " " << node->data->end << ">";
-
-        return ss.str();
-    }
-    */
-
-    /*
-    std::string tokenNodeToString(std::shared_ptr<LLNode> node, bool displayContent) {
-        if (node == nullptr) return "<null>";
-
-        std::stringstream ss;
-
-        ss << singleNodeToString(node) << " - ";
-        ss << singleNodeToString(node->prev) << ", ";
-        ss << singleNodeToString(node->next);
-
-        if (displayContent) {
-            std::string display = *node->data->src;
-            int i = node->data->start;
-            int j = node->data->end - node->data->start;
-            ss << "\n" << display.substr(i, j) << "\n";
-        }
-
-        return ss.str();
-    }
-    */
-
     /*
     void replace(std::shared_ptr<LLNode> replaced, std::shared_ptr<LLNode> replacement) {
         if (replaced == nullptr) {

@@ -211,29 +211,28 @@ std::string tokenToString(Token* token, std::string* src, bool display_content) 
 
 /**
  * Tokenizes a content node.
- * @param token - the content node token to tokenize
+ * @param node - the content node token to tokenize
  * @param src - the source
  * @param id - the id to tokenize for
  */
-void tokenizeContentNode(Token* token, std::string* src, int id) {
+void tokenizeContentNode(Token* node, std::string* src, int id) {
     // regex mapped to token type
-    //std::string expression = lexemes.at(tokenType).expr;
-    std::string expr = LEXEMES[id].expr;
+    std::string expression = LEXEMES[id].expr;
 
-    int oldEnd = token->end;               // end of token in source
+    int oldEnd = node->end;
 
-    // source within content node scope
+    // src file content for within content node scope
     std::string input = *src;
-    input = input.substr(token->start, token->end);
+    input = input.substr(node->start, node->end - node->start);
 
     // match expression
-    std::regex regex(expr);
+    std::regex regex(expression);
     std::smatch match;
     auto begin = std::sregex_iterator(input.begin(), input.end(), regex);
     auto end = std::sregex_iterator();
 
     // current index of search
-    int offset = token->start;
+    int offset = node->start;
     int currIndex = 0;
     int matchStart = 0;
     int matchEnd = 0;
@@ -317,8 +316,9 @@ void tokenizeContentNode(Token* token, std::string* src, int id) {
         }
     }
 
+    // insert new node tree in place of old
     if (rootNode != nullptr) {
-        replaceRange(token, token, rootNode);
+        replaceRange(node, node, rootNode);
     }
 }
 

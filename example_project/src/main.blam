@@ -1,6 +1,3 @@
 // this is some comment that should be parsed OUT
 
-main() {
-    str a = "what is this string"
-    print(a)
-}
+main()
