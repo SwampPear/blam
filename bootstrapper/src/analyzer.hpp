@@ -52,8 +52,11 @@ const Lexeme LEXEMES[] = {
     Lexeme{"OP_GEQ", ">="},
     Lexeme{"OP_LT", "<"},
     Lexeme{"OP_GT", ">"},
-    Lexeme{"OP_EQUALS", "="},
-    Lexeme{"OP_MINUS", "\\-"},
+    Lexeme{"OP_NEQ", "!="},
+    Lexeme{"OP_EQQ", "=="},
+    Lexeme{"OP_EQ", "="},
+    Lexeme{"OP_NOT", "!"},
+    Lexeme{"OP_MI", "\\-"},
     Lexeme{"OP_DOT", "\\."},
     Lexeme{"OP_PLUS", "\\+"},
     Lexeme{"OP_MINUS", "\\-"},
@@ -73,6 +76,32 @@ const Lexeme LEXEMES[] = {
     Lexeme{"ALPHANUM", "^[a-zA-Z][a-zA-Z0-9]*"},
     Lexeme{"NUM", "[0-9]+"},
 };
+/*
+syntax rules
+!worth noting function names should be cached during this step
+- CALL
+add(1, 2)
+math.add(1, 2)
+print("Asdf")
+print()
+
+- OPERATION
+1 + 2
+x + 2
+x + x
+x / CALL
+a == b
+
+- ASSIGNMENT
+i8 x = OPERATION
+
+- FUNCTION
+main() {
+    ASSIGNMENT
+    CALL
+}
+
+*/
 
 /**
  * Creates a token.
