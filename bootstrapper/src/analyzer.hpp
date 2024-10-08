@@ -96,6 +96,7 @@ Token* createToken(int id, int start, int end) {
  * @param last - the last token in the range to replace
  * @param replacement - the token to replace the range with
  */
+/*
 void replaceRange(Token* first, Token* last, Token* replacement) {
     // validate args
     if (first == nullptr) {
@@ -135,17 +136,39 @@ void replaceRange(Token* first, Token* last, Token* replacement) {
     if (oldLastNext != nullptr) {
         oldLastNext->prev = curr;
     }
+}*/
+void replace(Token* replaced, Token* replacement) {
+        if (replaced == nullptr) {
+            throw std::runtime_error("Replaced node cannot be null.");
+        }
 
-    // deallocate old range
-    /*
-    Token* curr = first;
+        if (replacement == nullptr) {
+            throw std::runtime_error("Replacement node cannot be null.");
+        }
 
-    while(curr != nullptr) {
-        curr = curr->next;
-        delete curr;
+        // record next node before replacement
+        Token* oldNext = replaced->next;
+
+        // link replacement to replaced previous node 
+        replacement->prev = replaced->prev;
+
+        // locate last node of replacement
+        Token* currNode = replacement;
+
+        while (currNode->next != nullptr) {
+            currNode = currNode->next;
+        }
+
+        // replace next node of replacement with replaced next
+        currNode->next = oldNext;
+
+        if (oldNext != nullptr) {
+            oldNext->prev = currNode;
+        }
+
+        // finally replace the replacement
+        *replaced = *replacement;
     }
-    */
-}
 
 /**
  * Converts a single token to a string representation for debugging.
@@ -181,9 +204,7 @@ std::string singleTokenToString(Token* token, std::string* src, bool display_con
 
     // content
     if (display_content) {
-        int start = token->start;
-        int end = token->end;
-        ss << "\n" << src->substr(start, end) << "\n";
+        ss << "\n" << src->substr(token->start, token->end - token->start) << "\n";
     }
 
     return ss.str();
@@ -318,7 +339,7 @@ void tokenizeContentNode(Token* node, std::string* src, int id) {
 
     // insert new node tree in place of old
     if (rootNode != nullptr) {
-        replaceRange(node, node, rootNode);
+        replace(node, rootNode);
     }
 }
 
