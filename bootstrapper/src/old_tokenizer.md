@@ -33,18 +33,22 @@ typedef std::shared_ptr<BlamTokenizer::LLNode> TokenNode;
 
 class Tokenizer {
  public:
+    /*
     Tokenizer() {
-        currentRule = 0;
+        //currentRule = 0;
 
-        addRule("CONTENT", "");     // id 0 reserved for content node
+        //addRule("CONTENT", "");     // id 0 reserved for content node
     }
+    */
 
+    /*
     void addRule(std::string name, std::string expr) {
         Lexeme lexeme {name, expr};
         lexemes[currentRule] = lexeme;
 
         currentRule++;
     }
+    */
 
     std::shared_ptr<LLNode> tokenize(std::string *src) {
         std::shared_ptr<LLNode> root = createNode(
@@ -59,10 +63,12 @@ class Tokenizer {
         return root;
     }
 
+    /*
     void parse(TokenNode root) {
 
     }
-
+    */
+    /*
     std::string tokenToString(std::shared_ptr<LLNode> node, bool displayContent) {
         std::stringstream ss;
 
@@ -75,9 +81,10 @@ class Tokenizer {
 
         return ss.str();
     }
+    */
 
  private:
-    int currentRule;
+    //int currentRule;
     std::unordered_map<int, Lexeme> lexemes;
 
     std::shared_ptr<LLNode> createNode(int tokenType, std::string *src, int start, int end) {
@@ -94,6 +101,7 @@ class Tokenizer {
         return node;
     }
 
+    /*
     std::string singleNodeToString(std::shared_ptr<LLNode> node) {
         if (node == nullptr) return "<null>";
 
@@ -104,7 +112,9 @@ class Tokenizer {
 
         return ss.str();
     }
+    */
 
+    /*
     std::string tokenNodeToString(std::shared_ptr<LLNode> node, bool displayContent) {
         if (node == nullptr) return "<null>";
 
@@ -123,7 +133,9 @@ class Tokenizer {
 
         return ss.str();
     }
+    */
 
+    /*
     void replace(std::shared_ptr<LLNode> replaced, std::shared_ptr<LLNode> replacement) {
         if (replaced == nullptr) {
             throw std::runtime_error("Replaced node cannot be null.");
@@ -156,6 +168,7 @@ class Tokenizer {
         // finally replace the replacement
         *replaced = *replacement;
     }
+    */
 
     void tokenizeContentNode(std::shared_ptr<LLNode> node, int tokenType) {
         // regex mapped to token type
