@@ -30,9 +30,12 @@ func Variables(c *fiber.Ctx) error {
 	return c.Render("variables", fiber.Map{}, "layouts/main")
 }
 
-
 func ControlFlow(c *fiber.Ctx) error {
 	return c.Render("control_flow", fiber.Map{}, "layouts/main")
+}
+
+func Structs(c *fiber.Ctx) error {
+	return c.Render("structs", fiber.Map{}, "layouts/main")
 }
 
 func Error404(c *fiber.Ctx) error {
