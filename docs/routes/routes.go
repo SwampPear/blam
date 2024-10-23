@@ -15,5 +15,7 @@ func SetupRoutes(app *fiber.App) {
 	app.Get("/variables", handlers.Variables)
 	app.Get("/control_flow", handlers.ControlFlow)
 	app.Get("/structs", handlers.Structs)
+	app.Get("/errors", handlers.Errors)
+	app.Get("/ownership", handlers.Ownership)
 	app.Use(handlers.Error404)
 }

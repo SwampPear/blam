@@ -1,5 +1,17 @@
-// this is some comment that should be parsed OUT
+/**
+ * @author Michael Vaden
+ * @created 10-23-2024
+ *
+ * This is an example file for the Blam programming language to be used for
+ * compiler design. It should cover all of the necessary concepts used in the
+ * compiler, except for imports, which will be implemented when the native
+ * compiler is built.
+ */
 
+/**
+ * This is the main entry point for the program, a function enumerated as 
+ * 'main'.
+ */
 main() -> str {
     a = "some string"
 

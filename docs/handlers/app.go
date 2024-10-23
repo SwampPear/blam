@@ -38,6 +38,14 @@ func Structs(c *fiber.Ctx) error {
 	return c.Render("structs", fiber.Map{}, "layouts/main")
 }
 
+func Errors(c *fiber.Ctx) error {
+	return c.Render("errors", fiber.Map{}, "layouts/main")
+}
+
+func Ownership(c *fiber.Ctx) error {
+	return c.Render("ownership", fiber.Map{}, "layouts/main")
+}
+
 func Error404(c *fiber.Ctx) error {
 	return c.Render("404", fiber.Map{})
 }
