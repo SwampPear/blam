@@ -12,8 +12,10 @@
  * This is the main entry point for the program, a function enumerated as 
  * 'main'.
  */
+
+// this is a single line comment
 main() -> str {
     a = "some string"
 
-    return a
+    print(a)
 }

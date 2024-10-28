@@ -34,9 +34,9 @@ struct Token {
  */
 const Lexeme LEXEMES[] = {
     Lexeme{"CONTENT", ""},
-    Lexeme{"STRING", "\"[a-zA-Z0-9\\s\\}]*\""},
-    Lexeme{"SINGLE_LINE_COMMENT", "\\/\\/[\\sa-zA-Z0-9]*\n"},
-    Lexeme{"MULTI_LINE_COMMENT", "\\/\\*[\\sa-zA-Z0-9]*\\*\\/"},
+    Lexeme{"STRING", "\"[!-~\\s]*\""},
+    Lexeme{"SINGLE_LINE_COMMENT", "\\/\\/[!-~\\s]*\n"},
+    Lexeme{"MULTI_LINE_COMMENT", "\\/\\*[!-~\\s]*\\*\\/"},
     Lexeme{"L_DELIMETER", "\\("},
     Lexeme{"R_DELIMETER", "\\)"},
     Lexeme{"L_CURLY_DELIMETER", "\\{"},
