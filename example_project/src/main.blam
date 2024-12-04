@@ -9,13 +9,16 @@
  */
 
 /**
+ * This is a function that returns a string.
+ */
+string() -> str {
+    return "fancy_string"
+}
+
+/**
  * This is the main entry point for the program, a function enumerated as 
  * 'main'.
  */
-
-// this is a single line comment
 main() -> str {
-    a = "some string"
-
-    print(a)
+    print(string_return())
 }

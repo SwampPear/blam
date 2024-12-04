@@ -1,3 +1,3 @@
 #!/bin/bash
 
-./bootstrapper/bootstrapper
+cd example_project && ./bootstrapper

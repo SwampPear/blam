@@ -10,23 +10,22 @@ namespace BlamAnalyzer {
  * A lexical rule for token matching.
  */
 struct Lexeme {
-    std::string name;   // name of Lexeme (i.e. "STRING")
-    std::string expr;   // expression to match (i.e. "\"[a-zA-Z0-9\\s\\}]*\"")
+    std::string name;
+    std::string expr;
 };
 
 /**
- * A token for simultaneous use in tokenization and abstract syntax tree 
- * parsing. Represented as a dual linked list/tree representation.
+ * A token for tokenization and AST parsing.
  */
 struct Token {
-    int id;           // enum type of node
-    int start;          // start index in source
-    int end;            // end index in source
+    int id;
+    int start;
+    int end;
 
-    Token *next;        // next node in linked list
-    Token *prev;        // prev node in linked list
-    Token *first;        // first child node
-    Token *last;        // last child node
+    Token *next;
+    Token *prev;
+    Token *first;
+    Token *last;
 };
 
 /**
@@ -78,7 +77,7 @@ const Lexeme LEXEMES[] = {
 };
 /*
 syntax rules
-!worth noting function names should be cached during this step
+worth noting function names should be cached during this step
 - CALL
 add(1, 2)
 math.add(1, 2)

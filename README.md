@@ -1,5 +1,5 @@
 <p align="center">
-  <img alt="dream logo" src="assets/logo.svg" style="width: 25%">   
+  <img alt="dream logo" src=".github/logo.svg" style="width: 25%">   
 </p>
 
 <p align="center" style="height: 32px">
@@ -9,8 +9,9 @@
 </p>
 
 # Blam
+
 The objective of Blam is to provide a programming language that combines
-ease-of-use, strong security, and interoperability between existing 
+ease-of-use, strong security, and interoperability between existing
 technologies.
 
 # Syntax
@@ -20,6 +21,7 @@ technologies.
 - dynamic typing for development, static for production (with sound inference)
 
 # Features
+- multiple dispatch pattern, including operators
 - no data piping or explicit currying of functions (lacks reasonability)
 - data first functional programming with svo syntax
 - mutability by default but with const values
@@ -33,35 +35,41 @@ technologies.
 - tree shakeable (during compile time)
 - robust bin inclusion system
 - helpful error messages (like cargo)
-- generics, algebraic data types, no null, no exceptions by default, no garbage 
-collector
+- generics, algebraic data types, no null, no exceptions by default, no garbage
+  collector
 
 # Interoperability
+
 - transpiles to JS, TS, and/or WASM (would be nice)
 
 # Concurrency
+
 - concurrency via goroutines and the async unbounded buffered channels
 - aggressively parallelizable and concurrent (like Go)
-- scales transparently from single cpu to multi-core devices and distributed 
-services without necessitating a refactoring of the code (hard)
+- scales transparently from single cpu to multi-core devices and distributed
+  services without necessitating a refactoring of the code (hard)
 - async, event driven, streamable, parallelizable, by default
 - async via blocking/sync interface but non-blocking I/O
 
 # Non-Features
+
 - multi paradigm
 - meta programming
 - DSLs
 
 # Bloop Package Managaer
+
 - transparent upgrades without breaking any changes
 - reliable package management
 
 # Documentation
+
 - code compiles into mardown format
 - docstrings compile
 
 # Auxiliary Features
+
 - interactive VSCODE plugin, shows content of data structures while coding
 
-
 maf00026@mix.wvu.edu
+
