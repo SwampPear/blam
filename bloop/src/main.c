@@ -1,12 +1,17 @@
+#include "stdio.h"
+
+int main() {
+    printf("Hello, World!\n");
+    return 0;
+}
+
+/*
 #include "analyzer.hpp"
 #include "ir_compiler.hpp"
 #include "utils.hpp"
 
 namespace BlamDriver {
 
-/**
- * Compiles a Blam program.
- */
 void compile() {
     // start from main
     std::string source_path = "src/main.blam";
@@ -23,3 +28,4 @@ void compile() {
 }
 
 }  // BlamDriver
+*/
