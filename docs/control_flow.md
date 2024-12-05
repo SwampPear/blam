@@ -41,76 +41,93 @@ case CASE_TWO:
 }
 ```
 
-<h2 class="content__h2">Loops</h2>
-<p class="content__p">
-    Here's an example of a while loop, which functions by evaluating a condition.
-</p>
-<pre class="content__code">
+## Loops
+
+Blam supports two different types of while loops and two different types of for 
+loops.
+
+### While Loops
+
+A standard while loop evaluates a condition and executes a block of code while 
+the condition is true.
+
+```
 bool condition = true
 
+// this will loop indefinitely
 while condition {
     // do something
-    condition = false
 }
+```
 
-for i = 0, i < 10, i++ {
-    
-}
-</pre>
-<p class="content__p">
-    Blam also supports two different types of for loops, condition-controlled
-    loops and collection-controlled loops.
-</p>
-<pre class="content__code">
-// condition-controlled count loop
+### Do-While Loops
+
+A do-while loop executes a block of code and then evaluates a condition to
+determine if it should continue executing.
+
+```
+bool condition = false
+
+// this will loop indefinitely
+do {
+    condition = true
+} while condition
+```
+
+### Condition-Controlled For Loops
+
+Condition-controlled for loops evaluate a condition and iterate a variable
+until the condition is no longer true.
+
+```
+// this will loop 10 times
 for i = 0, i < 10, i++ {
     // do something
 }
+```
 
-// condition-controlled iterator loop using linked lists
-LLNode a = LLNode(1)
-LLNode b = LLNode(2)
-LLNode c = LLNode(3)
-a.next = b
-b.next = c
+### Collection-Controlled For Loops
 
-for node = a, a != null, a = a.next {
-    // do something
-}
+Collection-controlled for loops iterate over a collection of items.
 
-// collection-controlled loops
+```
 i8 arr[] = [1, 2, 3]
+
+// this will loop 3 times
 for i in arr {
     // do something
 }
-</pre>
-<h2 class="content__h2">Loop Control</h2>
-<p class="content__p">
-    Blam has a few different keywords for controlling flow within a loop. The
-    break keyword immediately breaks out of a loop on invocation, the redo keyword
-    resets the loop from the current iteration, and the retry keyword restarts
-    the loop from its initial state.
-    
-</p>
-<pre class="content__code">
+```
+
+## Loop Control
+
+Blam supports a couple different methods of loop control.
+
+### Break
+
+The break keyword immediately breaks out of a loop on invocation.
+
+```
 // immediately breaks the loop on the fifth iteration
 for i = 0, i < 10, i++ {
     if i == 4 {
         break
     }
 }
+```
 
-// resets the loop to initial state on fifth iteration (infinite)
+### Continue
+
+The continue keyword immediately continues to the next iteration of a loop on
+invocation.
+
+```
+// skips the fifth iteration
 for i = 0, i < 10, i++ {
     if i == 4 {
-        redo
+        continue
     }
-}
 
-// resets the loop to fifth iteration state on fifth iteration (infinite)
-for i = 0, i < 10, i++ {
-    if i == 4 {
-        retry
-    }
+    // more code
 }
-</pre>
+```
