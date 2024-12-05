@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <stdio.h>
 #include "tokenizer.h"
 
 static lexeme_rule_t lexeme_rules[] = {
@@ -54,6 +55,14 @@ token_t* create_token(int lexeme, int start, int end) {
     return token;
 }
 
+char* token_to_string(token_t* token) {
+    char* str = malloc(sizeof(char) * 100);
+
+    sprintf(str, "Token(lexeme=%d, start=%d, end=%d)", token->lexeme, token->start, token->end);
+
+    return str;
+}
+
 token_t* replace_range(token_t* first, token_t* last, token_t* replacement) {
     // old state
     token_t* old_prev = first->prev;
@@ -61,11 +70,11 @@ token_t* replace_range(token_t* first, token_t* last, token_t* replacement) {
 
     // link next
     token_t* curr = replacement;
-    while (!curr->next) curr = curr->next;
+    while (curr->next) curr = curr->next;
 
     curr->next = old_next;
     if (old_next) old_next->prev = curr;
-
+    
     // link prev
     replacement->prev = old_prev;
     if (old_prev) old_prev->next = replacement;
@@ -73,6 +82,12 @@ token_t* replace_range(token_t* first, token_t* last, token_t* replacement) {
     // unlink old range
     first->prev = NULL;
     last->next = NULL;
+
+    // save old first token
+    //token_t* temp = first;
+
+    // set first ptr
+    //if (!old_prev) *first = *replacement;
 
     return first;
 }

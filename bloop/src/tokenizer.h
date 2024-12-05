@@ -88,7 +88,11 @@ token_t* create_token(int lexeme, int start, int end);
  */
 token_t* replace_range(token_t* first, token_t* last, token_t* replacement);
 
-
-
+/**
+ * String representation of a token.
+ * @param token - token
+ * @return string representation
+ */
+char* token_to_string(token_t* token);
 
 #endif  // TOKENIZER_H
