@@ -53,7 +53,8 @@ enum Lexeme {
  */
 typedef struct lexeme_rule {
     int lexeme;
-    const char* expr;
+    char* name;
+    char* expr;
 } lexeme_rule_t;
 
 /**
@@ -80,6 +81,20 @@ typedef struct token {
 token_t* create_token(int lexeme, int start, int end);
 
 /**
+ * String representation of a token.
+ * @param token - token
+ * @return string representation
+ */
+char* token_to_string(token_t* token);
+
+/**
+ * Gets the lexeme name of a token.
+ * @param lexeme - lexeme id
+ * @return lexeme name
+ */
+char* get_lexeme_name(int lexeme);
+
+/**
  * Replaces a range of tokens with a replacement range
  * @param first - first token in range
  * @param last - second token in range
@@ -87,12 +102,5 @@ token_t* create_token(int lexeme, int start, int end);
  * @return first token in range
  */
 token_t* replace_range(token_t* first, token_t* last, token_t* replacement);
-
-/**
- * String representation of a token.
- * @param token - token
- * @return string representation
- */
-char* token_to_string(token_t* token);
 
 #endif  // TOKENIZER_H
