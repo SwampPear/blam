@@ -5,3 +5,5 @@ build-bootstrapper:
 bootstrap:
 	./bootstrapper/build/main
 
+clean:
+	cd bootstrapper && $(MAKE) clean

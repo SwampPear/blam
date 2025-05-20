@@ -4,42 +4,66 @@
 #include <vector>
 #include <string>
 #include <cctype>
+#include <map>
+#include <memory>  // for smart pointers
 
+namespace Tokenizer {
 
-namespace Blam {
-
-enum class TokenType : uint8_t {
-    Identifier = 0,
-    Keyword,
-    Literal,
-    Operator,
-    Separator,
-    Comment,
-    Whitespace
+/**
+ * Token types in order of parsing step.
+ */
+enum class Type : uint8_t {
+    // comments
+    RAW = 0,             // raw uncategorized text
+    MLINE_COMMENT,       // #* *#
+    SLINE_COMMENT,       // # \n
+    STRING,              // "<any char>" (multiline by default)
+    WHITESPACE,          // \s+
+    NLINE,               // \n (newline)
+    SMBRACKET_L,         // (
+    SMBRACKET_R,         // )
+    SQBRACKET_L,         // [
+    SQBRACKET_R,         // ]
+    CUBRACKET_L,         // {
+    CUBRACKET_R,         // }
+    PLUS,                // +
+    MINUS,               // -
+    DIV,                 // /
+    EXP,                 // **
+    MULT,                // * 
+    KEYWORD,             // def|ret|struct|enum
 };
 
-inline const char* toString(TokenType type) {
-    switch (type) {
-        case TokenType::Identifier: return "Identifier";
-        case TokenType::Keyword: return "Keyword";
-        case TokenType::Literal: return "Literal";
-        case TokenType::Operator: return "Operator";
-        case TokenType::Separator: return "Separator";
-        case TokenType::Comment: return "Comment";
-        case TokenType::Whitespace: return "Whitespace";
-        default: return "Unknown";
-    }
-}
+/**
+ * Token parsing expressions.
+ */
+static std::unordered_map<Type, std::string> tokenExpression = {
+    {Type::MLINE_COMMENT, R"(\#\*[\s\S]*?\*\#)"},
+    {Type::SLINE_COMMENT, R"(\#[^\n]*\n)"},
+    {Type::STRING, ""},
+    {Type::WHITESPACE, ""},
+    {Type::NLINE, ""},
+    {Type::SMBRACKET_L, ""},
+    {Type::SMBRACKET_R, ""},
+    {Type::SQBRACKET_L, ""},
+    {Type::SQBRACKET_R, ""},
+    {Type::CUBRACKET_L, ""},
+    {Type::CUBRACKET_R, ""},
+    {Type::PLUS, ""},
+    {Type::MINUS, ""},
+    {Type::DIV, ""},
+    {Type::EXP, ""},
+    {Type::MULT, ""},
+    {Type::KEYWORD, ""}
+};
 
 struct Token {
-    const char* src;  // source string
+    Type type;
     uint16_t pos;     // position
     uint16_t len;     // length
 };
 
-
 std::vector<Token> tokenize(const std::string& input);
 std::vector<Token> tokenizeFile(const std::string& fp);
-
 
 }  // namespace Token

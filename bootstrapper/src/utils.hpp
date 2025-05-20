@@ -1,3 +1,5 @@
+#pragma once
+
 #include <fstream>
 #include <string>
 #include <stdexcept>
@@ -16,6 +18,17 @@ std::string readFile(const std::string& filePath) {
     file.close();
     return content;
 }
+
+std::string stripWhitespaceAndNewlines(const std::string& input) {
+    std::string result;
+    for (char c : input) {
+        if (!std::isspace(c) || c == ' ') {
+            result += c;
+        }
+    }
+    return result;
+}
+
 
 
 }  // namespace Blam

@@ -1,7 +1,8 @@
-#include <iostream>
+#include "src/tokenizer.hpp"
 
 int main() {
-    std::cout << "Hello, World!" << std::endl;
+    std::string fp = "example_project/src/main.blam";
+    Tokenizer::tokenizeFile(fp);
     
     return 0;
 }
