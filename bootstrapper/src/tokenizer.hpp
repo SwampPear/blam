@@ -26,6 +26,7 @@ enum class Type : uint8_t {
     SQBRACKET_R,         // ]
     CUBRACKET_L,         // {
     CUBRACKET_R,         // }
+    EQ,                  // =
     PLUS,                // +
     MINUS,               // -
     DIV,                 // /
@@ -39,7 +40,7 @@ enum class Type : uint8_t {
  */
 static std::unordered_map<Type, std::string> tokenExpression = {
     {Type::MLINE_COMMENT, ""}, //R"(\#\*[\s\S]*?\*\#)"},
-    {Type::SLINE_COMMENT, R"(#([^\n]*)\n)"},
+    {Type::SLINE_COMMENT, R"(#([^\n]*)(\n|$))"},
     {Type::STRING, ""},
     {Type::WHITESPACE, ""},
     {Type::NLINE, ""},
@@ -49,6 +50,7 @@ static std::unordered_map<Type, std::string> tokenExpression = {
     {Type::SQBRACKET_R, ""},
     {Type::CUBRACKET_L, ""},
     {Type::CUBRACKET_R, ""},
+    {Type::EQ, R"(=)"},
     {Type::PLUS, ""},
     {Type::MINUS, ""},
     {Type::DIV, ""},
