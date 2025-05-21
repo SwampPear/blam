@@ -47,35 +47,37 @@ std::shared_ptr<Token> processRawToken(std::shared_ptr<Token> victim, Type type,
     uint16_t len = victim->len;
 
     std::regex reg(tokenExpression[type]);
-    auto it = std::sregex_iterator(input.begin() + pos, input.begin() + pos + len, reg);
-    auto end = std::sregex_iterator();
+    auto begin = input.begin() + pos;
+    auto end = begin + len;
 
-    if (it == end) return victim; // no match, keep original
+    auto it = std::sregex_iterator(begin, end, reg);
+    auto regex_end = std::sregex_iterator();
+
+    if (it == regex_end) return victim; // no matches
 
     std::shared_ptr<Token> head = nullptr;
     std::shared_ptr<Token> tail = nullptr;
 
-    int matchCount = std::distance(it, end);
-    std::cout << "Number of matches: " << matchCount << std::endl;
-
     uint16_t lastPos = pos;
 
-    for (; it != end; ++it) {
+    for (; it != regex_end; ++it) {
         const std::smatch& match = *it;
-        uint16_t matchStart = static_cast<uint16_t>(match.position());
-        uint16_t matchLen = static_cast<uint16_t>(match.length());
+        uint16_t matchStart = static_cast<uint16_t>(match.position() + pos);
+        uint16_t matchLen   = static_cast<uint16_t>(match.length());
 
+        // Add raw segment before match
         if (matchStart > lastPos) {
             auto raw = std::make_shared<Token>();
             raw->type = Type::RAW;
             raw->pos = lastPos;
-            raw->len = matchStart - lastPos;
+            raw->len = static_cast<uint16_t>(matchStart - lastPos);
 
             if (!head) head = raw;
             else tail->next = raw, raw->prev = tail;
             tail = raw;
         }
 
+        // Add matched token
         auto tok = std::make_shared<Token>();
         tok->type = type;
         tok->pos = matchStart;
@@ -88,6 +90,7 @@ std::shared_ptr<Token> processRawToken(std::shared_ptr<Token> victim, Type type,
         lastPos = matchStart + matchLen;
     }
 
+    // Raw token after last match
     if (lastPos < pos + len) {
         auto raw = std::make_shared<Token>();
         raw->type = Type::RAW;
@@ -99,7 +102,7 @@ std::shared_ptr<Token> processRawToken(std::shared_ptr<Token> victim, Type type,
         tail = raw;
     }
 
-    // Splice [head, tail] into list
+    // Splice [head, tail] in place of victim
     if (victim->prev) {
         victim->prev->next = head;
         head->prev = victim->prev;
@@ -110,12 +113,9 @@ std::shared_ptr<Token> processRawToken(std::shared_ptr<Token> victim, Type type,
         tail->next = victim->next;
     }
 
-    // Make sure victim is removed from list
-    victim->prev = nullptr;
-    victim->next = nullptr;
-
-    return head;
+    return (victim->prev ? head : head); // return real head
 }
+
 
 
 std::shared_ptr<Token> tokenize(const std::string& input) {
@@ -139,10 +139,9 @@ std::shared_ptr<Token> tokenize(const std::string& input) {
                 curr = curr->next;
             }
         }
-        printTokens(head, input);
     }
 
-    
+    printTokens(head, input);
 
     return head;
 }
