@@ -5,56 +5,80 @@
 
 namespace Tokenizer {
 
-
-void printTokens(std::shared_ptr<Token> head, const std::string& input) {
+void printTokens(std::shared_ptr<Token> head, const std::string& src) {
     auto curr = head;
     while (curr != nullptr) {
+        // printed info
         int type = static_cast<int>(curr->type);
         uint16_t pos = curr->pos;
         uint16_t len = curr->len;
-        std::string content = input.substr(pos, len);
+        std::string content = src.substr(pos, len);
 
-        std::cout << "Type: " << type << ", Pos: " << pos << ", Len: " << len 
-                  << ", Content: " << std::endl << content << std::endl;
+        std::cout << "Type: " << type 
+                  << ", Pos: " << pos 
+                  << ", Len: " << len 
+                  << ", Content: " << std::endl 
+                  << content << std::endl;
 
         curr = curr->next;
     }
 }
 
+void printTokens(const std::vector<Token>& tokens, const std::string& src) {
+    for (const auto& token : tokens) {
+        // printed info
+        int type = static_cast<int>(token.type);
+        uint16_t pos = token.pos;
+        uint16_t len = token.len;
+        std::string content = src.substr(pos, len);
+
+        std::cout << "Type: " << type 
+                  << ", Pos: " << pos 
+                  << ", Len: " << len 
+                  << ", Content: " << std::endl 
+                  << content << std::endl;
+    }
+}
 
 std::shared_ptr<Token> insertToken(std::shared_ptr<Token> victim, std::shared_ptr<Token> first) {
+    // get range
     auto last = first;
     while (last->next) last = last->next;
 
+    // prev state
     auto prev = victim->prev;
     auto next = victim->next;
 
+    // connect prev
     if (prev) {
         prev->next = first;
         first->prev = prev;
     }
 
+    // connect next
     if (next) {
         next->prev = last;
         last->next = next;
     }
 
-    return first; // new head of the sublist
+    // returned in case of head switching
+    return first;
 }
 
 std::shared_ptr<Token> processRawToken(std::shared_ptr<Token> victim, Type type, const std::string& input) {
+    // get bounds
     uint16_t pos = victim->pos;
     uint16_t len = victim->len;
 
-    std::regex reg(tokenExpression[type]);
-    auto begin = input.begin() + pos;
-    auto end = begin + len;
-
-    auto it = std::sregex_iterator(begin, end, reg);
+    // build regex
+    std::regex reg(TOKEN_EXPR[type]);
+    auto it = std::sregex_iterator(input.begin() + pos, input.begin() + pos + len, reg);
     auto regex_end = std::sregex_iterator();
 
-    if (it == regex_end) return victim; // no matches
+    // no matches
+    if (it == regex_end) return victim;
 
+    // build new list 
     std::shared_ptr<Token> head = nullptr;
     std::shared_ptr<Token> tail = nullptr;
 
@@ -65,7 +89,7 @@ std::shared_ptr<Token> processRawToken(std::shared_ptr<Token> victim, Type type,
         uint16_t matchStart = static_cast<uint16_t>(match.position() + pos);
         uint16_t matchLen   = static_cast<uint16_t>(match.length());
 
-        // Add raw segment before match
+        // add raw segment before match
         if (matchStart > lastPos) {
             auto raw = std::make_shared<Token>();
             raw->type = Type::RAW;
@@ -77,7 +101,7 @@ std::shared_ptr<Token> processRawToken(std::shared_ptr<Token> victim, Type type,
             tail = raw;
         }
 
-        // Add matched token
+        // add matched token
         auto tok = std::make_shared<Token>();
         tok->type = type;
         tok->pos = matchStart;
@@ -90,7 +114,7 @@ std::shared_ptr<Token> processRawToken(std::shared_ptr<Token> victim, Type type,
         lastPos = matchStart + matchLen;
     }
 
-    // Raw token after last match
+    // raw token after last match
     if (lastPos < pos + len) {
         auto raw = std::make_shared<Token>();
         raw->type = Type::RAW;
@@ -102,7 +126,7 @@ std::shared_ptr<Token> processRawToken(std::shared_ptr<Token> victim, Type type,
         tail = raw;
     }
 
-    // Splice [head, tail] in place of victim
+    // splice range in place of victim
     if (victim->prev) {
         victim->prev->next = head;
         head->prev = victim->prev;
@@ -116,18 +140,19 @@ std::shared_ptr<Token> processRawToken(std::shared_ptr<Token> victim, Type type,
     return (victim->prev ? head : head); // return real head
 }
 
-
-
 std::shared_ptr<Token> tokenize(const std::string& input) {
+    // root file token
     auto head = std::make_shared<Token>();
     head->type = Type::RAW;
     head->pos = 0;
     head->len = static_cast<uint16_t>(input.length());
 
+    // loop over each lexeme type
     for (int i = static_cast<int>(Type::RAW); i <= static_cast<int>(Type::KEYWORD); ++i) {
         Type type = static_cast<Type>(i);
-        if (type == Type::RAW || tokenExpression[type].empty()) continue;
+        if (type == Type::RAW || TOKEN_EXPR[type].empty()) continue;
 
+        // loop over all raw nodes and process
         auto curr = head;
         while (curr) {
             if (curr->type == Type::RAW) {
@@ -141,15 +166,19 @@ std::shared_ptr<Token> tokenize(const std::string& input) {
         }
     }
 
-    printTokens(head, input);
-
     return head;
 }
 
+std::vector<Token> tokenizeFile(const std::string& fp) {
+    const std::string contents = Utils::readFile(fp);
+    std::shared_ptr<Token> tokens = tokenize(contents);
 
-std::shared_ptr<Token> tokenizeFile(const std::string& fp) {
-    const std::string contents = Blam::readFile(fp);
-    return tokenize(contents);
+    std::vector<Token> tokenVector;
+    for (auto curr = tokens; curr; curr = curr->next) {
+        tokenVector.push_back(*curr);
+    }
+
+    return tokenVector;
 }
 
-}
+}  // namespace Tokenizer
