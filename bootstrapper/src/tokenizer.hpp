@@ -38,8 +38,8 @@ enum class Type : uint8_t {
  * Token parsing expressions.
  */
 static std::unordered_map<Type, std::string> tokenExpression = {
-    {Type::MLINE_COMMENT, R"(\#\*[\s\S]*?\*\#)"},
-    {Type::SLINE_COMMENT, R"(\#[^\n]*\n)"},
+    {Type::MLINE_COMMENT, ""}, //R"(\#\*[\s\S]*?\*\#)"},
+    {Type::SLINE_COMMENT, R"(#([^\n]*)\n)"},
     {Type::STRING, ""},
     {Type::WHITESPACE, ""},
     {Type::NLINE, ""},
@@ -61,9 +61,11 @@ struct Token {
     Type type;
     uint16_t pos;     // position
     uint16_t len;     // length
+    std::shared_ptr<Token> next;
+    std::shared_ptr<Token> prev;
 };
 
-std::vector<Token> tokenize(const std::string& input);
-std::vector<Token> tokenizeFile(const std::string& fp);
+std::shared_ptr<Token> tokenize(const std::string& input);
+std::shared_ptr<Token> tokenizeFile(const std::string& fp);
 
-}  // namespace Token
+}  // namespace Tokenizer

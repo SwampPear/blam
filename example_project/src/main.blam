@@ -1,31 +1,7 @@
 # main.blam
 
-import read_file from fs
-
-
-#*
-  This is an example of a multiline comment (a blurb).
-*#
-def read_first_char() i16 {
-    # here's another comment in this function!
-    str a = read_file("./file_path.md")
-
-    ret a[0] as i16
-}
-
-#*
-  Here's an example of a struct!
-*#
-struct Node {
-    pub:
-    char data
-    Node next
-
-    pri:
-     u64 secret
-}
-
-# Blam uses a similar memory ownership method to rust
-# adsa
-
-
+def main():
+    i8 a = 3
+    i8 b = 2
+    
+    print(a+b)
