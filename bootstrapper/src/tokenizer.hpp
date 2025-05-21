@@ -39,25 +39,27 @@ enum class Type : uint8_t {
  * Token parsing expressions.
  */
 static std::unordered_map<Type, std::string> tokenExpression = {
-    {Type::MLINE_COMMENT, ""}, //R"(\#\*[\s\S]*?\*\#)"},
+    {Type::MLINE_COMMENT, ""},
     {Type::SLINE_COMMENT, R"(#([^\n]*)(\n|$))"},
-    {Type::STRING, ""},
-    {Type::WHITESPACE, ""},
-    {Type::NLINE, ""},
-    {Type::SMBRACKET_L, ""},
-    {Type::SMBRACKET_R, ""},
-    {Type::SQBRACKET_L, ""},
-    {Type::SQBRACKET_R, ""},
-    {Type::CUBRACKET_L, ""},
-    {Type::CUBRACKET_R, ""},
+    {Type::STRING, R"("(\\.|[^"\\])*"|'(\\.|[^'\\])*')"},
+    {Type::WHITESPACE, R"([ \t]+)"},
+    {Type::NLINE, R"(\r?\n)"},
+    {Type::SMBRACKET_L, R"(\()"},
+    {Type::SMBRACKET_R, R"(\))"},
+    {Type::SQBRACKET_L, R"(\[)"},
+    {Type::SQBRACKET_R, R"(\])"},
+    {Type::CUBRACKET_L, R"(\{)"},
+    {Type::CUBRACKET_R, R"(\})"},
     {Type::EQ, R"(=)"},
-    {Type::PLUS, ""},
-    {Type::MINUS, ""},
-    {Type::DIV, ""},
-    {Type::EXP, ""},
-    {Type::MULT, ""},
+    {Type::PLUS, R"(\+)"},
+    {Type::MINUS, R"(\-)"},
+    {Type::DIV, R"(\/)"},
+    {Type::EXP, R"(\^)"},
+    {Type::MULT, R"(\*)"},
     {Type::KEYWORD, ""}
 };
+
+// R"(\b(if|else|for|while|return|let|fn|true|false|null)\b)"}
 
 struct Token {
     Type type;
