@@ -48,7 +48,7 @@ int main() {
     std::string fp = "example_project/src/main.blam";
     std::string contents = Utils::readFile(fp);
     std::vector<Tokenizer::Token> tokens = Tokenizer::tokenizeFile(fp);
-    Parser::parseProgram(tokens);
+    //std::vector<Parser::pStmt> program = Parser::parseProgram(tokens);
 
     Tokenizer::printTokens(tokens, contents);
 }

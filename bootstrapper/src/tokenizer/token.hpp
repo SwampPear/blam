@@ -28,8 +28,34 @@ enum class Type : uint8_t {
     DIV,                 // /
     EXP,                 // **
     MULT,                // * 
+    DECIMAL,             // 0.234
+    DOT,                 // .  
+    COMMA,               // ,
+    COLON,               // :
+    EQEQ,                // ==
+    NEQ,                 // !=
+    LT,                  // <
+    GT,                  // >
+    LTE,                 // <=
+    GTE,                 // >=
+    PLUSEQ,              // +=
+    MINEQ,               // -=
+    MULTEQ,              // *=
+    DIVEQ,               // /=
+    NUMBER,              // 123
     DEF,                 // def
-    KEYWORD
+    RET,                 // ret
+    IF,                  // if
+    EL,                  // el
+    ELIF,                // elif
+    WHILE,               // while
+    FOR,                 // for
+    IN,                  // in
+    BREAK,               // break
+    CONTINUE,            // continue
+    TRUE,                // true
+    FALSE,               // false
+    NIL,                 // nil
 };
 
 struct Token {
@@ -59,7 +85,7 @@ static std::unordered_map<Type, std::string> TOKEN_EXPR = {
     {Type::EXP, R"(\^)"},
     {Type::MULT, R"(\*)"},
     {Type::DEF, R"(\bdef\b)"},
-    {Type::KEYWORD, ""}
+    {Type::RET, R"(\bret\b)"},
 };
 
 }  // Tokenizer

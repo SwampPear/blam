@@ -7,23 +7,59 @@
 
 namespace Parser {
 
-std::string extractString(const Tokenizer::Token& tok, const std::string& input) {
-    return input.substr(tok.pos, tok.len);
-}
-
 static bool expect(const std::vector<Tokenizer::Token>& tokens, size_t& index, Tokenizer::Type expected) {
     if (tokens[index].type != expected)
         return false;
+        
     ++index;
     return true;
 }
 
-std::unique_ptr<Parser::Expr> parsePrimary(const std::vector<Tokenizer::Token>& tokens, size_t& index) {
+std::string extractString(const Tokenizer::Token& tok, const std::string& input) {
+    return input.substr(tok.pos, tok.len);
+}
+
+bool shouldContinue(const std::vector<Tokenizer::Token>& tokens, size_t& index) {
+    return index < tokens.size() &&
+           (tokens[index].type == Tokenizer::Type::SLINE_COMMENT ||
+            tokens[index].type == Tokenizer::Type::WHITESPACE ||
+            tokens[index].type == Tokenizer::Type::NLINE);
+}
+
+/*
+pExpr parseNumber(const std::vector<Tokenizer::Token>& tokens, size_t& index) {
+    const Tokenizer::Token& tok = tokens[index++];
+    return std::make_unique<Parser::NumberExpr>(1.0); // placeholder
+}*/
+
+std::vector<pStmt> parseProgram(const std::vector<Tokenizer::Token>& tokens) {
+    std::vector<pStmt> prog;
+    size_t index = 0;
+    while (index < tokens.size()) {
+        if (shouldContinue(tokens, index)) {
+            ++index;
+            continue;
+        }
+
+        switch (tokens[index].type) {
+            case Tokenizer::Type::NUMBER: {
+                break;
+            }
+            default:
+                throw std::runtime_error("Unexpected token type");
+        }
+    }
+
+    return prog;
+}
+
+/*
+pExpr parsePrimary(const std::vector<Tokenizer::Token>& tokens, size_t& index) {
     const Tokenizer::Token& tok = tokens[index++];
     return std::make_unique<Parser::NumberExpr>(1.0); // placeholder
 }
 
-std::unique_ptr<Parser::Expr> parseExpression(const std::vector<Tokenizer::Token>& tokens, size_t& index) {
+pExpr parseExpression(const std::vector<Tokenizer::Token>& tokens, size_t& index) {
     auto lhs = parsePrimary(tokens, index);
     while (index < tokens.size() &&
            (tokens[index].type == Tokenizer::Type::PLUS || tokens[index].type == Tokenizer::Type::MINUS ||
@@ -70,24 +106,6 @@ std::unique_ptr<FunctionDecl> parseFunction(const std::vector<Tokenizer::Token>&
     ++index;
     return fn;
 }
-
-std::vector<std::unique_ptr<Parser::Stmt>> parseProgram(const std::vector<Tokenizer::Token>& tokens) {
-    std::vector<std::unique_ptr<Parser::Stmt>> prog;
-    size_t index = 0;
-    while (index < tokens.size()) {
-        if (tokens[index].type == Tokenizer::Type::SLINE_COMMENT ||
-            tokens[index].type == Tokenizer::Type::WHITESPACE ||
-            tokens[index].type == Tokenizer::Type::NLINE) {
-            ++index;
-            continue;
-        }
-        if (tokens[index].type == Tokenizer::Type::KEYWORD && extractString(tokens[index]) == "def") {
-            prog.push_back(parseFunction(tokens, index));
-        } else {
-            throw std::runtime_error("Unexpected token at top level");
-        }
-    }
-    return prog;
-}
+*/
 
 }  // namespace Parser

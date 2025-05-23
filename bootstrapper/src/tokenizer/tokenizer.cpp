@@ -148,7 +148,7 @@ std::shared_ptr<Token> tokenize(const std::string& input) {
     head->len = static_cast<uint16_t>(input.length());
 
     // loop over each lexeme type
-    for (int i = static_cast<int>(Type::RAW); i <= static_cast<int>(Type::KEYWORD); ++i) {
+    for (int i = static_cast<int>(Type::RAW); i <= static_cast<int>(Type::RET); ++i) {
         Type type = static_cast<Type>(i);
         if (type == Type::RAW || TOKEN_EXPR[type].empty()) continue;
 
