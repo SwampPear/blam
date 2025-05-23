@@ -6,43 +6,71 @@
 #include <map>
 
 
-namespace Tokenizer {
+namespace Tok {
 
 // ordered in lexeme hierarchy first to last
 enum class Type : uint8_t {
     RAW = 0,             // raw uncategorized text
+
+    // comments
     MLINE_COMMENT,       // #* *#
     SLINE_COMMENT,       // # \n
+
+    // strings (should be parsed first to account for characters within)
     STRING,              // "<any char>" (multiline by default)
+
+    // space
     WHITESPACE,          // \s+
     NLINE,               // \n (newline)
+
+    // delimeters
     SMBRACKET_L,         // (
     SMBRACKET_R,         // )
     SQBRACKET_L,         // [
     SQBRACKET_R,         // ]
     CUBRACKET_L,         // {
     CUBRACKET_R,         // }
+
+    // operators that need parsed before arithmetic oerators
+    ARROW,               // -> 
+    BAND,                // &
+    BOR,                 // |
+    BXOR,                // ^
+    BLS,                 // <<
+    BRS,                 // >>
+
+    // arithmetic
     EQ,                  // =
     PLUS,                // +
-    MINUS,               // -
+    MIN,                 // -
     DIV,                 // /
     EXP,                 // **
     MULT,                // * 
-    DECIMAL,             // 0.234
-    DOT,                 // .  
-    COMMA,               // ,
-    COLON,               // :
+    PLUSEQ,              // +=
+    MINEQ,               // -=
+    DIVEQ,               // /=
+    MULTEQ,              // *=
+
+    // comparison
     EQEQ,                // ==
     NEQ,                 // !=
     LT,                  // <
     GT,                  // >
     LTE,                 // <=
     GTE,                 // >=
-    PLUSEQ,              // +=
-    MINEQ,               // -=
-    MULTEQ,              // *=
-    DIVEQ,               // /=
-    NUMBER,              // 123
+
+    // decimal (should parse before because of dot)
+    DECIMAL,             // 0.234
+
+    // operators
+    DOT,                 // .  
+    COMMA,               // ,
+    COLON,               // :
+    AT,                  // @
+
+    // reserved keywords
+    AND,                 // and
+    OR,                  // or
     DEF,                 // def
     RET,                 // ret
     IF,                  // if
@@ -56,6 +84,12 @@ enum class Type : uint8_t {
     TRUE,                // true
     FALSE,               // false
     NIL,                 // nil
+
+    // text (any other text later determined to be a type, class, e.t.c.)
+    TEXT,
+
+    // number (parsed last because of numbers being in text)
+    NUMBER,              // 123
 };
 
 struct Token {
@@ -88,4 +122,4 @@ static std::unordered_map<Type, std::string> TOKEN_EXPR = {
     {Type::RET, R"(\bret\b)"},
 };
 
-}  // Tokenizer
+}  // namespace Tok
