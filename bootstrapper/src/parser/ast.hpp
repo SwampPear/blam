@@ -39,8 +39,6 @@ struct Stmt {
 
 enum class ScopeType {
     FUNC,
-    IF,
-    EL
 };
 
 struct ScopedStmt : Stmt {
@@ -49,7 +47,7 @@ struct ScopedStmt : Stmt {
 };
 
 struct ProgramStmt : Stmt {
-    std::vector<std::unique_ptr<ScopedStmt>> body;
+    std::vector<std::unique_ptr<Stmt>> body;
 };
 
 struct FuncDeclStmt : Stmt {

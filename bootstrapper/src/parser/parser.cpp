@@ -37,7 +37,7 @@ std::unique_ptr<ScopedStmt> processToken(const std::vector<Tokenizer::Token>& to
 
 std::unique_ptr<Program> parseProgram(const std::vector<Tokenizer::Token>& tokens) {
     std::unique_ptr<Program> prog = std::make_unique<Program>();
-    prog->ast->body = std::vector<std::unique_ptr<ScopedStmt>>();
+    prog->ast->body = std::vector<std::unique_ptr<Stmt>>();
 
     std::stack<std::string> scope;
     scope.push("");
@@ -49,7 +49,7 @@ std::unique_ptr<Program> parseProgram(const std::vector<Tokenizer::Token>& token
             continue;
         }
 
-        std::unique_ptr<ScopedStmt> stmt = processToken(tokens, index, scope);
+        std::unique_ptr<Stmt> stmt = processToken(tokens, index, scope);
         prog->ast->body.push_back(std::move(stmt));
     }
 
