@@ -9,6 +9,8 @@
 namespace Parser {
 
 static bool expect(const std::vector<Tokenizer::Token>& tokens, size_t& index, Tokenizer::Type expected) {
+    if (index >= tokens.size()) throw std::runtime_error("Index out of bounds");
+
     if (tokens[index].type != expected)
         return false;
         
@@ -21,17 +23,32 @@ std::string extractString(const Tokenizer::Token& tok, const std::string& input)
 }
 
 bool shouldSkip(const std::vector<Tokenizer::Token>& tokens, size_t& index) {
-    return index < tokens.size() &&
-           (tokens[index].type == Tokenizer::Type::SLINE_COMMENT ||
-            tokens[index].type == Tokenizer::Type::WHITESPACE ||
-            tokens[index].type == Tokenizer::Type::NLINE);
+    return tokens[index].type == Tokenizer::Type::MLINE_COMMENT ||
+           tokens[index].type == Tokenizer::Type::SLINE_COMMENT ||
+           tokens[index].type == Tokenizer::Type::WHITESPACE ||
+           tokens[index].type == Tokenizer::Type::NLINE;
 }
 
-std::unique_ptr<Stmt> processPub(const std::vector<Tokenizer::Token>& tokens, size_t& index, std::stack<std::string>& scope) {
+std::unique_ptr<Stmt> processPub(const std::vector<Tokenizer::Token>& tokens, size_t& index, std::string scope) {
+    if (scope != "") {
+        throw std::runtime_error("Compiler Error: 'pub' keyword only allowed in top-level function or constant declaration.");
+    }
 
+    auto stmt = std::make_unique<PubStmt>();
+    stmt->type = StmtType::PUB;
+
+    auto processedStmt = processToken(tokens, ++index, scope);
+    if (processedStmt->type != StmtType::FUNC_DECL ||
+        processedStmt->type != StmtType::CONST_DECL) {
+        throw std::runtime_error("Compiler Error: Expected function or constant declaration.");
+    }
+
+    stmt->stmt = std::move(processedStmt);
+
+    return stmt;
 }
 
-std::unique_ptr<Stmt> processToken(const std::vector<Tokenizer::Token>& tokens, size_t& index, std::stack<std::string>& scope) {
+std::unique_ptr<Stmt> processToken(const std::vector<Tokenizer::Token>& tokens, size_t& index, std::string scope) {
     switch (tokens[index].type) {
         case Tokenizer::Type::PUB: {
             return processPub(tokens, index, scope);
@@ -41,12 +58,10 @@ std::unique_ptr<Stmt> processToken(const std::vector<Tokenizer::Token>& tokens, 
     }
 }
 
-std::unique_ptr<Program> parseProgram(const std::vector<Tokenizer::Token>& tokens) {
-    std::unique_ptr<Program> prog = std::make_unique<Program>();
-    prog->ast->body = std::vector<std::unique_ptr<Stmt>>();
-
-    std::stack<std::string> scope;
-    scope.push("");
+std::unique_ptr<ScopedStmt> parseProgram(const std::vector<Tokenizer::Token>& tokens) {
+    auto prog = std::make_unique<ScopedStmt>();
+    prog->type = ScopeType::ROOT;
+    prog->body = std::vector<std::unique_ptr<Stmt>>();
 
     size_t index = 0;
     while (index < tokens.size()) {
@@ -55,8 +70,8 @@ std::unique_ptr<Program> parseProgram(const std::vector<Tokenizer::Token>& token
             continue;
         }
 
-        std::unique_ptr<Stmt> stmt = processToken(tokens, index, scope);
-        prog->ast->body.push_back(std::move(stmt));
+        auto stmt = processToken(tokens, index, "");
+        prog->body.push_back(std::move(stmt));
     }
 
     return prog;

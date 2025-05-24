@@ -33,11 +33,26 @@ struct BinaryExpr : Expr {
     llvm::Value* codegen(llvm::LLVMContext& ctx, llvm::IRBuilder<>& builder) override;
 };
 
+enum class StmtType {
+    PUB = 0,
+    SCOPED,
+    FUNC_DECL,
+    CONST_DECL,
+    VAR_DECL,
+    RETURN
+};
+
 struct Stmt {
+    StmtType type;
     virtual ~Stmt() = default; 
 };
 
+struct PubStmt : Stmt {
+    std::unique_ptr<Stmt> stmt;
+};
+
 enum class ScopeType {
+    ROOT,
     FUNC,
 };
 
@@ -46,13 +61,15 @@ struct ScopedStmt : Stmt {
     std::vector<std::unique_ptr<Stmt>> body;
 };
 
-struct ProgramStmt : Stmt {
-    std::vector<std::unique_ptr<Stmt>> body;
-};
-
 struct FuncDeclStmt : Stmt {
     std::string name;
     std::unique_ptr<ScopedStmt> body;
+};
+
+struct ConstDeclStmt : Stmt {
+    std::string type;
+    std::string name;
+    std::unique_ptr<Stmt> init;
 };
 
 struct VarDeclStmt : Stmt {
