@@ -43,8 +43,9 @@ enum class Type : uint8_t {
     NUMBER,              // 123
 
     // space
-    WHITESPACE,          // \s+
     NLINE,               // \n (newline)
+    WHITESPACE,          // \s+
+   
 
     // delimeters
     SMBRACKET_L,         // (
@@ -75,16 +76,16 @@ enum class Type : uint8_t {
     GTE,                 // >=
 
     // arithmetic
+    PLUSEQ,              // +=
+    MINEQ,               // -=
+    DIVEQ,               // /=
+    MULTEQ,              // *=
     EQ,                  // =
     PLUS,                // +
     MIN,                 // -
     DIV,                 // /
     EXP,                 // **
-    MULT,                // * 
-    PLUSEQ,              // +=
-    MINEQ,               // -=
-    DIVEQ,               // /=
-    MULTEQ,              // *=
+    MULT                 // * 
 };
 
 struct Token {
@@ -96,48 +97,62 @@ struct Token {
 };
 
 static std::unordered_map<Type, std::string> TOKEN_EXPR = {
+    RAW = 0,             // raw uncategorized text
     {Type::MLINE_COMMENT, R"(#\*[^*]*\*#)"},
     {Type::SLINE_COMMENT, R"(#([^\n]*)(\n|$))"},
     {Type::STRING, R"("(\\.|[^"\\])*"|'(\\.|[^'\\])*')"},
-    {Type::WHITESPACE, R"([ \t]+)"},
-    {Type::NLINE, R"(\r?\n)"},
+    {Type::AND, R"(\band\b)"},
+    {Type::OR, R"(\bor\b)"},
+    {Type::DEF, R"(\bdef\b)"},
+    {Type::RET, R"(\bret\b)"},
+    {Type::IF, R"(\bif\b)"},
+    {Type::EL, R"(\bel\b)"},
+    {Type::ELIF, R"(\belif\b)"},
+    {Type::WHILE, R"(\bwhile\b)"},
+    {Type::FOR, R"(\bfor\b)"},
+    {Type::IN, R"(\bin\b)"},
+    {Type::BREAK, R"(\bbreak\b)"},
+    {Type::CONTINUE, R"(\bcontinue\b)"},
+    {Type::TRUE, R"(\btrue\b)"},
+    {Type::FALSE, R"(\bfalse\b)"},
+    {Type::NIL, R"(\bnil\b)"},
+    {Type::TEXT, R"([a-zA-Z_][a-zA-Z0-9_]*)"},
+    {Type::DECIMAL, R"((?:\d+\.\d*|\.\d+))"},
+    {Type::NUMBER, R"(\d+)"},
+    {Type::NLINE, R"(\n)"},
+    {Type::WHITESPACE, R"(\s+)"},
     {Type::SMBRACKET_L, R"(\()"},
     {Type::SMBRACKET_R, R"(\))"},
     {Type::SQBRACKET_L, R"(\[)"},
     {Type::SQBRACKET_R, R"(\])"},
     {Type::CUBRACKET_L, R"(\{)"},
     {Type::CUBRACKET_R, R"(\})"},
+    {Type::ARROW, R"(->)"},
+    {Type::BAND, R"(&)"},
+    {Type::BOR, R"(\|)"},
+    {Type::BXOR, R"(\^)"},
+    {Type::BLS, R"(<<)"},
+    {Type::BRS, R"(>>)"},
+    {Type::DOT, R"(\.)"},
+    {Type::COMMA, R"(,)"},
+    {Type::COLON, R"(:)"},
+    {Type::AT, R"(@)"},
+    {Type::EQEQ, R"(==)"},
+    {Type::NEQ, R"(!=)"},
+    {Type::LTE, R"(<=)"},
+    {Type::GTE, R"(>=)"},
+    {Type::LT, R"(<)"},
+    {Type::GT, R"(>)"},
+    {Type::PLUSEQ, R"(\+=)"},
+    {Type::MINEQ, R"(-=)"},
+    {Type::DIVEQ, R"(/=)"},
+    {Type::MULTEQ, R"(\*=)"},
     {Type::EQ, R"(=)"},
     {Type::PLUS, R"(\+)"},
-    {Type::MIN, R"(\-)"},
-    {Type::DIV, R"(\/)"},
-    {Type::EXP, R"(\^)"},
-    {Type::MULT, R"(\*)"},
-    {Type::DEF, R"(\bdef\b)"},
-    {Type::RET, R"(\bret\b)"},
+    {Type::MIN, R"(-)"},
+    {Type::DIV, R"(/)"},
+    {Type::EXP, R"(\*\*)"},
+    {Type::MULT, R"(\*)"}
 };
-
-/*
-static std::unordered_map<Type, std::string> TOKEN_EXPR = {
-    {Type::MLINE_COMMENT, ""},
-    {Type::SLINE_COMMENT, R"(#([^\n]*)(\n|$))"},
-    {Type::STRING, R"("(\\.|[^"\\])*"|'(\\.|[^'\\])*')"},
-    {Type::WHITESPACE, R"([ \t]+)"},
-    {Type::NLINE, R"(\r?\n)"},
-    {Type::SMBRACKET_L, R"(\()"},
-    {Type::SMBRACKET_R, R"(\))"},
-    {Type::SQBRACKET_L, R"(\[)"},
-    {Type::SQBRACKET_R, R"(\])"},
-    {Type::CUBRACKET_L, R"(\{)"},
-    {Type::CUBRACKET_R, R"(\})"},
-    {Type::EQ, R"(=)"},
-    {Type::PLUS, R"(\+)"},
-    {Type::MINUS, R"(\-)"},
-    {Type::DIV, R"(\/)"},
-    {Type::EXP, R"(\^)"},
-    {Type::MULT, R"(\*)"},
-    {Type::DEF, R"(\bdef\b)"},
-    {Type::RET, R"(\bret\b)"},
-};*/
 
 }  // namespace Tokenizer
