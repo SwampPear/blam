@@ -1,14 +1,29 @@
-# main.blam
-# this is another
-
 #*
-  Here is a multiline comment
+  @author Michael Vaden
+  
+  This is an example file for the Blam programming language to be used for
+  compiler design. It shall cover all of the necessary concepts used in the
+  compile, except for imports, which will be implemented when the native
+  compiler is built.
 *#
 
-def main() {
-    i8 a = 3
-    i8 b = 2
-    str c = "here is a string"
+# this is a single line comment for the const variable below
+pub const i8 myNumber = 18
+
+#*
+  Func that returns a string.
+*#
+pub def retStr(): str {
+    ret "fancy_string"
 }
 
-# hbjh
+#*
+  Main entry point for the program (can change in config).
+*#
+pub def main(): str {
+    i8 a = 2
+    i8 b = 3
+    i8 c = a + b
+
+    ret "fancy_string"
+}
