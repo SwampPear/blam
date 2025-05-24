@@ -7,6 +7,7 @@
 
 namespace Parser {
 
+
 static bool expect(const std::vector<Tokenizer::Token>& tokens, size_t& index, Tokenizer::Type expected) {
     if (tokens[index].type != expected)
         return false;
@@ -15,12 +16,15 @@ static bool expect(const std::vector<Tokenizer::Token>& tokens, size_t& index, T
     return true;
 }
 
+
 std::string extractString(const Tokenizer::Token& tok, const std::string& input) {
     return input.substr(tok.pos, tok.len);
 }
 
-bool shouldContinue(const std::vector<Tokenizer::Token>& tokens, size_t& index) {
+
+bool shouldSkip(const std::vector<Tokenizer::Token>& tokens, size_t& index) {
     return index < tokens.size() &&
+            tokens[index].type == Tokenizer::Type::SLINE_COMMENT ||
            (tokens[index].type == Tokenizer::Type::SLINE_COMMENT ||
             tokens[index].type == Tokenizer::Type::WHITESPACE ||
             tokens[index].type == Tokenizer::Type::NLINE);
@@ -32,22 +36,26 @@ pExpr parseNumber(const std::vector<Tokenizer::Token>& tokens, size_t& index) {
     return std::make_unique<Parser::NumberExpr>(1.0); // placeholder
 }*/
 
+pStmt processToken(const std::vector<Tokenizer::Token>& tokens, size_t& index) {
+    switch (tokens[index].type) {
+        case Tokenizer::Type::NUMBER:
+            // Handle number token
+            break;
+        default:
+            throw std::runtime_error("Unexpected token type");
+    }
+}
+
 std::vector<pStmt> parseProgram(const std::vector<Tokenizer::Token>& tokens) {
     std::vector<pStmt> prog;
     size_t index = 0;
     while (index < tokens.size()) {
-        if (shouldContinue(tokens, index)) {
+        if (shouldSkip(tokens, index)) {
             ++index;
             continue;
         }
 
-        switch (tokens[index].type) {
-            case Tokenizer::Type::NUMBER: {
-                break;
-            }
-            default:
-                throw std::runtime_error("Unexpected token type");
-        }
+        pStmt stmt = processToken(tokens, index);
     }
 
     return prog;

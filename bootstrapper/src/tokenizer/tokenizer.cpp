@@ -6,6 +6,7 @@
 
 namespace Tokenizer {
 
+
 std::string toString(std::shared_ptr<Token> token, const std::string& src) {
     std::ostringstream oss;
     oss << "Type: " << static_cast<int>(token->type)
@@ -17,6 +18,7 @@ std::string toString(std::shared_ptr<Token> token, const std::string& src) {
     return oss.str();
 }
 
+
 void printTokens(std::shared_ptr<Token> head, const std::string& src) {
     auto curr = head;
     while (curr != nullptr) {
@@ -27,9 +29,10 @@ void printTokens(std::shared_ptr<Token> head, const std::string& src) {
 
 void printTokens(const std::vector<Token>& tokens, const std::string& src) {
     for (const auto& token : tokens) {
-        std::cout << toString(token, src);
+        std::cout << toString(std::make_shared<Token>(token), src);
     }
 }
+
 
 std::shared_ptr<Token> insertToken(std::shared_ptr<Token> victim, std::shared_ptr<Token> first) {
     // get range
@@ -52,9 +55,9 @@ std::shared_ptr<Token> insertToken(std::shared_ptr<Token> victim, std::shared_pt
         last->next = next;
     }
 
-    // returned in case of head switching
-    return first;
+    return first;   // returned for head swapping
 }
+
 
 std::shared_ptr<Token> processRawToken(std::shared_ptr<Token> victim, Type type, const std::string& input) {
     // get bounds
@@ -131,6 +134,7 @@ std::shared_ptr<Token> processRawToken(std::shared_ptr<Token> victim, Type type,
     return (victim->prev ? head : head); // return real head
 }
 
+
 std::shared_ptr<Token> tokenize(const std::string& input) {
     // root file token
     auto head = std::make_shared<Token>();
@@ -139,7 +143,7 @@ std::shared_ptr<Token> tokenize(const std::string& input) {
     head->len = static_cast<uint16_t>(input.length());
 
     // loop over each lexeme type
-    for (int i = static_cast<int>(Type::RAW); i <= static_cast<int>(Type::RET); ++i) {
+    for (int i = static_cast<int>(Type::RAW); i <= static_cast<int>(Type::MULT); ++i) {
         Type type = static_cast<Type>(i);
         if (type == Type::RAW || TOKEN_EXPR[type].empty()) continue;
 
@@ -160,6 +164,7 @@ std::shared_ptr<Token> tokenize(const std::string& input) {
     return head;
 }
 
+
 std::vector<Token> tokenizeFile(const std::string& fp) {
     const std::string contents = Utils::readFile(fp);
     std::shared_ptr<Token> tokens = tokenize(contents);
@@ -171,5 +176,6 @@ std::vector<Token> tokenizeFile(const std::string& fp) {
 
     return tokenVector;
 }
+
 
 }  // namespace Tokenizer

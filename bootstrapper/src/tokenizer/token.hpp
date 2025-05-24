@@ -8,6 +8,7 @@
 
 namespace Tokenizer {
 
+
 // ordered in lexeme hierarchy first to last
 enum class Type : uint8_t {
     RAW = 0,             // raw uncategorized text
@@ -88,6 +89,7 @@ enum class Type : uint8_t {
     MULT                 // * 
 };
 
+
 struct Token {
     Type type;      // token type
     uint16_t pos;   // position in terms of source
@@ -95,6 +97,7 @@ struct Token {
     std::shared_ptr<Token> prev = nullptr;
     std::shared_ptr<Token> next = nullptr;
 };
+
 
 static std::unordered_map<Type, std::string> TOKEN_EXPR = {
     {Type::MLINE_COMMENT, R"(#\*[^*]*\*#)"},
@@ -153,5 +156,6 @@ static std::unordered_map<Type, std::string> TOKEN_EXPR = {
     {Type::EXP, R"(\*\*)"},
     {Type::MULT, R"(\*)"}
 };
+
 
 }  // namespace Tokenizer
