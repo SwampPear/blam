@@ -3,6 +3,7 @@
 #include "parser.hpp"
 #include "parser/ast.hpp"
 #include "tokenizer/token.hpp"
+#include <stack>
 
 
 namespace Parser {
@@ -16,42 +17,31 @@ static bool expect(const std::vector<Tokenizer::Token>& tokens, size_t& index, T
     return true;
 }
 
-
 std::string extractString(const Tokenizer::Token& tok, const std::string& input) {
     return input.substr(tok.pos, tok.len);
 }
 
-
 bool shouldSkip(const std::vector<Tokenizer::Token>& tokens, size_t& index) {
     return index < tokens.size() &&
-            tokens[index].type == Tokenizer::Type::SLINE_COMMENT ||
            (tokens[index].type == Tokenizer::Type::SLINE_COMMENT ||
             tokens[index].type == Tokenizer::Type::WHITESPACE ||
             tokens[index].type == Tokenizer::Type::NLINE);
 }
 
-/*
-pExpr parseNumber(const std::vector<Tokenizer::Token>& tokens, size_t& index) {
-    const Tokenizer::Token& tok = tokens[index++];
-    return std::make_unique<Parser::NumberExpr>(1.0); // placeholder
-}*/
-
-pStmt processDef(const std::vector<Tokenizer::Token>& tokens, size_t& index) {
-    const Tokenizer::Token& tok = tokens[index];
-}
-
-pStmt processToken(const std::vector<Tokenizer::Token>& tokens, size_t& index) {
+std::unique_ptr<ScopedStmt> processToken(const std::vector<Tokenizer::Token>& tokens, size_t& index, std::stack<std::string>& scope) {
     switch (tokens[index].type) {
-        case Tokenizer::Type::DEF:
-            // Handle number token
-            break;
         default:
             throw std::runtime_error("Unexpected token type");
     }
 }
 
-std::vector<pStmt> parseProgram(const std::vector<Tokenizer::Token>& tokens) {
-    std::vector<pStmt> prog;
+std::unique_ptr<Program> parseProgram(const std::vector<Tokenizer::Token>& tokens) {
+    std::unique_ptr<Program> prog = std::make_unique<Program>();
+    prog->ast->body = std::vector<std::unique_ptr<ScopedStmt>>();
+
+    std::stack<std::string> scope;
+    scope.push("");
+
     size_t index = 0;
     while (index < tokens.size()) {
         if (shouldSkip(tokens, index)) {
@@ -59,8 +49,8 @@ std::vector<pStmt> parseProgram(const std::vector<Tokenizer::Token>& tokens) {
             continue;
         }
 
-        pStmt stmt = processToken(tokens, index);
-        prog.push_back(std::move(stmt));
+        std::unique_ptr<ScopedStmt> stmt = processToken(tokens, index, scope);
+        prog->ast->body.push_back(std::move(stmt));
     }
 
     return prog;
