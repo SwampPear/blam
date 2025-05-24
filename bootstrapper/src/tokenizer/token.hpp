@@ -36,6 +36,8 @@ enum class Type : uint8_t {
     TRUE,                // true
     FALSE,               // false
     NIL,                 // nil
+    PUB,                 // pub
+    CONST,               // const
 
     TEXT,                // any text
 
@@ -118,6 +120,8 @@ static std::unordered_map<Type, std::string> TOKEN_EXPR = {
     {Type::TRUE, R"(\btrue\b)"},
     {Type::FALSE, R"(\bfalse\b)"},
     {Type::NIL, R"(\bnil\b)"},
+    {Type::PUB, R"(\bpub\b)"},
+    {Type::CONST, R"(\bconst\b)"},
     {Type::TEXT, R"([a-zA-Z_][a-zA-Z0-9_]*)"},
     {Type::DECIMAL, R"((?:\d+\.\d*|\.\d+))"},
     {Type::NUMBER, R"(\d+)"},
