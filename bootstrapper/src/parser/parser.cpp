@@ -8,7 +8,6 @@
 
 namespace Parser {
 
-
 static bool expect(const std::vector<Tokenizer::Token>& tokens, size_t& index, Tokenizer::Type expected) {
     if (tokens[index].type != expected)
         return false;
@@ -28,8 +27,15 @@ bool shouldSkip(const std::vector<Tokenizer::Token>& tokens, size_t& index) {
             tokens[index].type == Tokenizer::Type::NLINE);
 }
 
-std::unique_ptr<ScopedStmt> processToken(const std::vector<Tokenizer::Token>& tokens, size_t& index, std::stack<std::string>& scope) {
+std::unique_ptr<Stmt> processPub(const std::vector<Tokenizer::Token>& tokens, size_t& index, std::stack<std::string>& scope) {
+
+}
+
+std::unique_ptr<Stmt> processToken(const std::vector<Tokenizer::Token>& tokens, size_t& index, std::stack<std::string>& scope) {
     switch (tokens[index].type) {
+        case Tokenizer::Type::PUB: {
+            return processPub(tokens, index, scope);
+        }
         default:
             throw std::runtime_error("Unexpected token type");
     }
