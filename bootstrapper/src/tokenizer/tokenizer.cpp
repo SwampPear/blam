@@ -1,42 +1,33 @@
 #include <iostream>
+#include <sstream>
 #include "tokenizer.hpp"
 #include "utils.hpp"
 #include <regex>
 
 namespace Tokenizer {
 
+std::string toString(std::shared_ptr<Token> token, const std::string& src) {
+    std::ostringstream oss;
+    oss << "Type: " << static_cast<int>(token->type)
+        << ", Pos: " << token->pos
+        << ", Len: " << token->len
+        << ", Content: " << std::endl
+        << src.substr(token->pos, token->len) << std::endl;
+
+    return oss.str();
+}
+
 void printTokens(std::shared_ptr<Token> head, const std::string& src) {
     auto curr = head;
     while (curr != nullptr) {
-        // printed info
-        int type = static_cast<int>(curr->type);
-        uint16_t pos = curr->pos;
-        uint16_t len = curr->len;
-        std::string content = src.substr(pos, len);
-
-        std::cout << "Type: " << type 
-                  << ", Pos: " << pos 
-                  << ", Len: " << len 
-                  << ", Content: " << std::endl 
-                  << content << std::endl;
-
+        std::cout << toString(curr, src);
         curr = curr->next;
     }
 }
 
 void printTokens(const std::vector<Token>& tokens, const std::string& src) {
     for (const auto& token : tokens) {
-        // printed info
-        int type = static_cast<int>(token.type);
-        uint16_t pos = token.pos;
-        uint16_t len = token.len;
-        std::string content = src.substr(pos, len);
-
-        std::cout << "Type: " << type 
-                  << ", Pos: " << pos 
-                  << ", Len: " << len 
-                  << ", Content: " << std::endl 
-                  << content << std::endl;
+        std::cout << toString(token, src);
     }
 }
 

@@ -97,7 +97,6 @@ struct Token {
 };
 
 static std::unordered_map<Type, std::string> TOKEN_EXPR = {
-    RAW = 0,             // raw uncategorized text
     {Type::MLINE_COMMENT, R"(#\*[^*]*\*#)"},
     {Type::SLINE_COMMENT, R"(#([^\n]*)(\n|$))"},
     {Type::STRING, R"("(\\.|[^"\\])*"|'(\\.|[^'\\])*')"},
