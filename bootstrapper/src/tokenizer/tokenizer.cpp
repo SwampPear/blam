@@ -6,7 +6,12 @@
 
 namespace Tokenizer {
 
-
+/**
+ * @brief Helper function for constructing string representation of token.
+ * 
+ * @param token Pointer to token.
+ * @param src Source string.
+ */
 std::string toString(std::shared_ptr<Token> token, const std::string& src) {
     std::ostringstream oss;
     oss << "Type: " << static_cast<int>(token->type)
@@ -18,7 +23,12 @@ std::string toString(std::shared_ptr<Token> token, const std::string& src) {
     return oss.str();
 }
 
-
+/**
+ * @brief Prints a list of tokens from a linked list.
+ * 
+ * @param head Pointer to list head.
+ * @param src Source string.
+ */
 void printTokens(std::shared_ptr<Token> head, const std::string& src) {
     auto curr = head;
     while (curr != nullptr) {
@@ -27,57 +37,41 @@ void printTokens(std::shared_ptr<Token> head, const std::string& src) {
     }
 }
 
+/**
+ * @brief Prints a list of tokens from a vector.
+ * 
+ * @param tokens Vector of tokens.
+ * @param src Source string.
+ */
 void printTokens(const std::vector<Token>& tokens, const std::string& src) {
     for (const auto& token : tokens) {
         std::cout << toString(std::make_shared<Token>(token), src);
     }
 }
 
-
-std::shared_ptr<Token> insertToken(std::shared_ptr<Token> victim, std::shared_ptr<Token> first) {
-    // get range
-    auto last = first;
-    while (last->next) last = last->next;
-
-    // prev state
-    auto prev = victim->prev;
-    auto next = victim->next;
-
-    // connect prev
-    if (prev) {
-        prev->next = first;
-        first->prev = prev;
-    }
-
-    // connect next
-    if (next) {
-        next->prev = last;
-        last->next = next;
-    }
-
-    return first;   // returned for head swapping
-}
-
-
-std::shared_ptr<Token> processRawToken(std::shared_ptr<Token> victim, Type type, const std::string& input) {
-    // get bounds
+/**
+ * @brief Processes a raw token and replaces with a range of processed tokens.
+ * 
+ * @param victim Raw token.
+ * @param type Parsed type.
+ * @param src Source string.
+ */
+std::shared_ptr<Token> processRawToken(std::shared_ptr<Token> victim, Type type, const std::string& src) {
+    // bounds
     uint16_t pos = victim->pos;
     uint16_t len = victim->len;
-
-    // build regex
-    std::regex reg(TOKEN_EXPR[type]);
-    auto it = std::sregex_iterator(input.begin() + pos, input.begin() + pos + len, reg);
-    auto regex_end = std::sregex_iterator();
-
-    // no matches
-    if (it == regex_end) return victim;
 
     // build new list 
     std::shared_ptr<Token> head = nullptr;
     std::shared_ptr<Token> tail = nullptr;
 
-    uint16_t lastPos = pos;
+    // match regex
+    std::regex reg(TOKEN_EXPR[type]);
+    auto it = std::sregex_iterator(src.begin() + pos, src.begin() + pos + len, reg);
+    auto regex_end = std::sregex_iterator();
+    if (it == regex_end) return victim;     // no matches
 
+    uint16_t lastPos = pos;
     for (; it != regex_end; ++it) {
         const std::smatch& match = *it;
         uint16_t matchStart = static_cast<uint16_t>(match.position() + pos);
@@ -134,13 +128,17 @@ std::shared_ptr<Token> processRawToken(std::shared_ptr<Token> victim, Type type,
     return (victim->prev ? head : head); // return real head
 }
 
-
-std::shared_ptr<Token> tokenize(const std::string& input) {
+/**
+ * @brief Tokenizes a source string using all lexemes.
+ * 
+ * @param src Source string.
+ */
+std::shared_ptr<Token> tokenize(const std::string& src) {
     // root file token
     auto head = std::make_shared<Token>();
     head->type = Type::RAW;
     head->pos = 0;
-    head->len = static_cast<uint16_t>(input.length());
+    head->len = static_cast<uint16_t>(src.length());
 
     // loop over each lexeme type
     for (int i = static_cast<int>(Type::RAW); i <= static_cast<int>(Type::MULT); ++i) {
@@ -152,7 +150,7 @@ std::shared_ptr<Token> tokenize(const std::string& input) {
         while (curr) {
             if (curr->type == Type::RAW) {
                 auto next = curr->next;
-                auto newHead = processRawToken(curr, type, input);
+                auto newHead = processRawToken(curr, type, src);
                 if (curr == head) head = newHead;
                 curr = next;
             } else {
@@ -164,18 +162,21 @@ std::shared_ptr<Token> tokenize(const std::string& input) {
     return head;
 }
 
-
+/**
+ * @brief Tokenizes a file from a file path
+ * 
+ * @param fp Path to file.
+ */
 std::vector<Token> tokenizeFile(const std::string& fp) {
-    const std::string contents = Utils::readFile(fp);
-    std::shared_ptr<Token> tokens = tokenize(contents);
+    const std::string src = Utils::readFile(fp);
+    std::shared_ptr<Token> tokenList = tokenize(src);
 
-    std::vector<Token> tokenVector;
-    for (auto curr = tokens; curr; curr = curr->next) {
-        tokenVector.push_back(*curr);
+    std::vector<Token> tokens;
+    for (auto curr = tokenList; curr; curr = curr->next) {
+        tokens.push_back(*curr);
     }
 
-    return tokenVector;
+    return tokens;
 }
-
 
 }  // namespace Tokenizer

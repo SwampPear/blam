@@ -36,9 +36,13 @@ pExpr parseNumber(const std::vector<Tokenizer::Token>& tokens, size_t& index) {
     return std::make_unique<Parser::NumberExpr>(1.0); // placeholder
 }*/
 
+pStmt processDef(const std::vector<Tokenizer::Token>& tokens, size_t& index) {
+    const Tokenizer::Token& tok = tokens[index];
+}
+
 pStmt processToken(const std::vector<Tokenizer::Token>& tokens, size_t& index) {
     switch (tokens[index].type) {
-        case Tokenizer::Type::NUMBER:
+        case Tokenizer::Type::DEF:
             // Handle number token
             break;
         default:

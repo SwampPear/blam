@@ -10,17 +10,20 @@
 # this is a single line comment for the const variable below
 pub const i8 myNumber = 18
 
+# here is a constant that is not public
+const i8 myOtherNumber = 19
+
 #*
-  Func that returns a string.
+  Func that returns a string (not public).
 *#
-pub def retStr(): str {
+def retStr(): str {
     ret "fancy_string"
 }
 
 #*
   Main entry point for the program (can change in config).
 *#
-pub def main(): str {
+pub def main() {
     i8 a = 2
     i8 b = 3
     i8 c = a + b
