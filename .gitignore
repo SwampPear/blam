@@ -1,0 +1,6 @@
+__pycache__/
+test/
+.vscode/
+.DS_Store
+old/
+ref/

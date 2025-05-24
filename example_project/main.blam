@@ -1,0 +1,10 @@
+// this is some comment that should be parsed OUT
+import add, sub from math
+
+main() {
+    let a = "what is this str}ing"
+}
+
+main2() {
+    let b = "this is another string"
+}

@@ -56,6 +56,7 @@ std::vector<pStmt> parseProgram(const std::vector<Tokenizer::Token>& tokens) {
         }
 
         pStmt stmt = processToken(tokens, index);
+        prog.push_back(stmt)
     }
 
     return prog;
