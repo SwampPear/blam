@@ -70,6 +70,8 @@ std::unique_ptr<Stmt> processDef(const std::vector<Token>& tokens, size_t& index
     // function declaration statement
     auto stmt = std::make_unique<FuncDeclStmt>();
     stmt->type = StmtType::FUNC_DECL;
+    stmt->body = std::make_unique<ScopedStmt>();
+    stmt->body->type = ScopeType::FUNC;
     index += 1;
 
     // skip whitespace
@@ -77,13 +79,44 @@ std::unique_ptr<Stmt> processDef(const std::vector<Token>& tokens, size_t& index
 
     // check for text and extract function name
     expect(tokens, index, Type::TEXT);
-    std::string name = extractString(tokens[index], src);
-    std::cout << "Processing function: " + name << std::endl;
+    stmt->name = extractString(tokens[index], src);
+    std::cout << "Processing function: " + stmt->name << std::endl;
+    index += 1;
 
-    // process new scope
+    // skip whitespace
+    skip(tokens, index);
 
+    // check or arglist TODO: later, implement actual arg lists
+    expect(tokens, index, Type::SMBRACKET_L);
+    index += 1;
+    expect(tokens, index, Type::SMBRACKET_R);
+    index += 1;
+
+    // skip whitespace
+    skip(tokens, index);
+
+    // check for open bracket
+    expect(tokens, index, Type::CUBRACKET_L);
+    index += 1;
+
+    // skip whitespace
+    skip(tokens, index);
+
+    // scan body
+    while (index < tokens.size() && tokens[index].type != Type::CUBRACKET_R) {
+        if (shouldSkip(tokens, index)) {
+            ++index;
+            continue;
+        }
+
+        stmt->body->body.push_back(std::move(processToken(tokens, index, stmt->name, src)));
+    }
 
     return stmt;
+}
+
+std::unique_ptr<Stmt> processText(const std::vector<Token>& tokens, size_t& index, std::string scope, const std::string& src) {
+
 }
 
 std::unique_ptr<Stmt> processToken(const std::vector<Token>& tokens, size_t& index, std::string scope, const std::string& src) {
