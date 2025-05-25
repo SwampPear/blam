@@ -140,9 +140,40 @@ std::unique_ptr<Stmt> processDef(const std::vector<Token>& tokens, size_t& index
 
 std::unique_ptr<Stmt> processText(const std::vector<Token>& tokens, size_t& index, std::string scope, const std::string& src) {
     std::cout << "Processing text token" << std::endl;
+    std::cout << extractString(tokens[index], src);
+    std::cout << "Processing text token" << std::endl;
 
     if (match(tokens, index, {Type::TEXT, Type::SKIP, Type::TEXT, Type::SKIP, Type::EQ})) {
         std::cout << "Processing variable declaration" << std::endl;
+
+        // type
+        auto stmt = std::make_unique<VarDeclStmt>();
+        stmt->type = StmtType::VAR_DECL;
+        stmt->varType = extractString(tokens[index], src);
+        index += 1;
+
+        // skip whitespace
+        skip(tokens, index);
+
+        // expect another text part and extract name
+        stmt->varName = extractString(tokens[index], src);
+        index += 1;
+        
+        // skip whitespace, =, whitespace
+        skip(tokens, index);
+        index += 1;
+        skip(tokens, index);
+
+        // process statement
+        stmt->varStmt = std::move(processToken(tokens, index, scope, src));
+
+        // allowed statement types
+        if (stmt->type != StmtType::FUNC_DECL &&
+            stmt->type != StmtType::CONST_DECL) {
+            throw std::runtime_error("Compiler Error: Expected function or constant declaration.");
+        }
+    } else {
+        throw std::runtime_error("Unexpected pattern");
     }
 }
 

@@ -72,9 +72,9 @@ struct ConstDeclStmt : Stmt {
 };
 
 struct VarDeclStmt : Stmt {
-    std::string type;
-    std::string name;
-    std::unique_ptr<Stmt> init;
+    std::string varType;
+    std::string varName;
+    std::unique_ptr<Stmt> varStmt;
 };
 
 struct ReturnStmt : Stmt {
