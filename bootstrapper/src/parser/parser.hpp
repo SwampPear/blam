@@ -5,15 +5,17 @@
 #include "tokenizer/token.hpp"
 #include "parser/ast.hpp"
 
-namespace Parser {
+namespace BlamBootstrapper {
 
-static bool expect(const std::vector<Tokenizer::Token>& tokens, size_t& index, Tokenizer::Type expected);
-std::string extractString(const Tokenizer::Token& tok, const std::string& input);
-bool shouldSkip(const std::vector<Tokenizer::Token>& tokens, size_t& index);
+void expect(const std::vector<Token>& tokens, size_t& index, Type expected);
+std::string extractString(const Token& tok, const std::string& input);
 
-std::unique_ptr<Stmt> processPub(const std::vector<Tokenizer::Token>& tokens, size_t& index, std::string scope);
-std::unique_ptr<Stmt> processToken(const std::vector<Tokenizer::Token>& tokens, size_t& index, std::string scope);
+bool shouldSkip(const std::vector<Token>& tokens, size_t& index);
+void skip(const std::vector<Token>& tokens, size_t& index);
 
-std::unique_ptr<ScopedStmt> parseProgram(const std::vector<Tokenizer::Token>& tokens);
+std::unique_ptr<Stmt> processPub(const std::vector<Token>& tokens, size_t& index, std::string scope, const std::string& src);
+std::unique_ptr<Stmt> processToken(const std::vector<Token>& tokens, size_t& index, std::string scope, const std::string& src);
 
-}  // namespace Parser
+std::unique_ptr<ScopedStmt> parseProgram(const std::vector<Token>& tokens, const std::string& src);
+
+}  // namespace BlamBoostrapper

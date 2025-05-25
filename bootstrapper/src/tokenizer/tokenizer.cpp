@@ -1,17 +1,13 @@
 #include <iostream>
 #include <sstream>
-#include "tokenizer.hpp"
-#include "utils.hpp"
 #include <regex>
 
-namespace Tokenizer {
+#include "tokenizer/tokenizer.hpp"
+#include "utils.hpp"
 
-/**
- * @brief Helper function for constructing string representation of token.
- * 
- * @param token Pointer to token.
- * @param src Source string.
- */
+
+namespace BlamBootstrapper {
+
 std::string toString(std::shared_ptr<Token> token, const std::string& src) {
     std::ostringstream oss;
     oss << "Type: " << static_cast<int>(token->type)
@@ -23,12 +19,6 @@ std::string toString(std::shared_ptr<Token> token, const std::string& src) {
     return oss.str();
 }
 
-/**
- * @brief Prints a list of tokens from a linked list.
- * 
- * @param head Pointer to list head.
- * @param src Source string.
- */
 void printTokens(std::shared_ptr<Token> head, const std::string& src) {
     auto curr = head;
     while (curr != nullptr) {
@@ -37,25 +27,12 @@ void printTokens(std::shared_ptr<Token> head, const std::string& src) {
     }
 }
 
-/**
- * @brief Prints a list of tokens from a vector.
- * 
- * @param tokens Vector of tokens.
- * @param src Source string.
- */
 void printTokens(const std::vector<Token>& tokens, const std::string& src) {
     for (const auto& token : tokens) {
         std::cout << toString(std::make_shared<Token>(token), src);
     }
 }
 
-/**
- * @brief Processes a raw token and replaces with a range of processed tokens.
- * 
- * @param victim Raw token.
- * @param type Parsed type.
- * @param src Source string.
- */
 std::shared_ptr<Token> processRawToken(std::shared_ptr<Token> victim, Type type, const std::string& src) {
     // bounds
     uint16_t pos = victim->pos;
@@ -128,11 +105,6 @@ std::shared_ptr<Token> processRawToken(std::shared_ptr<Token> victim, Type type,
     return (victim->prev ? head : head); // return real head
 }
 
-/**
- * @brief Tokenizes a source string using all lexemes.
- * 
- * @param src Source string.
- */
 std::shared_ptr<Token> tokenize(const std::string& src) {
     // root file token
     auto head = std::make_shared<Token>();
@@ -162,13 +134,8 @@ std::shared_ptr<Token> tokenize(const std::string& src) {
     return head;
 }
 
-/**
- * @brief Tokenizes a file from a file path
- * 
- * @param fp Path to file.
- */
 std::vector<Token> tokenizeFile(const std::string& fp) {
-    const std::string src = Utils::readFile(fp);
+    const std::string src = readFile(fp);
     std::shared_ptr<Token> tokenList = tokenize(src);
 
     std::vector<Token> tokens;
@@ -179,4 +146,4 @@ std::vector<Token> tokenizeFile(const std::string& fp) {
     return tokens;
 }
 
-}  // namespace Tokenizer
+}  // namespace BlamBootstrapper

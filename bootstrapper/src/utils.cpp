@@ -1,6 +1,6 @@
 #include "utils.hpp"
 
-namespace Utils {
+namespace BlamBootstrapper {
 
 std::string readFile(const std::string& filePath) {
     std::ifstream file(filePath);
@@ -15,4 +15,4 @@ std::string readFile(const std::string& filePath) {
     return content;
 }
 
-}  // namespace Utils
+}  // namespace BlamBoostrapper

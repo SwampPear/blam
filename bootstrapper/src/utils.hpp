@@ -4,8 +4,8 @@
 #include <string>
 #include <cstdio>
 
-namespace Utils {
+namespace BlamBootstrapper {
 
 std::string readFile(const std::string& filePath);
 
-}  // namespace Utils
+}  // namespace BlamBootstrapper

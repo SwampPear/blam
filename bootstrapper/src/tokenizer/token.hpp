@@ -5,13 +5,11 @@
 #include <memory>
 #include <map>
 
+namespace BlamBootstrapper {
 
-namespace Tokenizer {
-
-
-// ordered in lexeme hierarchy first to last
+// ordered in parsing hierarchy first to last
 enum class Type : uint8_t {
-    RAW = 0,             // raw uncategorized text
+    RAW = 0,             // raw src
 
     // comments
     MLINE_COMMENT,       // #* *#
@@ -49,7 +47,6 @@ enum class Type : uint8_t {
     NLINE,               // \n (newline)
     WHITESPACE,          // \s+
    
-
     // delimeters
     SMBRACKET_L,         // (
     SMBRACKET_R,         // )
@@ -91,7 +88,6 @@ enum class Type : uint8_t {
     MULT                 // * 
 };
 
-
 struct Token {
     Type type;      // token type
     uint16_t pos;   // position in terms of source
@@ -99,7 +95,6 @@ struct Token {
     std::shared_ptr<Token> prev = nullptr;
     std::shared_ptr<Token> next = nullptr;
 };
-
 
 static std::unordered_map<Type, std::string> TOKEN_EXPR = {
     {Type::MLINE_COMMENT, R"(#\*[^*]*\*#)"},
@@ -161,5 +156,4 @@ static std::unordered_map<Type, std::string> TOKEN_EXPR = {
     {Type::MULT, R"(\*)"}
 };
 
-
-}  // namespace Tokenizer
+}  // namespace BlamBootstrapper

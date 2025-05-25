@@ -39,16 +39,19 @@ int main() {
 
 #include <cstdlib>
 #include <vector>
+
 #include "utils.hpp"
 #include "tokenizer/tokenizer.hpp"
 #include "parser/parser.hpp"
 
+using namespace BlamBootstrapper;
 
 int main() {
+    
     std::string fp = "example_project/src/main.blam";
-    std::string contents = Utils::readFile(fp);
-    std::vector<Tokenizer::Token> tokens = Tokenizer::tokenizeFile(fp);
-    //std::vector<Parser::pStmt> program = Parser::parseProgram(tokens);
+    std::string contents = readFile(fp);
+    std::vector<Token> tokens = tokenizeFile(fp);
+    std::unique_ptr<ScopedStmt> program = parseProgram(tokens, contents);
 
-    Tokenizer::printTokens(tokens, contents);
+    //printTokens(tokens, contents);
 }

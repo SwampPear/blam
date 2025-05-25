@@ -9,8 +9,7 @@
 
 #include "tokenizer/token.hpp"
 
-
-namespace Tokenizer {
+namespace BlamBootstrapper {
 
 std::string toString(std::shared_ptr<Token> token, const std::string& src);
 void printTokens(std::shared_ptr<Token> head, const std::string& src);
@@ -20,5 +19,4 @@ std::shared_ptr<Token> processRawToken(std::shared_ptr<Token> victim, Type type,
 std::shared_ptr<Token> tokenize(const std::string& src);
 std::vector<Token> tokenizeFile(const std::string& fp);
 
-
-}  // namespace Tokenizer
+}  // namespace BlamBootstrapper

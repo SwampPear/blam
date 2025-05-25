@@ -7,8 +7,7 @@
 #include <llvm/IR/IRBuilder.h>
 #include <llvm/IR/LLVMContext.h>
 
-
-namespace Parser {
+namespace BlamBootstrapper {
 
 struct Expr {
     virtual ~Expr() = default;
@@ -103,4 +102,4 @@ struct IfExpr : Expr {
 };
 */
 
-}  // namespace Parser
+}  // namespace BlamBoostrapper
