@@ -53,18 +53,13 @@ std::unique_ptr<Stmt> processPub(const std::vector<Token>& tokens, size_t& index
     skip(tokens, index);
 
     // process statement
-    std::cout << "Processing pubadsfasd token" << std::endl;
     stmt->stmt = std::move(processToken(tokens, index, scope, src));
-
-    std::cout << static_cast<int>(stmt->stmt->type) << std::endl;
 
     // allowed statement types
     if (stmt->stmt->type != StmtType::FUNC_DECL &&
         stmt->stmt->type != StmtType::CONST_DECL) {
         throw std::runtime_error("Compiler Error: Expected function or constant declaration.");
     }
-
-    std::cout << "Processing pub token" << std::endl;
 
     return stmt;
 }
@@ -77,20 +72,13 @@ std::unique_ptr<Stmt> processDef(const std::vector<Token>& tokens, size_t& index
     stmt->type = StmtType::FUNC_DECL;
     index += 1;
 
-    std::cout << "Processing def token" << std::endl;
-
     // skip whitespace
     skip(tokens, index);
-
-    std::cout << "Processing def token" << std::endl;
 
     // check for text and extract function name
     expect(tokens, index, Type::TEXT);
     std::string name = extractString(tokens[index], src);
-    std::cout << "parsing function: " + name << std::endl;
-
-
-    std::cout << "Processing def token" << std::endl;
+    std::cout << "Processing function: " + name << std::endl;
 
     // process new scope
 
@@ -104,9 +92,7 @@ std::unique_ptr<Stmt> processToken(const std::vector<Token>& tokens, size_t& ind
             return processPub(tokens, index, scope, src);
         }
         case Type::DEF: {
-            auto p = processDef(tokens, index, scope, src);
-            std::cout << "asdf" << std::endl;
-            return p;
+            return processDef(tokens, index, scope, src);
         }
         default:
             throw std::runtime_error("Compiler Error: Unexpected token type matching: " + 
@@ -126,10 +112,7 @@ std::unique_ptr<ScopedStmt> parseProgram(const std::vector<Token>& tokens, const
             continue;
         }
 
-        auto stmt = processToken(tokens, index, "", src);
-
-        std::cout << "Parsed statement: " << typeid(*stmt).name() << std::endl;
-        prog->body.push_back(std::move(stmt));
+        prog->body.push_back(std::move(processToken(tokens, index, "", src)));
     }
 
     return prog;
