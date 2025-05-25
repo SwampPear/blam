@@ -16,25 +16,23 @@ struct Expr {
 
 struct NumberExpr : Expr {
     double value;
-
     llvm::Value* codegen(llvm::LLVMContext& ctx, llvm::IRBuilder<>& builder) override;
 };
 
 struct VariableExpr : Expr {
     std::string name;
-
     llvm::Value* codegen(llvm::LLVMContext& ctx, llvm::IRBuilder<>& builder) override;
 };
 
 struct BinaryExpr : Expr {
     std::unique_ptr<Expr> op, lhs, rhs;
-
     llvm::Value* codegen(llvm::LLVMContext& ctx, llvm::IRBuilder<>& builder) override;
 };
 
 enum class StmtType {
     PUB = 0,
     SCOPED,
+    EXPR,
     FUNC_DECL,
     CONST_DECL,
     VAR_DECL,
@@ -58,6 +56,10 @@ enum class ScopeType {
 struct ScopedStmt : Stmt {
     ScopeType type;
     std::vector<std::unique_ptr<Stmt>> body;
+};
+
+struct ExprStmt : Stmt {
+    std::unique_ptr<Expr> expr;
 };
 
 struct FuncDeclStmt : Stmt {

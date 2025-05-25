@@ -168,10 +168,57 @@ std::unique_ptr<Stmt> processText(const std::vector<Token>& tokens, size_t& inde
         stmt->varStmt = std::move(processToken(tokens, index, scope, src));
 
         // allowed statement types
-        if (stmt->type != StmtType::FUNC_DECL &&
-            stmt->type != StmtType::CONST_DECL) {
-            throw std::runtime_error("Compiler Error: Expected function or constant declaration.");
+        if (stmt->type != StmtType::EXPR) {
+            throw std::runtime_error("Compiler Error: Expected expression.");
         }
+
+        return stmt;
+    } else {
+        throw std::runtime_error("Unexpected pattern");
+    }
+}
+
+std::unique_ptr<Stmt> processNumber(const std::vector<Token>& tokens, size_t& index, std::string scope, const std::string& src) {
+    std::cout << "Processing number token" << std::endl;
+
+    auto stmt = std::make_unique<ExprStmt>();
+    stmt->type = StmtType::EXPR;
+    stmt->stmt = processExpression(tokens, index, scope, src);
+}
+
+std::unique_ptr<Expr> processExpression(const std::vector<Token>& tokens, size_t& index, std::string scope, const std::string& src, Type delimeter) {
+    std::cout << "Processing expression" << std::endl;
+
+    if (match(tokens, index, {Type::TEXT, Type::SKIP, Type::TEXT, Type::SKIP, Type::EQ})) {
+        std::cout << "Processing variable declaration" << std::endl;
+
+        // type
+        auto stmt = std::make_unique<VarDeclStmt>();
+        stmt->type = StmtType::VAR_DECL;
+        stmt->varType = extractString(tokens[index], src);
+        index += 1;
+
+        // skip whitespace
+        skip(tokens, index);
+
+        // expect another text part and extract name
+        stmt->varName = extractString(tokens[index], src);
+        index += 1;
+        
+        // skip whitespace, =, whitespace
+        skip(tokens, index);
+        index += 1;
+        skip(tokens, index);
+
+        // process statement
+        stmt->varStmt = std::move(processToken(tokens, index, scope, src));
+
+        // allowed statement types
+        if (stmt->type != StmtType::EXPR) {
+            throw std::runtime_error("Compiler Error: Expected expression.");
+        }
+
+        return stmt;
     } else {
         throw std::runtime_error("Unexpected pattern");
     }
@@ -187,6 +234,9 @@ std::unique_ptr<Stmt> processToken(const std::vector<Token>& tokens, size_t& ind
         }
         case Type::TEXT: {
             return processText(tokens, index, scope, src);
+        }
+        case Type::NUMBER: {
+            return processNumber(tokens, index, scope, src);
         }
         default:
             throw std::runtime_error("Compiler Error: Unexpected token type matching: " + 

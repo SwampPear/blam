@@ -21,6 +21,8 @@ void skip(const std::vector<Token>& tokens, size_t& index);
 std::unique_ptr<Stmt> processPub(const std::vector<Token>& tokens, size_t& index, std::string scope, const std::string& src);
 std::unique_ptr<Stmt> processDef(const std::vector<Token>& tokens, size_t& index, std::string scope, const std::string& src);
 std::unique_ptr<Stmt> processText(const std::vector<Token>& tokens, size_t& index, std::string scope, const std::string& src);
+std::unique_ptr<Stmt> processNumber(const std::vector<Token>& tokens, size_t& index, std::string scope, const std::string& src);
+std::unique_ptr<Stmt> processExpression(const std::vector<Token>& tokens, size_t& index, std::string scope, const std::string& src);
 std::unique_ptr<Stmt> processToken(const std::vector<Token>& tokens, size_t& index, std::string scope, const std::string& src);
 
 std::unique_ptr<ScopedStmt> parseProgram(const std::vector<Token>& tokens, const std::string& src);
