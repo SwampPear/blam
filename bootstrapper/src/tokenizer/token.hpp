@@ -8,8 +8,9 @@
 namespace BlamBootstrapper {
 
 // ordered in parsing hierarchy first to last
-enum class Type : uint8_t {
-    RAW = 0,             // raw src
+enum class Type : int8_t {
+    SKIP = -1,           // used in parser for skippable tokens
+    RAW,                 // raw src
 
     // comments
     MLINE_COMMENT,       // #* *#
@@ -36,6 +37,7 @@ enum class Type : uint8_t {
     NIL,                 // nil
     PUB,                 // pub
     CONST,               // const
+    LET,                 // let
 
     TEXT,                // any text
 
@@ -117,6 +119,7 @@ static std::unordered_map<Type, std::string> TOKEN_EXPR = {
     {Type::NIL, R"(\bnil\b)"},
     {Type::PUB, R"(\bpub\b)"},
     {Type::CONST, R"(\bconst\b)"},
+    {Type::LET, R"(\blet\b)"},
     {Type::TEXT, R"([a-zA-Z_][a-zA-Z0-9_]*)"},
     {Type::DECIMAL, R"((?:\d+\.\d*|\.\d+))"},
     {Type::NUMBER, R"(\d+)"},

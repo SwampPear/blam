@@ -7,6 +7,11 @@
 
 namespace BlamBootstrapper {
 
+struct TokenExpr {
+    bool single;
+    Type type;
+};
+
 void expect(const std::vector<Token>& tokens, size_t& index, Type expected);
 std::string extractString(const Token& tok, const std::string& input);
 

@@ -36,6 +36,32 @@ void skip(const std::vector<Token>& tokens, size_t& index) {
     }
 }
 
+bool match(const std::vector<Token>& tokens, size_t index, std::vector<Type> patterns) {
+    if (index >= tokens.size()) {
+        throw std::runtime_error("Compiler Error: Index out of bounds.");
+    }
+
+    size_t i = index;
+
+    bool matchFound = true;
+
+    for (const auto& type : patterns) {
+        if (i >= tokens.size()) {
+            throw std::runtime_error("Compiler Error: Index out of bounds.");
+        }
+
+        if (type == Type::SKIP) {
+            skip(tokens, i);
+        } else if (tokens[i].type == type) {
+            i += 1;
+        } else {
+            matchFound = false;
+        }
+    }
+
+    return matchFound;
+}
+
 std::unique_ptr<Stmt> processPub(const std::vector<Token>& tokens, size_t& index, std::string scope, const std::string& src) {
     std::cout << "Processing pub token" << std::endl;
 
@@ -116,7 +142,7 @@ std::unique_ptr<Stmt> processDef(const std::vector<Token>& tokens, size_t& index
 }
 
 std::unique_ptr<Stmt> processText(const std::vector<Token>& tokens, size_t& index, std::string scope, const std::string& src) {
-
+    std::cout << "Processing text token" << std::endl;
 }
 
 std::unique_ptr<Stmt> processToken(const std::vector<Token>& tokens, size_t& index, std::string scope, const std::string& src) {
@@ -126,6 +152,9 @@ std::unique_ptr<Stmt> processToken(const std::vector<Token>& tokens, size_t& ind
         }
         case Type::DEF: {
             return processDef(tokens, index, scope, src);
+        }
+        case Type::TEXT: {
+            return processText(tokens, index, scope, src);
         }
         default:
             throw std::runtime_error("Compiler Error: Unexpected token type matching: " + 
