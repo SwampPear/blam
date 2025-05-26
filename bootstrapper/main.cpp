@@ -70,8 +70,10 @@ int main() {
 
     for (const auto& stmt : scopedProgram->body) {
         std::cout << "Generating code for statement..." << std::endl;
-        stmt->codegen(context, builder);
+        stmt->codegen(context, builder, module);
     }
+
+    module.print(llvm::outs(), nullptr);
 
     return 0;
 }
