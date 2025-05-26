@@ -55,5 +55,7 @@ int main() {
     printTokens(tokens, contents);
     std::unique_ptr<ScopedStmt> program = parseProgram(tokens, contents);
 
+    printAST(program);
+
     //printTokens(tokens, contents);
 }

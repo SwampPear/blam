@@ -2,6 +2,7 @@
 
 #include <memory>
 #include <string>
+#include <iostream>
 
 #include <llvm/IR/Value.h>
 #include <llvm/IR/IRBuilder.h>
@@ -82,26 +83,5 @@ struct VarDeclStmt : Stmt {
 struct ReturnStmt : Stmt {
     std::unique_ptr<Stmt> value;
 };
-
-/*
-struct CallExpr : Expr {
-    std::string callee;
-    std::vector<pExpr> args;
-    CallExpr(const std::string& c, std::vector<pExpr> a) : callee(c), args(std::move(a)) {}
-    llvm::Value* codegen(llvm::LLVMContext& ctx, llvm::IRBuilder<>& builder) override;
-};
-
-struct BoolExpr : Expr {
-    bool value;
-    BoolExpr(bool v) : value(v) {}
-    llvm::Value* codegen(llvm::LLVMContext& ctx, llvm::IRBuilder<>& builder) override;
-};
-
-struct IfExpr : Expr {
-    pExpr cond, thenBranch, elseBranch;
-    IfExpr(pExpr c, pExpr t, pExpr e) : cond(std::move(c)), thenBranch(std::move(t)), elseBranch(std::move(e)) {}
-    llvm::Value* codegen(llvm::LLVMContext& ctx, llvm::IRBuilder<>& builder) override;
-};
-*/
 
 }  // namespace BlamBoostrapper
