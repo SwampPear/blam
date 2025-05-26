@@ -32,7 +32,22 @@ void printAST(const std::unique_ptr<Stmt>& stmt, int indent = 0) {
         case StmtType::FUNC_DECL: {
             auto pStmt = static_cast<FuncDeclStmt*>(stmt.get());
             std::cout << indentation << "FuncDecl(" << pStmt->name << "): " << std::endl;
+
+            for (const auto& stmt : pStmt->body->body) {
+                printAST(stmt, indent + 2);
+            }
             
+            break;
+        }
+        case StmtType::VAR_DECL: {
+            auto pStmt = static_cast<VarDeclStmt*>(stmt.get());
+            std::cout << indentation << "VarDecl(" << pStmt->name << ")" << std::endl;
+            break;
+        }
+
+        case StmtType::RETURN: {
+            auto pStmt = static_cast<ReturnStmt*>(stmt.get());
+            std::cout << indentation << "Return" << std::endl;
             break;
         }
         default:
