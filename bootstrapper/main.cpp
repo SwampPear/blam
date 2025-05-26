@@ -40,6 +40,11 @@ int main() {
 #include <cstdlib>
 #include <vector>
 
+#include <llvm/IR/LLVMContext.h>
+#include <llvm/IR/IRBuilder.h>
+#include <llvm/IR/Module.h>
+#include <llvm/Support/raw_ostream.h>
+
 #include "utils.hpp"
 #include "tokenizer/tokenizer.hpp"
 #include "parser/parser.hpp"
@@ -56,4 +61,17 @@ int main() {
     std::unique_ptr<Stmt> program = parseProgram(tokens, contents);
 
     printAST(program, 0);
+
+    auto scopedProgram = static_cast<ScopedStmt*>(program.get());
+
+    llvm::LLVMContext context;
+    llvm::Module module("BlamModule", context);
+    llvm::IRBuilder<> builder(context);
+
+    for (const auto& stmt : scopedProgram->body) {
+        std::cout << "Generating code for statement..." << std::endl;
+        stmt->codegen(context, builder);
+    }
+
+    return 0;
 }
