@@ -13,7 +13,6 @@
 pub def main() {
     i8 a = 2
     i8 b = 3
-    i8 c = a + b
 
-    ret c
+    ret 4
 }

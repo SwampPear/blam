@@ -76,7 +76,7 @@ std::unique_ptr<Stmt> processPub(const std::vector<Token>& tokens, size_t& index
     skip(tokens, index);
 
     // process statement
-    stmt->stmt = std::move(processToken(tokens, index, scope, src));
+    stmt->stmt = processToken(tokens, index, scope, src);
 
     // allowed statement types
     if (stmt->stmt->type != StmtType::FUNC_DECL &&
@@ -132,8 +132,29 @@ std::unique_ptr<Stmt> processDef(const std::vector<Token>& tokens, size_t& index
             continue;
         }
 
-        stmt->body->body.push_back(std::move(processToken(tokens, index, stmt->name, src)));
+        stmt->body->body.push_back(processToken(tokens, index, stmt->name, src));
     }
+
+    // skip the right bracket
+    index += 1;
+
+    return stmt;
+}
+
+std::unique_ptr<Stmt> processRet(const std::vector<Token>& tokens, size_t& index, std::string scope, const std::string& src) {
+    std::cout << "Processing ret token" << std::endl;
+
+    // function declaration statement
+    auto stmt = std::make_unique<ReturnStmt>();
+    stmt->type = StmtType::RETURN;
+    index += 1;
+
+    // skip whitespace
+    skip(tokens, index);
+    
+    // parse value
+    stmt->value = processExpression(tokens, index, scope, src, Type::NLINE);
+    index += 1;
 
     return stmt;
 }
@@ -165,12 +186,14 @@ std::unique_ptr<Stmt> processText(const std::vector<Token>& tokens, size_t& inde
         skip(tokens, index);
 
         // process statement
-        stmt->varStmt = std::move(processToken(tokens, index, scope, src));
+        stmt->varStmt = processExpression(tokens, index, scope, src, Type::NLINE);
 
         // allowed statement types
-        if (stmt->type != StmtType::EXPR) {
+        if (stmt->varStmt->type != StmtType::EXPR) {
             throw std::runtime_error("Compiler Error: Expected expression.");
         }
+
+        index += 1;
 
         return stmt;
     } else {
@@ -178,50 +201,22 @@ std::unique_ptr<Stmt> processText(const std::vector<Token>& tokens, size_t& inde
     }
 }
 
-std::unique_ptr<Stmt> processNumber(const std::vector<Token>& tokens, size_t& index, std::string scope, const std::string& src) {
-    std::cout << "Processing number token" << std::endl;
+std::unique_ptr<Stmt> processExpression(const std::vector<Token>& tokens, size_t& index, std::string scope, const std::string& src, Type delimeter) {
+    std::cout << "Processing expression" << std::endl;
+    // TODO: replace with routed algorithm that first detects what type of
+    // expression is being handled, then uses shunting yard for arithmetic
+    // and binary expressions and list joining for lists
 
+    // but for now only parse number and arithmetic
     auto stmt = std::make_unique<ExprStmt>();
     stmt->type = StmtType::EXPR;
-    stmt->stmt = processExpression(tokens, index, scope, src);
-}
 
-std::unique_ptr<Expr> processExpression(const std::vector<Token>& tokens, size_t& index, std::string scope, const std::string& src, Type delimeter) {
-    std::cout << "Processing expression" << std::endl;
+    auto expr = std::make_unique<NumberExpr>();
+    expr->value = std::stod(extractString(tokens[index], src));
 
-    if (match(tokens, index, {Type::TEXT, Type::SKIP, Type::TEXT, Type::SKIP, Type::EQ})) {
-        std::cout << "Processing variable declaration" << std::endl;
+    stmt->expr = std::move(expr);
 
-        // type
-        auto stmt = std::make_unique<VarDeclStmt>();
-        stmt->type = StmtType::VAR_DECL;
-        stmt->varType = extractString(tokens[index], src);
-        index += 1;
-
-        // skip whitespace
-        skip(tokens, index);
-
-        // expect another text part and extract name
-        stmt->varName = extractString(tokens[index], src);
-        index += 1;
-        
-        // skip whitespace, =, whitespace
-        skip(tokens, index);
-        index += 1;
-        skip(tokens, index);
-
-        // process statement
-        stmt->varStmt = std::move(processToken(tokens, index, scope, src));
-
-        // allowed statement types
-        if (stmt->type != StmtType::EXPR) {
-            throw std::runtime_error("Compiler Error: Expected expression.");
-        }
-
-        return stmt;
-    } else {
-        throw std::runtime_error("Unexpected pattern");
-    }
+    return stmt;
 }
 
 std::unique_ptr<Stmt> processToken(const std::vector<Token>& tokens, size_t& index, std::string scope, const std::string& src) {
@@ -232,11 +227,11 @@ std::unique_ptr<Stmt> processToken(const std::vector<Token>& tokens, size_t& ind
         case Type::DEF: {
             return processDef(tokens, index, scope, src);
         }
+        case Type::RET: {
+            return processRet(tokens, index, scope, src);
+        }
         case Type::TEXT: {
             return processText(tokens, index, scope, src);
-        }
-        case Type::NUMBER: {
-            return processNumber(tokens, index, scope, src);
         }
         default:
             throw std::runtime_error("Compiler Error: Unexpected token type matching: " + 
@@ -256,7 +251,7 @@ std::unique_ptr<ScopedStmt> parseProgram(const std::vector<Token>& tokens, const
             continue;
         }
 
-        prog->body.push_back(std::move(processToken(tokens, index, "", src)));
+        prog->body.push_back(processToken(tokens, index, "", src));
     }
 
     return prog;
