@@ -26,6 +26,6 @@ std::unique_ptr<Stmt> processText(const std::vector<Token>& tokens, size_t& inde
 std::unique_ptr<Stmt> processExpression(const std::vector<Token>& tokens, size_t& index, std::string scope, const std::string& src, Type delimeter);
 std::unique_ptr<Stmt> processToken(const std::vector<Token>& tokens, size_t& index, std::string scope, const std::string& src);
 
-std::unique_ptr<ScopedStmt> parseProgram(const std::vector<Token>& tokens, const std::string& src);
+std::unique_ptr<Stmt> parseProgram(const std::vector<Token>& tokens, const std::string& src);
 
 }  // namespace BlamBoostrapper

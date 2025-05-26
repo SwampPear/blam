@@ -52,10 +52,8 @@ int main() {
     std::string contents = readFile(fp);
     std::vector<Token> tokens = tokenizeFile(fp);
 
-    printTokens(tokens, contents);
-    std::unique_ptr<ScopedStmt> program = parseProgram(tokens, contents);
-
-    printAST(program);
-
     //printTokens(tokens, contents);
+    std::unique_ptr<Stmt> program = parseProgram(tokens, contents);
+
+    printAST(program, 0);
 }

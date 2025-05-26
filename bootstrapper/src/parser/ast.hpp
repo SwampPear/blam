@@ -20,16 +20,6 @@ struct NumberExpr : Expr {
     llvm::Value* codegen(llvm::LLVMContext& ctx, llvm::IRBuilder<>& builder) override;
 };
 
-struct VariableExpr : Expr {
-    std::string name;
-    llvm::Value* codegen(llvm::LLVMContext& ctx, llvm::IRBuilder<>& builder) override;
-};
-
-struct BinaryExpr : Expr {
-    std::unique_ptr<Expr> op, lhs, rhs;
-    llvm::Value* codegen(llvm::LLVMContext& ctx, llvm::IRBuilder<>& builder) override;
-};
-
 enum class StmtType {
     PUB = 0,
     SCOPED,
@@ -41,26 +31,21 @@ enum class StmtType {
 };
 
 struct Stmt {
-    StmtType type;
+    StmtType stmtType;
     virtual ~Stmt() = default; 
-};
-
-struct PubStmt : Stmt {
-    std::unique_ptr<Stmt> stmt;
-};
-
-enum class ScopeType {
-    ROOT,
-    FUNC,
-};
-
-struct ScopedStmt : Stmt {
-    ScopeType type;
-    std::vector<std::unique_ptr<Stmt>> body;
 };
 
 struct ExprStmt : Stmt {
     std::unique_ptr<Expr> expr;
+};
+
+struct PubStmt : Stmt {
+    std::unique_ptr<Stmt> body;
+};
+
+struct ScopedStmt : Stmt {
+    std::string scope;
+    std::vector<std::unique_ptr<Stmt>> body;
 };
 
 struct FuncDeclStmt : Stmt {
@@ -71,17 +56,31 @@ struct FuncDeclStmt : Stmt {
 struct ConstDeclStmt : Stmt {
     std::string type;
     std::string name;
-    std::unique_ptr<Stmt> init;
+    std::unique_ptr<Stmt> value;
 };
 
 struct VarDeclStmt : Stmt {
-    std::string varType;
-    std::string varName;
-    std::unique_ptr<Stmt> varStmt;
+    std::string type;
+    std::string name;
+    std::unique_ptr<Stmt> value;
 };
 
 struct ReturnStmt : Stmt {
     std::unique_ptr<Stmt> value;
 };
+
+void printAST(const std::unique_ptr<Stmt>& stmt, int indent);
+
+/*
+struct VariableExpr : Expr {
+    std::string name;
+    llvm::Value* codegen(llvm::LLVMContext& ctx, llvm::IRBuilder<>& builder) override;
+};
+
+struct BinaryExpr : Expr {
+    std::unique_ptr<Expr> op, lhs, rhs;
+    llvm::Value* codegen(llvm::LLVMContext& ctx, llvm::IRBuilder<>& builder) override;
+};
+*/
 
 }  // namespace BlamBoostrapper

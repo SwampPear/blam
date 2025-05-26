@@ -8,6 +8,8 @@
 
 namespace BlamBootstrapper {
 
+
+
 void expect(const std::vector<Token>& tokens, size_t& index, Type expected) {
     if (index >= tokens.size()) {
         throw std::runtime_error("Compiler Error: Index out of bounds.");
@@ -67,20 +69,20 @@ std::unique_ptr<Stmt> processPub(const std::vector<Token>& tokens, size_t& index
         throw std::runtime_error("Compiler Error: 'pub' keyword only allowed in top-level declaration.");
     }
 
-    // pub statement
+    // create pub statement and iterate
     auto stmt = std::make_unique<PubStmt>();
-    stmt->type = StmtType::PUB;
+    stmt->stmtType = StmtType::PUB;
     index += 1;
 
     // skip whitespace
     skip(tokens, index);
 
     // process statement
-    stmt->stmt = processToken(tokens, index, scope, src);
+    stmt->body = processToken(tokens, index, scope, src);
 
     // allowed statement types
-    if (stmt->stmt->type != StmtType::FUNC_DECL &&
-        stmt->stmt->type != StmtType::CONST_DECL) {
+    if (stmt->body->stmtType != StmtType::FUNC_DECL &&
+        stmt->body->stmtType != StmtType::CONST_DECL) {
         throw std::runtime_error("Compiler Error: Expected function or constant declaration.");
     }
 
@@ -90,11 +92,11 @@ std::unique_ptr<Stmt> processPub(const std::vector<Token>& tokens, size_t& index
 std::unique_ptr<Stmt> processDef(const std::vector<Token>& tokens, size_t& index, std::string scope, const std::string& src) {
     std::cout << "Processing def token" << std::endl;
 
-    // function declaration statement
+    // create function declaration statement and iterate
     auto stmt = std::make_unique<FuncDeclStmt>();
-    stmt->type = StmtType::FUNC_DECL;
+    stmt->stmtType = StmtType::FUNC_DECL;
     stmt->body = std::make_unique<ScopedStmt>();
-    stmt->body->type = ScopeType::FUNC;
+    stmt->body->stmtType = StmtType::SCOPED;
     index += 1;
 
     // skip whitespace
@@ -146,7 +148,7 @@ std::unique_ptr<Stmt> processRet(const std::vector<Token>& tokens, size_t& index
 
     // function declaration statement
     auto stmt = std::make_unique<ReturnStmt>();
-    stmt->type = StmtType::RETURN;
+    stmt->stmtType = StmtType::RETURN;
     index += 1;
 
     // skip whitespace
@@ -169,15 +171,15 @@ std::unique_ptr<Stmt> processText(const std::vector<Token>& tokens, size_t& inde
 
         // type
         auto stmt = std::make_unique<VarDeclStmt>();
-        stmt->type = StmtType::VAR_DECL;
-        stmt->varType = extractString(tokens[index], src);
+        stmt->stmtType = StmtType::VAR_DECL;
+        stmt->type = extractString(tokens[index], src);
         index += 1;
 
         // skip whitespace
         skip(tokens, index);
 
         // expect another text part and extract name
-        stmt->varName = extractString(tokens[index], src);
+        stmt->name = extractString(tokens[index], src);
         index += 1;
         
         // skip whitespace, =, whitespace
@@ -186,10 +188,10 @@ std::unique_ptr<Stmt> processText(const std::vector<Token>& tokens, size_t& inde
         skip(tokens, index);
 
         // process statement
-        stmt->varStmt = processExpression(tokens, index, scope, src, Type::NLINE);
+        stmt->value = processExpression(tokens, index, scope, src, Type::NLINE);
 
         // allowed statement types
-        if (stmt->varStmt->type != StmtType::EXPR) {
+        if (stmt->value->stmtType != StmtType::EXPR) {
             throw std::runtime_error("Compiler Error: Expected expression.");
         }
 
@@ -209,7 +211,7 @@ std::unique_ptr<Stmt> processExpression(const std::vector<Token>& tokens, size_t
 
     // but for now only parse number and arithmetic
     auto stmt = std::make_unique<ExprStmt>();
-    stmt->type = StmtType::EXPR;
+    stmt->stmtType = StmtType::EXPR;
 
     auto expr = std::make_unique<NumberExpr>();
     expr->value = std::stod(extractString(tokens[index], src));
@@ -239,9 +241,9 @@ std::unique_ptr<Stmt> processToken(const std::vector<Token>& tokens, size_t& ind
     }
 }
 
-std::unique_ptr<ScopedStmt> parseProgram(const std::vector<Token>& tokens, const std::string& src) {
+std::unique_ptr<Stmt> parseProgram(const std::vector<Token>& tokens, const std::string& src) {
     auto prog = std::make_unique<ScopedStmt>();
-    prog->type = ScopeType::ROOT;
+    prog->stmtType = StmtType::SCOPED;
     prog->body = std::vector<std::unique_ptr<Stmt>>();
 
     size_t index = 0;
