@@ -9,7 +9,8 @@ namespace BlamBootstrapper {
 
 // ordered in parsing hierarchy first to last
 enum class Type : int8_t {
-    SKIP = -1,           // used in parser for skippable tokens
+    SKIP = -2,           // used in parser for skippable tokens
+    END,                 // end of file marker
     RAW,                 // raw src
 
     // comments

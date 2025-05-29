@@ -1,5 +1,22 @@
 # PEG grammar for Blam
 
+
+# STARTING RULES
+# ==============
+
+file: [statements] ENDMARKER 
+interactive: statement_newline 
+eval: expressions NEWLINE* ENDMARKER 
+func_type: '(' [type_expressions] ')' '->' expression NEWLINE* ENDMARKER 
+
+
+
+
+
+
+
+
+
 # ========================= START OF THE GRAMMAR =========================
 
 # General grammatical elements and rules:
@@ -58,13 +75,7 @@
 #   fail with SyntaxError if e cannot be parsed.
 #
 
-# STARTING RULES
-# ==============
 
-file: [statements] ENDMARKER 
-interactive: statement_newline 
-eval: expressions NEWLINE* ENDMARKER 
-func_type: '(' [type_expressions] ')' '->' expression NEWLINE* ENDMARKER 
 
 # GENERAL STATEMENTS
 # ==================
