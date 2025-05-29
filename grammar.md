@@ -18,26 +18,21 @@ eval: expressions <NEWLINE><END>
 # GENERAL STATEMENTS
 # ==================
 
+ignore: (<S> | <MLINE_COMMENT> | <SLINE_COMMENT>)+
+
 statements: statement+
 
-pub_func_decl: <PUB> <S>* func_decl
+pub_func_decl: <PUB> ignore func_decl
 
-func_decl: <DEF> <S>* <TEXT>=func_name func_args
+func_decl: <DEF> ignore <TEXT>=func_name ignore func_args=func_args <CU>
 
-func_args: <CUBRACKET_L> (<S>* (arg_decl <S>* ,))* <S>
+func_args: <SMBRACKET_L> (<S>* (arg_decl <S>* ,))* <S>
 
-arg_decl:
-    | typed_arg_decl
-    | non_typed_arg_decl
+func_arg_decl:
+    typed_func_arg
+    | non_typed_func_arg
 
 typed_arg_decl: <TEXT>
-
-
-
-
-
-
-
 
 
 # ========================= START OF THE GRAMMAR =========================
