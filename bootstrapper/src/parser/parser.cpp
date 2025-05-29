@@ -205,18 +205,33 @@ std::unique_ptr<Stmt> processText(const std::vector<Token>& tokens, size_t& inde
 
 std::unique_ptr<Stmt> processExpression(const std::vector<Token>& tokens, size_t& index, std::string scope, const std::string& src, Type delimeter) {
     std::cout << "Processing expression" << std::endl;
-    // TODO: replace with routed algorithm that first detects what type of
-    // expression is being handled, then uses shunting yard for arithmetic
-    // and binary expressions and list joining for lists
 
     // but for now only parse number and arithmetic
     auto stmt = std::make_unique<ExprStmt>();
     stmt->stmtType = StmtType::EXPR;
 
-    auto expr = std::make_unique<NumberExpr>();
-    expr->value = std::stod(extractString(tokens[index], src));
+    Type type = tokens[index].type;
+    switch(type) {
+        case Type::NUMBER: {
+            auto expr = std::make_unique<NumberExpr>();
+            expr->value = std::stod(extractString(tokens[index], src));
+            stmt->expr = std::move(expr);
+            break;
+        }
+        case Type::TEXT: {
+            auto expr = std::make_unique<VarExpr>();
+            expr->name = extractString(tokens[index], src);
+            stmt->expr = std::move(expr);
+            break;
+        }
+        default: {
+            throw std::runtime_error("Compiler error: Expected expression");
+        }
+    }
 
-    stmt->expr = std::move(expr);
+    // TODO: replace with routed algorithm that first detects what type of
+    // expression is being handled, then uses shunting yard for arithmetic
+    // and binary expressions and list joining for lists
 
     return stmt;
 }

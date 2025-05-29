@@ -1,13 +1,17 @@
 #pragma once
 
-#include <llvm/IR/IRBuilder.h>
-#include <llvm/IR/LLVMContext.h>
-#include <llvm/IR/Module.h>
+#include <memory>
 
-#include "parser/ast.hpp"
+#include <llvm/IR/LLVMContext.h>
+#include <llvm/IR/IRBuilder.h>
+#include <llvm/IR/Module.h>
+#include <llvm/Support/raw_ostream.h>
+
+#include "parser/parser.hpp"
+
 
 namespace BlamBootstrapper {
 
-void generateIR(std::unique_ptr<Parser::Expr>& ast, llvm::LLVMContext& ctx, llvm::Module& module);
+void generateIR(std::unique_ptr<Stmt> program);
 
-}  // BlamBootstrapper
+}  // namespace BlamBootstrapper

@@ -1,42 +1,3 @@
-/*#include "src/tokenizer.hpp"
-
-int main() {
-    std::string fp = "example_project/src/main.blam";
-    Tokenizer::tokenizeFile(fp);
-    
-    return 0;
-}*/
-/*
-#include "parser/parser.hpp"
-#include "codegen/codegen.hpp"
-#include "tokenizer/tokenizer.hpp"
-
-#include <llvm/IR/LLVMContext.h>
-#include <llvm/IR/Module.h>
-#include <llvm/IR/IRBuilder.h>
-
-int main() {
-    std::string input = "3 + 4 * 2";
-
-    auto tokens = Tokenizer::tokenize(input);
-    printTokens(tokens, input);
-
-    std::vector<Tokenizer::Token> tokenVec;
-    for (auto curr = tokens; curr; curr = curr->next)
-        tokenVec.push_back(*curr);
-
-    size_t index = 0;
-    auto ast = Parser::parseExpression(tokenVec, index);
-
-    llvm::LLVMContext ctx;
-    llvm::Module module("my_module", ctx);
-    generateIR(ast, ctx, module);
-
-    module.print(llvm::outs(), nullptr);
-    return 0;
-}
-*/
-
 #include <cstdlib>
 #include <vector>
 
@@ -48,11 +9,11 @@ int main() {
 #include "utils.hpp"
 #include "tokenizer/tokenizer.hpp"
 #include "parser/parser.hpp"
+#include "codegen/codegen.hpp"
 
 using namespace BlamBootstrapper;
 
 int main() {
-    
     std::string fp = "example_project/src/main.blam";
     std::string contents = readFile(fp);
     std::vector<Token> tokens = tokenizeFile(fp);
@@ -62,18 +23,7 @@ int main() {
 
     printAST(program, 0);
 
-    auto scopedProgram = static_cast<ScopedStmt*>(program.get());
+    generateIR(program);
 
-    llvm::LLVMContext context;
-    llvm::Module module("BlamModule", context);
-    llvm::IRBuilder<> builder(context);
-
-    for (const auto& stmt : scopedProgram->body) {
-        std::cout << "Generating code for statement..." << std::endl;
-        stmt->codegen(context, builder, module);
-    }
-
-    module.print(llvm::outs(), nullptr);
-
-    return 0;
+    return EXIT_SUCCESS;
 }

@@ -1,0 +1,6 @@
+def toString(Token token, str src): str {
+    ret "Type: " + token.type + 
+        ", Pos: " + token->pos + 
+        ", Len: " + token->len +
+        ", Content: \n" + src.substr(token->pos, token->len) + "\n"
+}

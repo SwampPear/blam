@@ -7,8 +7,19 @@ llvm::Value* NumberExpr::codegen(llvm::LLVMContext& ctx, llvm::IRBuilder<>& buil
     return llvm::ConstantFP::get(ctx, llvm::APFloat(value));
 }
 
+llvm::Value* VarExpr::codegen(llvm::LLVMContext& ctx, llvm::IRBuilder<>& builder, llvm::Module& module) {
+    llvm::Value* val = namedValues[name];
+    if (!val) {
+        std::cerr << "Unknown variable name: " << name << std::endl;
+        return nullptr;
+    }
+    return val;
+}
+
 llvm::Value* VarDeclStmt::codegen(llvm::LLVMContext& ctx, llvm::IRBuilder<>& builder, llvm::Module& module) {
-    llvm::Value* val = value->codegen(ctx, builder, module);
+    std::cout << "Generating code for variable declaration: " << name << std::endl;
+    auto exprStmt = static_cast<ExprStmt*>(value.get());
+    llvm::Value* val = exprStmt->expr->codegen(ctx, builder, module);
     if (!val) return nullptr;
 
     namedValues[name] = val;
@@ -110,7 +121,12 @@ llvm::Value* ConstDeclStmt::codegen(llvm::LLVMContext& ctx, llvm::IRBuilder<>& b
 }
 
 llvm::Value* ReturnStmt::codegen(llvm::LLVMContext& ctx, llvm::IRBuilder<>& builder, llvm::Module& module) {
-    return nullptr;
+    std::cout << "Generating return" << std::endl;
+    auto exprStmt = static_cast<ExprStmt*>(value.get());
+    llvm::Value* val = exprStmt->expr->codegen(ctx, builder, module);
+    if (!val) return nullptr;
+
+    return builder.CreateRet(val);
 }
 
 }  // namespace BlamBoostrapper

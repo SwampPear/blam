@@ -23,6 +23,11 @@ struct NumberExpr : Expr {
     llvm::Value* codegen(llvm::LLVMContext& ctx, llvm::IRBuilder<>& builder, llvm::Module& module) override;
 };
 
+struct VarExpr : Expr {
+    std::string name;
+    llvm::Value* codegen(llvm::LLVMContext& ctx, llvm::IRBuilder<>& builder, llvm::Module& module) override;
+};
+
 enum class StmtType {
     PUB = 0,
     SCOPED,
