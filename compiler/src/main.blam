@@ -1,0 +1,17 @@
+#*
+  @author Michael Vaden
+  
+  This is an example file for the Blam programming language to be used for
+  compiler design. It shall cover all of the necessary concepts used in the
+  compile, except for imports, which will be implemented when the native
+  compiler is built.
+*#
+
+#*
+  Main entry point for the program (can change in config).
+*#
+pub def main() {
+    i8 a = 34
+
+    ret a
+}
