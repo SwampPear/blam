@@ -1,6 +1,6 @@
 # Bloop
 
-## Run a file
+
 
 ```
 bloop <file>

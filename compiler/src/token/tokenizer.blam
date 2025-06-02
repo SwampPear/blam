@@ -1,9 +1,2 @@
 from token.token import Token
 
-pub def printTokens(Token *head, str src) {
-    Token *curr = head
-    while (curr != nil) {
-        print(curr)
-        curr = curr.next
-    }
-}

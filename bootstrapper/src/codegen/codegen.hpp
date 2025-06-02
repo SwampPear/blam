@@ -16,3 +16,5 @@ namespace BlamBootstrapper {
     void generateSyscallPrint(llvm::Module& module, llvm::LLVMContext& ctx);
 
 }  // namespace BlamBootstrapper
+
+
