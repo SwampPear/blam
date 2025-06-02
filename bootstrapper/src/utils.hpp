@@ -1,11 +1,9 @@
 #pragma once
 
-#include <fstream>
 #include <string>
-#include <cstdio>
 
-namespace BlamBootstrapper {
+namespace Blam {
 
 std::string readFile(const std::string& filePath);
 
-}  // namespace BlamBootstrapper
+}  // namespace Blam

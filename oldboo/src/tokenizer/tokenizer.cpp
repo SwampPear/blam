@@ -6,7 +6,32 @@
 #include "utils.hpp"
 
 
-namespace Blam {
+namespace BlamBootstrapper {
+
+std::string toString(std::shared_ptr<Token> token, const std::string& src) {
+    std::ostringstream oss;
+    oss << "Type: " << static_cast<int>(token->type)
+        << ", Pos: " << token->pos
+        << ", Len: " << token->len
+        << ", Content: " << std::endl
+        << src.substr(token->pos, token->len) << std::endl;
+
+    return oss.str();
+}
+
+void printTokens(std::shared_ptr<Token> head, const std::string& src) {
+    auto curr = head;
+    while (curr != nullptr) {
+        std::cout << toString(curr, src);
+        curr = curr->next;
+    }
+}
+
+void printTokens(const std::vector<Token>& tokens, const std::string& src) {
+    for (const auto& token : tokens) {
+        std::cout << toString(std::make_shared<Token>(token), src);
+    }
+}
 
 std::shared_ptr<Token> processRawToken(std::shared_ptr<Token> victim, Type type, const std::string& src) {
     // bounds
@@ -121,4 +146,4 @@ std::vector<Token> tokenizeFile(const std::string& fp) {
     return tokens;
 }
 
-}  // namespace Blam
+}  // namespace BlamBootstrapper

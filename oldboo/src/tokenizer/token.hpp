@@ -5,7 +5,7 @@
 #include <memory>
 #include <map>
 
-namespace Blam {
+namespace BlamBootstrapper {
 
 // ordered in parsing hierarchy first to last
 enum class Type : int8_t {
@@ -91,6 +91,14 @@ enum class Type : int8_t {
     MULT                 // * 
 };
 
+struct Token {
+    Type type;      // token type
+    uint16_t pos;   // position in terms of source
+    uint16_t len;   // length in terms of source
+    std::shared_ptr<Token> prev = nullptr;
+    std::shared_ptr<Token> next = nullptr;
+};
+
 static std::unordered_map<Type, std::string> TOKEN_EXPR = {
     {Type::MLINE_COMMENT, R"(#\*[^*]*\*#)"},
     {Type::SLINE_COMMENT, R"(#([^\n]*)(\n|$))"},
@@ -152,23 +160,4 @@ static std::unordered_map<Type, std::string> TOKEN_EXPR = {
     {Type::MULT, R"(\*)"}
 };
 
-struct Token {
-    std::shared_ptr<Token> prev = nullptr;
-    std::shared_ptr<Token> next = nullptr;
-    Type type;      // token type
-    size_t pos;   // position in terms of source
-    size_t len;   // length in terms of source
-
-    std::string toString(const std::string& src);
-    void print(const std::string& src);
-
-
-
-    auto curr = head;
-    while (curr != nullptr) {
-        std::cout << toString(curr, src);
-        curr = curr->next;
-    }
-};
-
-}  // namespace Blam
+}  // namespace BlamBootstrapper
