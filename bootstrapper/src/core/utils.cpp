@@ -1,5 +1,3 @@
-#include <fstream>
-
 #include "utils.hpp"
 
 namespace Blam {
