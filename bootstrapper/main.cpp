@@ -1,17 +1,18 @@
 #include <cstdlib>
 
 #include "core/llist.hpp"
-#include "core/utils.hpp"
 #include "tokenizer/token.hpp"
 #include "tokenizer/tokenizer.hpp"
 
 using namespace Blam;
 
+
+
 int main() {
     std::string fp = "compiler/src/main.blam";
     std::string src = readFile(fp);
 
-    std::cout << "a" << std::endl;
+    log("File read.");
 
     std::shared_ptr<LList<Token>> tokens = tokenize(src);
     /*

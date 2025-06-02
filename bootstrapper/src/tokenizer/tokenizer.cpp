@@ -73,35 +73,39 @@ std::shared_ptr<LListNode<Token>> processToken(std::shared_ptr<LListNode<Token>>
 std::shared_ptr<LList<Token>> tokenize(const std::string& src) {
 
     // init list
-    auto list = std::make_shared<LList<Token>>();
-    list->head = std::make_shared<LListNode<Token>>();
-    list->head->data = std::make_shared<Token>();
-    list->head->data->type = Type::RAW;
-    list->head->data->pos = 0;
-    list->head->data->len = static_cast<uint16_t>(src.length());
+    LList<Token> list{};
+    list.head = std::make_shared<LListNode<Token>>();
+    list.head->data = std::make_shared<Token>();
+    list.head->data->type = Type::RAW;
+    list.head->data->pos = 0;
+    list.head->data->len = static_cast<uint16_t>(src.length());
 
     // loop over each token type
     for (int i = static_cast<int>(Type::RAW); i <= static_cast<int>(Type::MULT); ++i) {
         Type type = static_cast<Type>(i);
         if (type == Type::RAW || TOKEN_EXPR[type].empty()) continue;
 
+        log("Processing type:");
+
         // loop over all raw nodes and process
-        auto curr = list->head;
+        std::shared_ptr<LListNode<Token>> curr = list.head;
         while (curr) {
             if (curr->data->type == Type::RAW) {
-                auto next = curr->next;
+                log("Processing raw token:");
+                std::shared_ptr<LListNode<Token>> next = curr->next;
 
-                auto processed = processToken(curr, type, src);
-                list->replace(curr, processed);
+                std::shared_ptr<LListNode<Token>> processed = processToken(curr, type, src);
+                list.replace(curr, processed);
 
                 curr = next;
             } else {
+                log("Skipping parsed token:");
                 curr = curr->next;
             }
         }
     }
 
-    return list;
+    return std::make_shared<LList<Token>>(list);
 }
 
 }  // namespace Blam
