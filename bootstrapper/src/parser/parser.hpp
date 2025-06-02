@@ -5,7 +5,7 @@
 #include "tokenizer/token.hpp"
 #include "parser/ast.hpp"
 
-namespace BlamBootstrapper {
+namespace Blam {
 
 struct TokenExpr {
     bool single;
@@ -28,4 +28,4 @@ std::unique_ptr<Stmt> processToken(const std::vector<Token>& tokens, size_t& ind
 
 std::unique_ptr<Stmt> parseProgram(const std::vector<Token>& tokens, const std::string& src);
 
-}  // namespace BlamBoostrapper
+}  // namespace Blam

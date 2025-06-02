@@ -1,23 +1,20 @@
 #include <cstdlib>
-#include <vector>
 
-#include <llvm/IR/LLVMContext.h>
-#include <llvm/IR/IRBuilder.h>
-#include <llvm/IR/Module.h>
-#include <llvm/Support/raw_ostream.h>
-#include <llvm/Support/FileSystem.h>
-
-#include "utils.hpp"
+#include "core/llist.hpp"
+#include "core/utils.hpp"
+#include "tokenizer/token.hpp"
 #include "tokenizer/tokenizer.hpp"
-#include "parser/parser.hpp"
-#include "codegen/codegen.hpp"
 
-using namespace BlamBootstrapper;
+using namespace Blam;
 
 int main() {
+    std::string fp = "compiler/src/main.blam";
+    std::string src = readFile(fp);
+
+    std::cout << "a" << std::endl;
+
+    std::shared_ptr<LList<Token>> tokens = tokenize(src);
     /*
-    std::string fp = "example_project/src/main.blam";
-    std::string contents = readFile(fp);
     std::vector<Token> tokens = tokenizeFile(fp);
 
     //printTokens(tokens, contents);
@@ -28,6 +25,7 @@ int main() {
     generateIR(program);
     */
 
+    /*
     llvm::LLVMContext ctx;
     llvm::Module module("SyscallModule", ctx);
 
@@ -37,6 +35,7 @@ int main() {
     llvm::raw_fd_ostream outFile("output.ll", ec, llvm::sys::fs::OF_None);
     module.print(outFile, nullptr);  // writes human-readable LLVM IR
     outFile.close();
+    */
 
     //generateSyscallPrint(module, ctx);
     //module.print(llvm::outs(), nullptr); // emit IR

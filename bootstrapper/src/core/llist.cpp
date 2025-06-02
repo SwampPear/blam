@@ -1,10 +1,9 @@
 #include "core/llist.hpp"
 
-
 namespace Blam {
 
 template <typename T>
-void LList<T>::replace(std::unique_ptr<LListNode<T>> victim, std::unique_ptr<LListNode<T>> replacement) {
+void LList<T>::replace(std::shared_ptr<LListNode<T>> victim, std::shared_ptr<LListNode<T>> replacement) {
     if (!victim || !replacement) return;
 
     // link prev

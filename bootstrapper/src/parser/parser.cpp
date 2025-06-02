@@ -6,7 +6,7 @@
 #include "parser/ast.hpp"
 #include "tokenizer/token.hpp"
 
-namespace BlamBootstrapper {
+namespace Blam {
 
 void expect(const std::vector<Token>& tokens, size_t& index, Type expected) {
     if (index >= tokens.size()) {
@@ -272,4 +272,4 @@ std::unique_ptr<Stmt> parseProgram(const std::vector<Token>& tokens, const std::
     return prog;
 }
 
-}  // namespace BlamBootstrapper
+}  // namespace Blam

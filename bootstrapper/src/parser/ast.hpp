@@ -9,7 +9,7 @@
 #include <llvm/IR/IRBuilder.h>
 #include <llvm/IR/LLVMContext.h>
 
-namespace BlamBootstrapper {
+namespace Blam {
 
 inline std::map<std::string, llvm::Value*> namedValues;
 
@@ -100,4 +100,4 @@ struct BinaryExpr : Expr {
 };
 */
 
-}  // namespace BlamBoostrapper
+}  // namespace Blam

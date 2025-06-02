@@ -13,16 +13,4 @@ std::string Token::toString(const std::string& src) {
     return oss.str();
 }
 
-void Token::print(const std::string& src) {
-    auto curr = std::make_shared<Token>(*this);
-    while (curr != nullptr) {
-        std::cout << curr->toString(src);
-        curr = curr->next;
-    }
-}
-
-void TokenList::replace(std::shared_ptr<Token> victim, std::shared_ptr<Token> replacement) {
-    
-}
-
 }  // namespace Blam

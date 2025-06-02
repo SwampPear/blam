@@ -155,21 +155,11 @@ static std::unordered_map<Type, std::string> TOKEN_EXPR = {
 };
 
 struct Token {
-    std::shared_ptr<Token> prev = nullptr;
-    std::shared_ptr<Token> next = nullptr;
-    Type type;      // token type
+    Type type;    // token type
     size_t pos;   // position in terms of source
     size_t len;   // length in terms of source
 
     std::string toString(const std::string& src);
-    void print(const std::string& src);
-};
-
-struct TokenList {
-    std::shared_ptr<Token> head;
-
-    LList() : head(nullptr) {}
-    void replace(std::shared_ptr<Token> victim, std::shared_ptr<Token> replacement);
 };
 
 }  // namespace Blam

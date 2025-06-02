@@ -1,7 +1,7 @@
 #include "parser/ast.hpp"
 #include <map>
 
-namespace BlamBootstrapper {
+namespace Blam {
 
 llvm::Value* NumberExpr::codegen(llvm::LLVMContext& ctx, llvm::IRBuilder<>& builder, llvm::Module& module) {
     return llvm::ConstantFP::get(ctx, llvm::APFloat(value));
@@ -129,4 +129,4 @@ llvm::Value* ReturnStmt::codegen(llvm::LLVMContext& ctx, llvm::IRBuilder<>& buil
     return builder.CreateRet(val);
 }
 
-}  // namespace BlamBoostrapper
+}  // namespace Blam

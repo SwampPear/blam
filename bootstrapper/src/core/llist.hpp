@@ -6,19 +6,17 @@ namespace Blam {
 
 template <typename T>
 struct LListNode {
-    std::shared_ptr<T> next;
-    std::shared_ptr<T> prev;
+    std::shared_ptr<LListNode<T>> next;
+    std::shared_ptr<LListNode<T>> prev;
 
-    T data;
+    std::shared_ptr<T> data;
 };
 
 template <typename T>
 struct LList {
-    using pLListNode = std::unique_ptr<LListNode<T>>;
-    
-    pLListNode head;
+    std::shared_ptr<LListNode<T>> head;
 
-    void replace(pLListNode victim, pLListNode range);
+    void replace(std::shared_ptr<LListNode<T>> victim, std::shared_ptr<LListNode<T>> range);
 };
 
 }  // namespace Blam

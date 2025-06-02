@@ -10,11 +10,11 @@
 #include "parser/parser.hpp"
 
 
-namespace BlamBootstrapper {
+namespace Blam {
 
     void generateIR(std::unique_ptr<Stmt> program, std::string fp);
-    void generateSyscallPrint(llvm::Module& module, llvm::LLVMContext& ctx);
+    //void generateSyscallPrint(llvm::Module& module, llvm::LLVMContext& ctx);
 
-}  // namespace BlamBootstrapper
+}  // namespace Blam
 
 
