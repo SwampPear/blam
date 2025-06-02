@@ -1,7 +1,3 @@
-#include <iostream>
-#include <sstream>
-#include <memory>
-
 #include "tokenizer/token.hpp"
 
 namespace Blam {
@@ -23,6 +19,10 @@ void Token::print(const std::string& src) {
         std::cout << curr->toString(src);
         curr = curr->next;
     }
+}
+
+void TokenList::replace(std::shared_ptr<Token> victim, std::shared_ptr<Token> replacement) {
+    
 }
 
 }  // namespace Blam

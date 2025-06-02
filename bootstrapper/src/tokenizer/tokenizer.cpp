@@ -3,12 +3,10 @@
 #include <regex>
 
 #include "tokenizer/tokenizer.hpp"
-#include "utils.hpp"
-
 
 namespace Blam {
 
-std::shared_ptr<Token> processRawToken(std::shared_ptr<Token> victim, Type type, const std::string& src) {
+std::shared_ptr<Token> processRawToken(std::shared_ptr<Token> victim, Type type, const std::string& input) {
     // bounds
     uint16_t pos = victim->pos;
     uint16_t len = victim->len;
@@ -80,25 +78,29 @@ std::shared_ptr<Token> processRawToken(std::shared_ptr<Token> victim, Type type,
     return (victim->prev ? head : head); // return real head
 }
 
-std::shared_ptr<Token> tokenize(const std::string& src) {
-    // root file token
-    auto head = std::make_shared<Token>();
-    head->type = Type::RAW;
-    head->pos = 0;
-    head->len = static_cast<uint16_t>(src.length());
+std::unique_ptr<LList<Token>> tokenize(const std::string& src) {
+    auto list = std::make_unique<LList<Token>>();
 
-    // loop over each lexeme type
+    // initialize head
+    list->head = std::make_unique<Token>();
+    list->head->type = Type::RAW;
+    list->head->pos = 0;
+    list->head->len = static_cast<uint16_t>(src.length());
+
+    // loop over each token type
     for (int i = static_cast<int>(Type::RAW); i <= static_cast<int>(Type::MULT); ++i) {
         Type type = static_cast<Type>(i);
         if (type == Type::RAW || TOKEN_EXPR[type].empty()) continue;
 
         // loop over all raw nodes and process
-        auto curr = head;
+        auto curr = list->head;
         while (curr) {
             if (curr->type == Type::RAW) {
                 auto next = curr->next;
-                auto newHead = processRawToken(curr, type, src);
-                if (curr == head) head = newHead;
+
+                auto processed = processRawToken(curr, type, src);
+                list.replace(curr, processed);
+
                 curr = next;
             } else {
                 curr = curr->next;
@@ -106,19 +108,7 @@ std::shared_ptr<Token> tokenize(const std::string& src) {
         }
     }
 
-    return head;
-}
-
-std::vector<Token> tokenizeFile(const std::string& fp) {
-    const std::string src = readFile(fp);
-    std::shared_ptr<Token> tokenList = tokenize(src);
-
-    std::vector<Token> tokens;
-    for (auto curr = tokenList; curr; curr = curr->next) {
-        tokens.push_back(*curr);
-    }
-
-    return tokens;
+    return list;
 }
 
 }  // namespace Blam

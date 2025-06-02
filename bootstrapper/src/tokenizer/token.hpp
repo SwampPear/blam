@@ -4,6 +4,8 @@
 #include <vector>
 #include <memory>
 #include <map>
+#include <iostream>
+#include <sstream>
 
 namespace Blam {
 
@@ -161,14 +163,13 @@ struct Token {
 
     std::string toString(const std::string& src);
     void print(const std::string& src);
+};
 
+struct TokenList {
+    std::shared_ptr<Token> head;
 
-
-    auto curr = head;
-    while (curr != nullptr) {
-        std::cout << toString(curr, src);
-        curr = curr->next;
-    }
+    LList() : head(nullptr) {}
+    void replace(std::shared_ptr<Token> victim, std::shared_ptr<Token> replacement);
 };
 
 }  // namespace Blam
