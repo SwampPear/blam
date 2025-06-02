@@ -2,7 +2,7 @@
 
 namespace BlamBootstrapper {
 
-void generateIR(std::unique_ptr<Stmt> program) {
+void generateIR(std::unique_ptr<Stmt> program, std::string fp) {
     auto scopedProgram = static_cast<ScopedStmt*>(program.get());
 
     llvm::LLVMContext context;

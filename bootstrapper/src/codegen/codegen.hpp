@@ -12,7 +12,7 @@
 
 namespace BlamBootstrapper {
 
-void generateIR(std::unique_ptr<Stmt> program);
-void generateSyscallPrint(llvm::Module& module, llvm::LLVMContext& ctx)
+    void generateIR(std::unique_ptr<Stmt> program, std::string fp);
+    void generateSyscallPrint(llvm::Module& module, llvm::LLVMContext& ctx);
 
 }  // namespace BlamBootstrapper

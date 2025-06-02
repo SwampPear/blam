@@ -1,12 +1,3 @@
-<<<<<<< HEAD
-# Blam
-[LLVM]()
-
-
-export PATH="/opt/homebrew/opt/llvm/bin:$PATH"
-	export LDFLAGS="-L/opt/homebrew/opt/llvm/lib"
-	export CPPFLAGS="-I/opt/homebrew/opt/llvm/include"
-=======
 <p align="center">
   <img alt="dream logo" src=".github/logo.svg" style="width: 25%">   
 </p>
@@ -103,6 +94,9 @@ maf00026@mix.wvu.edu
 
 ### Thread
 - some type of threading (may be difficult)
->>>>>>> b04542e597f676020691a300e91cef4083ba7a18
-=======
->>>>>>> c4cd7027a88e33144e9fc87d6e5e2757dec2b68e
+
+export PATH="/opt/homebrew/opt/llvm/bin:$PATH"
+export LDFLAGS="-L/opt/homebrew/opt/llvm/lib"
+export CPPFLAGS="-I/opt/homebrew/opt/llvm/include"
+
+clang output.ll -o output_exec

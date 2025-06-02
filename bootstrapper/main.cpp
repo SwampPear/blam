@@ -5,6 +5,7 @@
 #include <llvm/IR/IRBuilder.h>
 #include <llvm/IR/Module.h>
 #include <llvm/Support/raw_ostream.h>
+#include <llvm/Support/FileSystem.h>
 
 #include "utils.hpp"
 #include "tokenizer/tokenizer.hpp"
@@ -27,11 +28,18 @@ int main() {
     generateIR(program);
     */
 
-    LLVMContext ctx;
-    Module module('SyscallModule', ctx);
+    llvm::LLVMContext ctx;
+    llvm::Module module("SyscallModule", ctx);
 
     generateSyscallPrint(module, ctx);
-    module.print(llvm::outs(), nullptr); // emit IR
+
+    std::error_code ec;
+    llvm::raw_fd_ostream outFile("output.ll", ec, llvm::sys::fs::OF_None);
+    module.print(outFile, nullptr);  // writes human-readable LLVM IR
+    outFile.close();
+
+    //generateSyscallPrint(module, ctx);
+    //module.print(llvm::outs(), nullptr); // emit IR
 
     return EXIT_SUCCESS;
 }
