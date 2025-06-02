@@ -1,22 +1,24 @@
 # Bloop
 
-
-
-```
-bloop <file>
-```
-
-## Install Package
+`Bloop` is Blam's dedicated package manager and CLI tool. To create a new Blam
+package, run the following command to create a package in the current directory:
 
 ```
-bloop install <package>
+bloop new <package name>
 ```
 
-## Build
-
-Builds from file, fails if no main found in file. Creates a blam.json file. 
-Creates build dir.
+Building and running the package can be handled via the following commands:
 
 ```
-bloop build <file>
+bloop build
+bloop run
+```
+
+### Package Management
+
+Installing external packages can be done by either manually updating 
+`blam.yaml` or by running this following command:
+
+```
+bloop install <package name>
 ```
