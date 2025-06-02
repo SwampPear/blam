@@ -14,6 +14,7 @@
 using namespace BlamBootstrapper;
 
 int main() {
+    /*
     std::string fp = "example_project/src/main.blam";
     std::string contents = readFile(fp);
     std::vector<Token> tokens = tokenizeFile(fp);
@@ -24,6 +25,13 @@ int main() {
     printAST(program, 0);
 
     generateIR(program);
+    */
+
+    LLVMContext ctx;
+    Module module('SyscallModule', ctx);
+
+    generateSyscallPrint(module, ctx);
+    module.print(llvm::outs(), nullptr); // emit IR
 
     return EXIT_SUCCESS;
 }

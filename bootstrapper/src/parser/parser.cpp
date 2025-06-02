@@ -8,8 +8,6 @@
 
 namespace BlamBootstrapper {
 
-
-
 void expect(const std::vector<Token>& tokens, size_t& index, Type expected) {
     if (index >= tokens.size()) {
         throw std::runtime_error("Compiler Error: Index out of bounds.");
@@ -273,60 +271,5 @@ std::unique_ptr<Stmt> parseProgram(const std::vector<Token>& tokens, const std::
 
     return prog;
 }
-
-/*
-pExpr parsePrimary(const std::vector<Token>& tokens, size_t& index) {
-    const Token& tok = tokens[index++];
-    return std::make_unique<Parser::NumberExpr>(1.0); // placeholder
-}
-
-pExpr parseExpression(const std::vector<Token>& tokens, size_t& index) {
-    auto lhs = parsePrimary(tokens, index);
-    while (index < tokens.size() &&
-           (tokens[index].type == Type::PLUS || tokens[index].type == Type::MINUS ||
-            tokens[index].type == Type::MULT || tokens[index].type == Type::DIV)) {
-
-        char op = extractString(tokens[index])[0];
-        ++index;
-        auto rhs = parsePrimary(tokens, index);
-        lhs = std::make_unique<Parser::BinaryExpr>(op, std::move(lhs), std::move(rhs));
-    }
-    return lhs;
-}
-
-std::unique_ptr<Parser::Stmt> parseStatement(const std::vector<Token>& tokens, size_t& index) {
-    if (tokens[index].type == Type::KEYWORD && extractString(tokens[index]) == "print") {
-        ++index;
-        expect(tokens, index, Type::SMBRACKET_L);
-        auto expr = parseExpression(tokens, index);
-        expect(tokens, index, Type::SMBRACKET_R);
-        return std::make_unique<Parser::ExprParser::Stmt>(std::move(expr));
-    }
-    if (tokens[index].type == Type::RAW) {
-        std::string type = extractString(tokens[index++]);
-        std::string name = extractString(tokens[index++]);
-        expect(tokens, index, Type::EQ);
-        auto expr = parseExpression(tokens, index);
-        return std::make_unique<VarDecl>(type, name, std::move(expr));
-    }
-    throw std::runtime_error("Unknown statement");
-}
-
-std::unique_ptr<FunctionDecl> parseFunction(const std::vector<Token>& tokens, size_t& index) {
-    ++index; // skip 'def'
-    std::string name = extractString(tokens[index++]);
-    expect(tokens, index, Type::SMBRACKET_L);
-    expect(tokens, index, Type::SMBRACKET_R);
-    expect(tokens, index, Type::CUBRACKET_L);
-
-    auto fn = std::make_unique<FunctionDecl>();
-    fn->name = name;
-    while (tokens[index].type != Type::CUBRACKET_R) {
-        fn->body.push_back(parseStatement(tokens, index));
-    }
-    ++index;
-    return fn;
-}
-*/
 
 }  // namespace BlamBootstrapper
