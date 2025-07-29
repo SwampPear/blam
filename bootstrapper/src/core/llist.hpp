@@ -18,19 +18,25 @@ struct LList {
 
     void replace(std::shared_ptr<LListNode<T>> victim, std::shared_ptr<LListNode<T>> replacement) {
         if (!victim || !replacement) return;
-
-        // link prev
+    
+        // Find tail of replacement chain
+        std::shared_ptr<LListNode<T>> replTail = replacement;
+        while (replTail->next) {
+            replTail = replTail->next;
+        }
+    
+        // Link victim's prev to replacement head
         replacement->prev = victim->prev;
         if (victim->prev) {
             victim->prev->next = replacement;
         } else {
-            head = std::move(replacement);
+            head = replacement;
         }
-
-        // link next
-        replacement->next = victim->next;
+    
+        // Link victim's next to tail's next
+        replTail->next = victim->next;
         if (victim->next) {
-            victim->next->prev = replacement;
+            victim->next->prev = replTail;
         }
     }
 };

@@ -2,7 +2,10 @@
 #include <sstream>
 #include <regex>
 
+
 #include "tokenizer/tokenizer.hpp"
+
+#define log(x) std::cout << x << std::endl
 
 namespace Blam {
 

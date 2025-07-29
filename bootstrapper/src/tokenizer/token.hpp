@@ -3,13 +3,13 @@
 #include <string>
 #include <vector>
 #include <memory>
-#include <map>
+#include <unordered_map>
 #include <iostream>
 #include <sstream>
 
 namespace Blam {
 
-// ordered in parsing hierarchy first to last
+// ordered in parsing hierarchy
 enum class Type : int8_t {
     SKIP = -2,           // used in parser for skippable tokens
     END,                 // end of file marker
@@ -42,14 +42,15 @@ enum class Type : int8_t {
     CONST,               // const
     LET,                 // let
 
-    TEXT,                // any text
+    // any text
+    TEXT,
 
     // numbers
     DECIMAL,             // 0.234
     NUMBER,              // 123
 
     // space
-    NLINE,               // \n (newline)
+    NLINE,               // \n
     WHITESPACE,          // \s+
    
     // delimeters
@@ -94,7 +95,7 @@ enum class Type : int8_t {
 };
 
 static std::unordered_map<Type, std::string> TOKEN_EXPR = {
-    {Type::MLINE_COMMENT, R"(#\*[^*]*\*#)"},
+    {Type::MLINE_COMMENT, R"(?s:#\*.*?\*#)"},
     {Type::SLINE_COMMENT, R"(#([^\n]*)(\n|$))"},
     {Type::STRING, R"("(\\.|[^"\\])*"|'(\\.|[^'\\])*')"},
     {Type::AND, R"(\band\b)"},
@@ -161,5 +162,16 @@ struct Token {
 
     std::string toString(const std::string& src);
 };
+
+inline std::string Token::toString(const std::string& src) {
+    std::ostringstream oss;
+    oss << "Type: " << static_cast<int>(this->type)
+        << ", Pos: " << this->pos
+        << ", Len: " << this->len
+        << ", Content: " << std::endl
+        << src.substr(this->pos, this->len) << std::endl;
+
+    return oss.str();
+}
 
 }  // namespace Blam

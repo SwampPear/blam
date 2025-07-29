@@ -3,9 +3,9 @@
 #include <string>
 #include <memory>
 
-#include "tokenizer/token.hpp"
 #include "core/llist.hpp"
 #include "core/utils.hpp"
+#include "tokenizer/token.hpp"
 
 namespace Blam {
 
