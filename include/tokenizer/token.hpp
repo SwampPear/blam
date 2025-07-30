@@ -3,11 +3,13 @@
 #include <string>
 #include <vector>
 #include <memory>
-#include <map>
+#include <unordered_map>
+#include <iostream>
+#include <sstream>
 
-namespace BlamBootstrapper {
+namespace Blam {
 
-// ordered in parsing hierarchy first to last
+// ordered in parsing hierarchy
 enum class Type : int8_t {
     SKIP = -2,           // used in parser for skippable tokens
     END,                 // end of file marker
@@ -40,14 +42,15 @@ enum class Type : int8_t {
     CONST,               // const
     LET,                 // let
 
-    TEXT,                // any text
+    // any text
+    IDENT,
 
     // numbers
     DECIMAL,             // 0.234
     NUMBER,              // 123
 
     // space
-    NLINE,               // \n (newline)
+    NLINE,               // \n
     WHITESPACE,          // \s+
    
     // delimeters
@@ -91,16 +94,8 @@ enum class Type : int8_t {
     MULT                 // * 
 };
 
-struct Token {
-    Type type;      // token type
-    uint16_t pos;   // position in terms of source
-    uint16_t len;   // length in terms of source
-    std::shared_ptr<Token> prev = nullptr;
-    std::shared_ptr<Token> next = nullptr;
-};
-
 static std::unordered_map<Type, std::string> TOKEN_EXPR = {
-    {Type::MLINE_COMMENT, R"(#\*[^*]*\*#)"},
+    {Type::MLINE_COMMENT, R"(#\*[\s\S]*?\*#)"},
     {Type::SLINE_COMMENT, R"(#([^\n]*)(\n|$))"},
     {Type::STRING, R"("(\\.|[^"\\])*"|'(\\.|[^'\\])*')"},
     {Type::AND, R"(\band\b)"},
@@ -121,7 +116,7 @@ static std::unordered_map<Type, std::string> TOKEN_EXPR = {
     {Type::PUB, R"(\bpub\b)"},
     {Type::CONST, R"(\bconst\b)"},
     {Type::LET, R"(\blet\b)"},
-    {Type::TEXT, R"([a-zA-Z_][a-zA-Z0-9_]*)"},
+    {Type::IDENT, R"([a-zA-Z_][a-zA-Z0-9_]*)"},
     {Type::DECIMAL, R"((?:\d+\.\d*|\.\d+))"},
     {Type::NUMBER, R"(\d+)"},
     {Type::NLINE, R"(\n)"},
@@ -160,4 +155,23 @@ static std::unordered_map<Type, std::string> TOKEN_EXPR = {
     {Type::MULT, R"(\*)"}
 };
 
-}  // namespace BlamBootstrapper
+struct Token {
+    Type type;    // token type
+    size_t pos;   // position in terms of source
+    size_t len;   // length in terms of source
+
+    std::string toString(const std::string& src);
+};
+
+inline std::string Token::toString(const std::string& src) {
+    std::ostringstream oss;
+    oss << "Type: " << static_cast<int>(this->type)
+        << ", Pos: " << this->pos
+        << ", Len: " << this->len
+        << ", Content: " << std::endl
+        << src.substr(this->pos, this->len) << std::endl;
+
+    return oss.str();
+}
+
+}  // namespace Blam

@@ -19,13 +19,13 @@ struct LList {
     void replace(std::shared_ptr<LListNode<T>> victim, std::shared_ptr<LListNode<T>> replacement) {
         if (!victim || !replacement) return;
     
-        // Find tail of replacement chain
+        // Find tail of replacement
         std::shared_ptr<LListNode<T>> replTail = replacement;
         while (replTail->next) {
             replTail = replTail->next;
         }
     
-        // Link victim's prev to replacement head
+        // Link replacement to victim's neighbors
         replacement->prev = victim->prev;
         if (victim->prev) {
             victim->prev->next = replacement;
@@ -33,12 +33,16 @@ struct LList {
             head = replacement;
         }
     
-        // Link victim's next to tail's next
         replTail->next = victim->next;
         if (victim->next) {
             victim->next->prev = replTail;
         }
+    
+        // Disconnect victim
+        victim->next = nullptr;
+        victim->prev = nullptr;
     }
+    
 };
 
 }  // namespace Blam

@@ -72,8 +72,6 @@ std::shared_ptr<LListNode<Token>> processToken(std::shared_ptr<LListNode<Token>>
 }
 
 std::shared_ptr<LList<Token>> tokenize(const std::string& src) {
-
-    // init list
     LList<Token> list{};
     list.head = std::make_shared<LListNode<Token>>();
     list.head->data = std::make_shared<Token>();
@@ -81,24 +79,32 @@ std::shared_ptr<LList<Token>> tokenize(const std::string& src) {
     list.head->data->pos = 0;
     list.head->data->len = static_cast<uint16_t>(src.length());
 
-    // loop over each token type
+    // loop over each token type in order
     for (int i = static_cast<int>(Type::RAW); i <= static_cast<int>(Type::MULT); ++i) {
         Type type = static_cast<Type>(i);
-        if (type == Type::RAW || TOKEN_EXPR[type].empty()) continue;
+        if (type == Type::RAW || TOKEN_EXPR.find(type) == TOKEN_EXPR.end()) continue;
 
-        // loop over all raw nodes and process
         std::shared_ptr<LListNode<Token>> curr = list.head;
         while (curr) {
+            // save next pointer before possible replacement
+            std::shared_ptr<LListNode<Token>> next = curr->next;
+
             if (curr->data->type == Type::RAW) {
-                std::shared_ptr<LListNode<Token>> next = curr->next;
-
                 std::shared_ptr<LListNode<Token>> processed = processToken(curr, type, src);
-                list.replace(curr, processed);
 
-                curr = next;
-            } else {
-                curr = curr->next;
+                // only replace if it actually changed something
+                if (processed != curr) {
+                    list.replace(curr, processed);
+
+                    // advance to node after replacement
+                    std::shared_ptr<LListNode<Token>> last = processed;
+                    while (last->next) last = last->next;
+                    curr = last->next;
+                    continue;  // already updated curr
+                }
             }
+
+            curr = next;
         }
     }
 

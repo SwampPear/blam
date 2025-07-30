@@ -1,9 +1,15 @@
-build-bootstrapper:
-	cd bootstrapper && $(MAKE) clean
-	cd bootstrapper && $(MAKE)
+.PHONY: all clean build run test
 
-bootstrap:
-	./bootstrapper/build/main
+all: build
 
 clean:
-	cd bootstrapper && $(MAKE) clean
+	rm -rf build/src build/tests
+
+build:
+	cmake --build build -- -j$(nproc)
+
+run:
+	./build/promptengine_main
+
+test:
+	./build/tests/test_tokenizer
