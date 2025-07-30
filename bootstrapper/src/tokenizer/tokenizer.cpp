@@ -5,8 +5,6 @@
 
 #include "tokenizer/tokenizer.hpp"
 
-#define log(x) std::cout << x << std::endl
-
 namespace Blam {
 
 std::shared_ptr<LListNode<Token>> processToken(std::shared_ptr<LListNode<Token>> token, Type type, const std::string& src) {
@@ -88,13 +86,10 @@ std::shared_ptr<LList<Token>> tokenize(const std::string& src) {
         Type type = static_cast<Type>(i);
         if (type == Type::RAW || TOKEN_EXPR[type].empty()) continue;
 
-        log("Processing type:");
-
         // loop over all raw nodes and process
         std::shared_ptr<LListNode<Token>> curr = list.head;
         while (curr) {
             if (curr->data->type == Type::RAW) {
-                log("Processing raw token:");
                 std::shared_ptr<LListNode<Token>> next = curr->next;
 
                 std::shared_ptr<LListNode<Token>> processed = processToken(curr, type, src);
@@ -102,7 +97,6 @@ std::shared_ptr<LList<Token>> tokenize(const std::string& src) {
 
                 curr = next;
             } else {
-                log("Skipping parsed token:");
                 curr = curr->next;
             }
         }

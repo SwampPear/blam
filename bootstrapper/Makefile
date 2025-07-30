@@ -5,7 +5,10 @@ INCLUDE = include
 INCLUDE_PATH = src
 SUB_DIR = src src/core src/tokenizer src/parser src/codegen
 
-CFLAGS = -std=c++17 -Wall  -I $(INCLUDE) -I $(INCLUDE_PATH) `llvm-config --cxxflags --ldflags --system-libs --libs core` -fexceptions
+LLVM_CONFIG := $(shell command -v llvm-config 2>/dev/null)
+LLVM_FLAGS := $(if $(LLVM_CONFIG),$(shell $(LLVM_CONFIG) --cxxflags --ldflags --system-libs --libs core),)
+
+CFLAGS = -std=c++17 -Wall -I $(INCLUDE) -I $(INCLUDE_PATH) $(LLVM_FLAGS) -fexceptions
 
 all: $(TARGET)
 

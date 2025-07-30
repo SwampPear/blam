@@ -1,3 +1,4 @@
+/*
 #include "codegen/codegen.hpp"
 
 namespace Blam {
@@ -16,6 +17,7 @@ void generateIR(std::unique_ptr<Stmt> program, std::string fp) {
 
     module.print(llvm::outs(), nullptr);
 }
+    */
 
 /*
 void generateSyscallPrint(llvm::Module& module, llvm::LLVMContext& ctx) {
@@ -53,6 +55,6 @@ void generateSyscallPrint(llvm::Module& module, llvm::LLVMContext& ctx) {
     // return 0
     builder.CreateRet(llvm::ConstantInt::get(llvm::Type::getInt32Ty(ctx), 0));
 }
-*/
 
 }  // namespace Blam
+  */

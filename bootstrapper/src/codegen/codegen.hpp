@@ -1,3 +1,4 @@
+/*
 #pragma once
 
 #include <memory>
@@ -16,5 +17,6 @@ namespace Blam {
     //void generateSyscallPrint(llvm::Module& module, llvm::LLVMContext& ctx);
 
 }  // namespace Blam
+  */
 
 

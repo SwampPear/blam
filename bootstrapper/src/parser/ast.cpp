@@ -1,4 +1,4 @@
-#include "parser/ast.hpp"
+/* #include "parser/ast.hpp"
 #include <map>
 
 namespace Blam {
@@ -129,4 +129,4 @@ llvm::Value* ReturnStmt::codegen(llvm::LLVMContext& ctx, llvm::IRBuilder<>& buil
     return builder.CreateRet(val);
 }
 
-}  // namespace Blam
+}  // namespace Blam*/

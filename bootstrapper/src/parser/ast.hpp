@@ -1,4 +1,4 @@
-#pragma once
+/*#pragma once
 
 #include <memory>
 #include <string>
@@ -98,6 +98,6 @@ struct BinaryExpr : Expr {
     std::unique_ptr<Expr> op, lhs, rhs;
     llvm::Value* codegen(llvm::LLVMContext& ctx, llvm::IRBuilder<>& builder) override;
 };
-*/
 
-}  // namespace Blam
+
+}  // namespace Blam*/
