@@ -154,7 +154,7 @@ TEST_CASE("Parser respects parentheses grouping", "[parser]") {
 }
 
 TEST_CASE("Parser handles right-associativity of exponentiation", "[parser]") {
-    std::string input = "2 ** 3 3 3 3 3 3";
+    std::string input = "2 ** 3 ** 2";
     auto tokens = tokenize(input);
     Parser parser(tokens->head, input);
     auto expr = parser.parseExpression();
