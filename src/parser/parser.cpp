@@ -93,7 +93,7 @@ std::shared_ptr<Expr> Parser::parsePrimary() {
         return expr;
     }
 
-    throw std::runtime_error("Unknown token in expression: " + std::to_string((int)tok.type));
+    throw std::runtime_error("Unknown token in expression: " + typeToString(tok.type));
 }
 
 std::shared_ptr<Expr> Parser::parseBinaryOpRHS(int exprPrec, std::shared_ptr<Expr> lhs) {

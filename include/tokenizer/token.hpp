@@ -94,6 +94,7 @@ enum class Type : int8_t {
     MULT                 // * 
 };
 
+
 inline std::string typeToString(Type type) {
     switch (type) {
         case Type::SKIP: return "SKIP";

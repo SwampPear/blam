@@ -133,3 +133,43 @@ TEST_CASE("Parser respects operator precedence when lower-precedence operator co
     REQUIRE(cast<NumberExpr>(add->rhs)->value == 2.0);
 }
 
+TEST_CASE("Parser respects parentheses grouping", "[parser]") {
+    std::string input = "(a + b) * 2";
+    auto tokens = tokenize(input);
+    Parser parser(tokens->head, input);
+    auto expr = parser.parseExpression();
+
+    REQUIRE(isa<BinaryExpr>(expr));
+    auto mult = cast<BinaryExpr>(expr);
+    REQUIRE(mult->op == "*");
+
+    REQUIRE(isa<BinaryExpr>(mult->lhs));
+    auto add = cast<BinaryExpr>(mult->lhs);
+    REQUIRE(add->op == "+");
+    REQUIRE(cast<VariableExpr>(add->lhs)->name == "a");
+    REQUIRE(cast<VariableExpr>(add->rhs)->name == "b");
+
+    REQUIRE(isa<NumberExpr>(mult->rhs));
+    REQUIRE(cast<NumberExpr>(mult->rhs)->value == 2.0);
+}
+
+TEST_CASE("Parser handles right-associativity of exponentiation", "[parser]") {
+    std::string input = "2 ** 3 3 3 3 3 3";
+    auto tokens = tokenize(input);
+    Parser parser(tokens->head, input);
+    auto expr = parser.parseExpression();
+
+    REQUIRE(isa<BinaryExpr>(expr));
+    auto exp1 = cast<BinaryExpr>(expr);
+    REQUIRE(exp1->op == "**");
+
+    REQUIRE(isa<NumberExpr>(exp1->lhs));
+    REQUIRE(cast<NumberExpr>(exp1->lhs)->value == 2.0);
+
+    REQUIRE(isa<BinaryExpr>(exp1->rhs));
+    auto exp2 = cast<BinaryExpr>(exp1->rhs);
+    REQUIRE(exp2->op == "**");
+    REQUIRE(cast<NumberExpr>(exp2->lhs)->value == 3.0);
+    REQUIRE(cast<NumberExpr>(exp2->rhs)->value == 2.0);
+}
+

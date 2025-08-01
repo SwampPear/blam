@@ -80,33 +80,41 @@ std::shared_ptr<LList<Token>> tokenize(const std::string& src) {
     list.head->data->len = static_cast<uint16_t>(src.length());
 
     // loop over each token type in order
-    for (int i = static_cast<int>(Type::MLINE_COMMENT); i <= static_cast<int>(Type::MULT); ++i) {
-        Type type = static_cast<Type>(i);
-        if (TOKEN_EXPR.find(type) == TOKEN_EXPR.end()) continue;
+    bool changed = true;
 
-        std::shared_ptr<LListNode<Token>> curr = list.head;
-        while (curr) {
-            // save next pointer before possible replacement
-            std::shared_ptr<LListNode<Token>> next = curr->next;
+    while (changed) {
+        changed = false;
 
-            if (curr->data->type == Type::RAW) {
-                std::shared_ptr<LListNode<Token>> processed = processToken(curr, type, src);
+        for (int i = static_cast<int>(Type::MLINE_COMMENT); i <= static_cast<int>(Type::MULT); ++i) {
+            Type type = static_cast<Type>(i);
+            if (TOKEN_EXPR.find(type) == TOKEN_EXPR.end()) continue;
 
-                // only replace if it actually changed something
-                if (processed != curr) {
-                    list.replace(curr, processed);
+            std::shared_ptr<LListNode<Token>> curr = list.head;
+            while (curr) {
+                std::shared_ptr<LListNode<Token>> next = curr->next;
 
-                    // advance to node after replacement
-                    std::shared_ptr<LListNode<Token>> last = processed;
-                    while (last->next) last = last->next;
-                    curr = last->next;
-                    continue;  // already updated curr
+                if (curr->data->type == Type::RAW) {
+                    std::shared_ptr<LListNode<Token>> processed = processToken(curr, type, src);
+
+                    if (processed != curr) {
+                        list.replace(curr, processed);
+
+                        // Advance to node after the last of the inserted tokens
+                        std::shared_ptr<LListNode<Token>> last = processed;
+                        while (last->next) last = last->next;
+                        curr = last->next;
+
+                        changed = true;
+                        continue;
+                    }
                 }
-            }
 
-            curr = next;
+                curr = next;
+            }
         }
     }
+
+
 
     auto curr = list.head;
     while (curr) {  
