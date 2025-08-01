@@ -110,12 +110,6 @@ namespace Blam {
             }
         }
     
-        auto curr = list.head;
-        while (curr) {
-            std::cout << typeToString(curr->data->type) << " " << curr->data->pos << " " << curr->data->len << '\n';
-            curr = curr->next;
-        }
-    
         return std::make_shared<LList<Token>>(list);
     }
     

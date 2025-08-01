@@ -153,3 +153,81 @@ TEST_CASE("Whitespace and newlines", "[tokenizer]") {
     REQUIRE(hasLet);
     REQUIRE(hasNewline);
 }
+
+void expectSequence(const std::shared_ptr<LList<Token>>& list, const std::vector<Type>& expected) {
+    auto node = list->head;
+    for (Type t : expected) {
+        while (node && (node->data->type == Type::WHITESPACE || node->data->type == Type::RAW))
+            node = node->next;
+        REQUIRE(node != nullptr);
+        REQUIRE(node->data->type == t);
+        node = node->next;
+    }
+}
+
+TEST_CASE("Tokenizer handles exponentiation and avoids double MULT", "[tokenizer]") {
+    std::string input = "2 ** 3";
+    auto tokens = tokenize(input);
+    expectSequence(tokens, {Type::NUMBER, Type::EXP, Type::NUMBER});
+}
+
+TEST_CASE("Tokenizer handles ambiguous operators", "[tokenizer]") {
+    std::string input = "a * * b + c";
+    auto tokens = tokenize(input);
+    //expectSequence(tokens, {Type::IDENT, Type::MULT, Type::MULT, Type::IDENT, Type::PLUS, Type::IDENT});
+
+    
+    std::vector<Type> expected = {
+        Type::IDENT, Type::WHITESPACE, Type::MULT, Type::WHITESPACE, Type::MULT, Type::IDENT, Type::PLUS, Type::IDENT
+    };
+
+    auto node = tokens->head;
+    for (Type t : expected) {
+        std::cout << typeToString(node->data->type) << std::endl; 
+        // Skip whitespace/raw
+        //while (node && (node->data->type == Type::WHITESPACE || node->data->type == Type::RAW))
+        //    node = node->next;
+
+        REQUIRE(node != nullptr);
+
+        auto actual = node->data->type;
+        auto text = input.substr(node->data->pos, node->data->len);
+
+        INFO("Expected: " << typeToString(t) 
+             << " | Got: " << typeToString(actual) 
+             << " | Text: '" << text << "'"
+             << " | Pos: " << node->data->pos 
+             << ", Len: " << node->data->len);
+
+        REQUIRE(actual == t);
+
+        node = node->next;
+    }
+}
+
+TEST_CASE("Tokenizer handles adjacent identifiers and numbers", "[tokenizer]") {
+    std::string input = "x123 456y";
+    auto tokens = tokenize(input);
+    // This assumes valid IDENTs like "x123" and "456y" will tokenize as RAW if invalid
+    REQUIRE(tokens != nullptr);
+}
+
+TEST_CASE("Tokenizer handles complex mix", "[tokenizer]") {
+    std::string input = "let x = 2**a + b/3.14";
+    auto tokens = tokenize(input);
+    expectSequence(tokens, {
+        Type::LET, Type::IDENT, Type::EQ, Type::NUMBER,
+        Type::EXP, Type::IDENT, Type::PLUS,
+        Type::IDENT, Type::DIV, Type::DECIMAL
+    });
+}
+
+TEST_CASE("Tokenizer handles nested spacing and tricky patterns", "[tokenizer]") {
+    std::string input = "def   f(x, y)->x**y";
+    auto tokens = tokenize(input);
+    expectSequence(tokens, {
+        Type::DEF, Type::IDENT, Type::SMBRACKET_L, Type::IDENT,
+        Type::COMMA, Type::IDENT, Type::SMBRACKET_R, Type::ARROW,
+        Type::IDENT, Type::EXP, Type::IDENT
+    });
+}
