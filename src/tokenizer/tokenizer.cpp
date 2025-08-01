@@ -80,9 +80,9 @@ std::shared_ptr<LList<Token>> tokenize(const std::string& src) {
     list.head->data->len = static_cast<uint16_t>(src.length());
 
     // loop over each token type in order
-    for (int i = static_cast<int>(Type::RAW); i <= static_cast<int>(Type::MULT); ++i) {
+    for (int i = static_cast<int>(Type::MLINE_COMMENT); i <= static_cast<int>(Type::MULT); ++i) {
         Type type = static_cast<Type>(i);
-        if (type == Type::RAW || TOKEN_EXPR.find(type) == TOKEN_EXPR.end()) continue;
+        if (TOKEN_EXPR.find(type) == TOKEN_EXPR.end()) continue;
 
         std::shared_ptr<LListNode<Token>> curr = list.head;
         while (curr) {
@@ -106,6 +106,12 @@ std::shared_ptr<LList<Token>> tokenize(const std::string& src) {
 
             curr = next;
         }
+    }
+
+    auto curr = list.head;
+    while (curr) {  
+        std::cout << typeToString(curr->data->type) << " " << curr->data->pos << " " << curr->data->len << '\n';
+        curr = curr->next;
     }
 
     return std::make_shared<LList<Token>>(list);

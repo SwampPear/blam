@@ -6,10 +6,12 @@ clean:
 	rm -rf build/src build/tests
 
 build:
+	cmake -B build
 	cmake --build build -- -j$(nproc)
 
 run:
 	./build/promptengine_main
 
 test:
-	./build/tests/test_tokenizer
+	./build/test_tokenizer
+	./build/test_parser

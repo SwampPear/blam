@@ -1,277 +1,131 @@
-/*
 #include <stdexcept>
-#include <stack>
+#include <string>
 #include <iostream>
-
 #include "parser/parser.hpp"
-#include "parser/ast.hpp"
-#include "tokenizer/token.hpp"
 
-namespace Blam {
+using namespace Blam;
 
-void expect(const std::vector<Token>& tokens, size_t& index, Type expected) {
-    if (index >= tokens.size()) {
-        throw std::runtime_error("Compiler Error: Index out of bounds.");
+/* ------------------------------------------------- helpers */
+
+Parser::Parser(std::shared_ptr<LListNode<Token>> head, const std::string& src)
+    : curr(std::move(head)), src(src) {}
+
+Token& Parser::peek() {
+    if (!curr || !curr->data) {
+        throw std::runtime_error("Unexpected end of token stream.");
     }
-
-    if (tokens[index].type != expected) {
-        throw std::runtime_error("Compiler Error: Unexpected token type matching: " + 
-            std::string(TOKEN_EXPR[tokens[index].type]));
-    }
+    return *curr->data;
 }
 
-std::string extractString(const Token& tok, const std::string& input) {
-    return input.substr(tok.pos, tok.len);
+void Parser::skipWhitespace() {
+    while (curr && curr->data &&
+           (curr->data->type == Type::WHITESPACE || curr->data->type == Type::RAW))
+        curr = curr->next;
 }
 
-bool shouldSkip(const std::vector<Token>& tokens, size_t& index) {
-    return tokens[index].type == Type::MLINE_COMMENT ||
-           tokens[index].type == Type::SLINE_COMMENT ||
-           tokens[index].type == Type::WHITESPACE ||
-           tokens[index].type == Type::NLINE;
+void Parser::advance() {
+    if (curr) curr = curr->next;
+    skipWhitespace();
 }
 
-void skip(const std::vector<Token>& tokens, size_t& index) {
-    while (index < tokens.size() && shouldSkip(tokens, index)) {
-        ++index;
+bool Parser::match(Type t) {
+    skipWhitespace();
+    if (curr && curr->data->type == t) {
+        advance();
+        return true;
     }
+    return false;
 }
 
-bool match(const std::vector<Token>& tokens, size_t index, std::vector<Type> pattern) {
-    if (index >= tokens.size()) {
-        throw std::runtime_error("Compiler Error: Index out of bounds.");
-    }
+/* ------------------------------------------------- precedence + associativity */
 
-    size_t i = index;
-    for (const auto& type : pattern) {
-        if (i >= tokens.size()) {
-            throw std::runtime_error("Compiler Error: Index out of bounds.");
-        }
-
-        if (type == Type::SKIP) {
-            skip(tokens, i);
-        } else if (tokens[i].type == type) {
-            i += 1;
-        } else {
-            return false;
-        }
-    }
-
-    return true;
-}
-
-std::unique_ptr<Stmt> processPub(const std::vector<Token>& tokens, size_t& index, std::string scope, const std::string& src) {
-    std::cout << "Processing pub token" << std::endl;
-
-    // scope check
-    if (scope != "") {
-        throw std::runtime_error("Compiler Error: 'pub' keyword only allowed in top-level declaration.");
-    }
-
-    // create pub statement and iterate
-    auto stmt = std::make_unique<PubStmt>();
-    stmt->stmtType = StmtType::PUB;
-    index += 1;
-
-    // skip whitespace
-    skip(tokens, index);
-
-    // process statement
-    stmt->body = processToken(tokens, index, scope, src);
-
-    // allowed statement types
-    if (stmt->body->stmtType != StmtType::FUNC_DECL &&
-        stmt->body->stmtType != StmtType::CONST_DECL) {
-        throw std::runtime_error("Compiler Error: Expected function or constant declaration.");
-    }
-
-    return stmt;
-}
-
-std::unique_ptr<Stmt> processDef(const std::vector<Token>& tokens, size_t& index, std::string scope, const std::string& src) {
-    std::cout << "Processing def token" << std::endl;
-
-    // create function declaration statement and iterate
-    auto stmt = std::make_unique<FuncDeclStmt>();
-    stmt->stmtType = StmtType::FUNC_DECL;
-    stmt->body = std::make_unique<ScopedStmt>();
-    stmt->body->stmtType = StmtType::SCOPED;
-    index += 1;
-
-    // skip whitespace
-    skip(tokens, index);
-
-    // check for text and extract function name
-    expect(tokens, index, Type::TEXT);
-    stmt->name = extractString(tokens[index], src);
-    std::cout << "Processing function: " + stmt->name << std::endl;
-    index += 1;
-
-    // skip whitespace
-    skip(tokens, index);
-
-    // check or arglist TODO: later, implement actual arg lists
-    expect(tokens, index, Type::SMBRACKET_L);
-    index += 1;
-    expect(tokens, index, Type::SMBRACKET_R);
-    index += 1;
-
-    // skip whitespace
-    skip(tokens, index);
-
-    // check for open bracket
-    expect(tokens, index, Type::CUBRACKET_L);
-    index += 1;
-
-    // skip whitespace
-    skip(tokens, index);
-
-    // scan body
-    while (index < tokens.size() && tokens[index].type != Type::CUBRACKET_R) {
-        if (shouldSkip(tokens, index)) {
-            ++index;
-            continue;
-        }
-
-        stmt->body->body.push_back(processToken(tokens, index, stmt->name, src));
-    }
-
-    // skip the right bracket
-    index += 1;
-
-    return stmt;
-}
-
-std::unique_ptr<Stmt> processRet(const std::vector<Token>& tokens, size_t& index, std::string scope, const std::string& src) {
-    std::cout << "Processing ret token" << std::endl;
-
-    // function declaration statement
-    auto stmt = std::make_unique<ReturnStmt>();
-    stmt->stmtType = StmtType::RETURN;
-    index += 1;
-
-    // skip whitespace
-    skip(tokens, index);
-    
-    // parse value
-    stmt->value = processExpression(tokens, index, scope, src, Type::NLINE);
-    index += 1;
-
-    return stmt;
-}
-
-std::unique_ptr<Stmt> processText(const std::vector<Token>& tokens, size_t& index, std::string scope, const std::string& src) {
-    std::cout << "Processing text token" << std::endl;
-    std::cout << extractString(tokens[index], src);
-    std::cout << "Processing text token" << std::endl;
-
-    if (match(tokens, index, {Type::TEXT, Type::SKIP, Type::TEXT, Type::SKIP, Type::EQ})) {
-        std::cout << "Processing variable declaration" << std::endl;
-
-        // type
-        auto stmt = std::make_unique<VarDeclStmt>();
-        stmt->stmtType = StmtType::VAR_DECL;
-        stmt->type = extractString(tokens[index], src);
-        index += 1;
-
-        // skip whitespace
-        skip(tokens, index);
-
-        // expect another text part and extract name
-        stmt->name = extractString(tokens[index], src);
-        index += 1;
-        
-        // skip whitespace, =, whitespace
-        skip(tokens, index);
-        index += 1;
-        skip(tokens, index);
-
-        // process statement
-        stmt->value = processExpression(tokens, index, scope, src, Type::NLINE);
-
-        // allowed statement types
-        if (stmt->value->stmtType != StmtType::EXPR) {
-            throw std::runtime_error("Compiler Error: Expected expression.");
-        }
-
-        index += 1;
-
-        return stmt;
-    } else {
-        throw std::runtime_error("Unexpected pattern");
+int Parser::getPrecedence(Type type) {
+    switch (type) {
+        case Type::EQEQ:
+        case Type::NEQ:                      return  5;
+        case Type::LT:
+        case Type::LTE:
+        case Type::GT:
+        case Type::GTE:                      return 10;
+        case Type::PLUS:
+        case Type::MIN:                      return 20;
+        case Type::MULT:
+        case Type::DIV:                      return 30;
+        case Type::EXP:                      return 40;
+        default:                             return -1;
     }
 }
 
-std::unique_ptr<Stmt> processExpression(const std::vector<Token>& tokens, size_t& index, std::string scope, const std::string& src, Type delimeter) {
-    std::cout << "Processing expression" << std::endl;
-
-    // but for now only parse number and arithmetic
-    auto stmt = std::make_unique<ExprStmt>();
-    stmt->stmtType = StmtType::EXPR;
-
-    Type type = tokens[index].type;
-    switch(type) {
-        case Type::NUMBER: {
-            auto expr = std::make_unique<NumberExpr>();
-            expr->value = std::stod(extractString(tokens[index], src));
-            stmt->expr = std::move(expr);
-            break;
-        }
-        case Type::TEXT: {
-            auto expr = std::make_unique<VarExpr>();
-            expr->name = extractString(tokens[index], src);
-            stmt->expr = std::move(expr);
-            break;
-        }
-        default: {
-            throw std::runtime_error("Compiler error: Expected expression");
-        }
-    }
-
-    // TODO: replace with routed algorithm that first detects what type of
-    // expression is being handled, then uses shunting yard for arithmetic
-    // and binary expressions and list joining for lists
-
-    return stmt;
+bool Parser::isRightAssociative(Type type) {
+    return type == Type::EXP;
 }
 
-std::unique_ptr<Stmt> processToken(const std::vector<Token>& tokens, size_t& index, std::string scope, const std::string& src) {
-    switch (tokens[index].type) {
-        case Type::PUB: {
-            return processPub(tokens, index, scope, src);
+/* ------------------------------------------------- recursive-descent parser */
+
+std::shared_ptr<Expr> Parser::parseExpression() {
+    auto lhs = parsePrimary();
+    return parseBinaryOpRHS(0, lhs);
+}
+
+std::shared_ptr<Expr> Parser::parsePrimary() {
+    if (!curr || !curr->data)
+        throw std::runtime_error("Unexpected end of input to primary expression.");
+
+    Token& tok = peek();
+
+    if (tok.type == Type::IDENT) {
+        std::string name = src.substr(tok.pos, tok.len);
+        advance();
+        return std::make_shared<VariableExpr>(name);
+    }
+
+    if (tok.type == Type::NUMBER) {
+        double value = std::stod(src.substr(tok.pos, tok.len));
+        advance();
+        return std::make_shared<NumberExpr>(value);
+    }
+
+    if (tok.type == Type::SMBRACKET_L) {
+        advance(); // consume '('
+        auto expr = parseExpression();
+        if (!match(Type::SMBRACKET_R))
+            throw std::runtime_error("Expected closing ')'");
+        return expr;
+    }
+
+    throw std::runtime_error("Unknown token in expression: " + std::to_string((int)tok.type));
+}
+
+std::shared_ptr<Expr> Parser::parseBinaryOpRHS(int exprPrec, std::shared_ptr<Expr> lhs) {
+    while (true) {
+        if (!curr || !curr->data) return lhs;
+
+        Type opType = curr->data->type;
+        int opPrec = getPrecedence(opType);
+
+        if (opPrec < exprPrec) return lhs;
+
+        std::string opSymbol = src.substr(curr->data->pos, curr->data->len);
+        advance(); // consume operator
+
+        auto rhs = parsePrimary();  // parse next atom, don't recurse yet
+
+        int nextPrec = getPrecedence(curr && curr->data ? curr->data->type : Type::END);
+        if (opPrec < nextPrec || (opPrec == nextPrec && isRightAssociative(opType))) {
+            rhs = parseBinaryOpRHS(opPrec + (isRightAssociative(opType) ? 0 : 1), rhs);
         }
-        case Type::DEF: {
-            return processDef(tokens, index, scope, src);
-        }
-        case Type::RET: {
-            return processRet(tokens, index, scope, src);
-        }
-        case Type::TEXT: {
-            return processText(tokens, index, scope, src);
-        }
-        default:
-            throw std::runtime_error("Compiler Error: Unexpected token type matching: " + 
-                std::string(TOKEN_EXPR[tokens[index].type]));
+
+        lhs = std::make_shared<BinaryExpr>(opSymbol, lhs, rhs);
     }
 }
 
-std::unique_ptr<Stmt> parseProgram(const std::vector<Token>& tokens, const std::string& src) {
-    auto prog = std::make_unique<ScopedStmt>();
-    prog->stmtType = StmtType::SCOPED;
-    prog->body = std::vector<std::unique_ptr<Stmt>>();
+/* ------------------------------------------------- top-level */
 
-    size_t index = 0;
-    while (index < tokens.size()) {
-        if (shouldSkip(tokens, index)) {
-            ++index;
-            continue;
-        }
-
-        prog->body.push_back(processToken(tokens, index, "", src));
+std::vector<std::shared_ptr<Expr>> Parser::parse() {
+    std::vector<std::shared_ptr<Expr>> ast;
+    skipWhitespace();
+    while (curr && curr->data && curr->data->type != Type::END) {
+        ast.push_back(parseExpression());
     }
-
-    return prog;
+    return ast;
 }
-
-}  // namespace Blam
-  */

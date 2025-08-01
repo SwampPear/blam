@@ -94,6 +94,92 @@ enum class Type : int8_t {
     MULT                 // * 
 };
 
+inline std::string typeToString(Type type) {
+    switch (type) {
+        case Type::SKIP: return "SKIP";
+        case Type::END: return "END";
+        case Type::RAW: return "RAW";
+
+        // comments
+        case Type::MLINE_COMMENT: return "MLINE_COMMENT";
+        case Type::SLINE_COMMENT: return "SLINE_COMMENT";
+
+        // strings
+        case Type::STRING: return "STRING";
+
+        // reserved keywords
+        case Type::AND: return "AND";
+        case Type::OR: return "OR";
+        case Type::DEF: return "DEF";
+        case Type::RET: return "RET";
+        case Type::IF: return "IF";
+        case Type::EL: return "EL";
+        case Type::ELIF: return "ELIF";
+        case Type::WHILE: return "WHILE";
+        case Type::FOR: return "FOR";
+        case Type::IN: return "IN";
+        case Type::BREAK: return "BREAK";
+        case Type::CONTINUE: return "CONTINUE";
+        case Type::TRUE: return "TRUE";
+        case Type::FALSE: return "FALSE";
+        case Type::NIL: return "NIL";
+        case Type::PUB: return "PUB";
+        case Type::CONST: return "CONST";
+        case Type::LET: return "LET";
+
+        // identifiers and numbers
+        case Type::IDENT: return "IDENT";
+        case Type::DECIMAL: return "DECIMAL";
+        case Type::NUMBER: return "NUMBER";
+
+        // space
+        case Type::NLINE: return "NLINE";
+        case Type::WHITESPACE: return "WHITESPACE";
+
+        // delimiters
+        case Type::SMBRACKET_L: return "SMBRACKET_L";
+        case Type::SMBRACKET_R: return "SMBRACKET_R";
+        case Type::SQBRACKET_L: return "SQBRACKET_L";
+        case Type::SQBRACKET_R: return "SQBRACKET_R";
+        case Type::CUBRACKET_L: return "CUBRACKET_L";
+        case Type::CUBRACKET_R: return "CUBRACKET_R";
+
+        // operators
+        case Type::ARROW: return "ARROW";
+        case Type::BAND: return "BAND";
+        case Type::BOR: return "BOR";
+        case Type::BXOR: return "BXOR";
+        case Type::BLS: return "BLS";
+        case Type::BRS: return "BRS";
+        case Type::DOT: return "DOT";
+        case Type::COMMA: return "COMMA";
+        case Type::COLON: return "COLON";
+        case Type::AT: return "AT";
+
+        // comparison
+        case Type::EQEQ: return "EQEQ";
+        case Type::NEQ: return "NEQ";
+        case Type::LT: return "LT";
+        case Type::GT: return "GT";
+        case Type::LTE: return "LTE";
+        case Type::GTE: return "GTE";
+
+        // arithmetic
+        case Type::PLUSEQ: return "PLUSEQ";
+        case Type::MINEQ: return "MINEQ";
+        case Type::DIVEQ: return "DIVEQ";
+        case Type::MULTEQ: return "MULTEQ";
+        case Type::EQ: return "EQ";
+        case Type::PLUS: return "PLUS";
+        case Type::MIN: return "MIN";
+        case Type::DIV: return "DIV";
+        case Type::EXP: return "EXP";
+        case Type::MULT: return "MULT";
+
+        default: return "UNKNOWN";
+    }
+};
+
 static std::unordered_map<Type, std::string> TOKEN_EXPR = {
     {Type::MLINE_COMMENT, R"(#\*[\s\S]*?\*#)"},
     {Type::SLINE_COMMENT, R"(#([^\n]*)(\n|$))"},

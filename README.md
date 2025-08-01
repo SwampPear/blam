@@ -100,3 +100,11 @@ export LDFLAGS="-L/opt/homebrew/opt/llvm/lib"
 export CPPFLAGS="-I/opt/homebrew/opt/llvm/include"
 
 clang output.ll -o output_exec
+
+
+
+
+
+expression  ::= term ((+ | -) term)*
+term        ::= factor ((* | /) factor)*
+factor      ::= IDENT | NUMBER | '(' expression ')'
