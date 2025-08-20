@@ -68,7 +68,7 @@ def tokenize(src: str) -> LList[Token]:
     lst.head = LListNode(Token(Type.RAW, 0, len(src)))
 
     # Walk through token types in precedence order
-    for ttype in ORDER:
+    for ttype in ORDER:  # TODO: iter in enum order
         if ttype in (Type.SKIP, Type.END, Type.RAW):
             continue
 

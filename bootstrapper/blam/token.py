@@ -100,14 +100,14 @@ def type_to_string(t: Type) -> str:
 
 
 ORDER = [
-    # 1) comments and strings
+    # comments
     Type.MLINE_COMMENT,
     Type.SLINE_COMMENT,
+
+    # strings
     Type.STRING,
 
-    # 2) literals, identifiers, keywords
-    Type.DECIMAL,
-    Type.NUMBER,
+    # keywords
     Type.AND,
     Type.OR,
     Type.DEF,
@@ -126,9 +126,15 @@ ORDER = [
     Type.PUB,
     Type.CONST,
     Type.LET,
+
+    # identifiers
     Type.IDENT,
 
-    # 3) multi-char operators (must come before their single-char parts)
+    # numeric literals
+    Type.DECIMAL,
+    Type.NUMBER,
+
+    # multi-char operators
     Type.EXP,      # ** before *
     Type.PLUSEQ,
     Type.MINEQ,
@@ -142,7 +148,7 @@ ORDER = [
     Type.BRS,      # >> before >
     Type.ARROW,    # -> before - and >
 
-    # 4) single-char operators & punctuation
+    # single-char operators
     Type.PLUS,
     Type.MIN,
     Type.MULT,
@@ -158,7 +164,7 @@ ORDER = [
     Type.COLON,
     Type.AT,
 
-    # 5) delimiters
+    # delimiters
     Type.SMBRACKET_L,
     Type.SMBRACKET_R,
     Type.SQBRACKET_L,
@@ -166,7 +172,7 @@ ORDER = [
     Type.CUBRACKET_L,
     Type.CUBRACKET_R,
 
-    # 6) spacing last
+    # spacing last
     Type.NLINE,
     Type.WHITESPACE,
 ]
@@ -174,7 +180,7 @@ ORDER = [
 TOKEN_EXPR: Dict[Type, str] = {
     Type.MLINE_COMMENT: r"#\*[\s\S]*?\*#",
     Type.SLINE_COMMENT: r"#([^\n]*)(\n|$)",
-    Type.STRING: r"\"(\\.|[^\"\\])*\"|'(\\.|[^'\\])*'",
+    Type.STRING: r'"(\\.|[^"\\])*"',
     Type.AND: r"\band\b",
     Type.OR: r"\bor\b",
     Type.DEF: r"\bdef\b",
@@ -193,7 +199,7 @@ TOKEN_EXPR: Dict[Type, str] = {
     Type.PUB: r"\bpub\b",
     Type.CONST: r"\bconst\b",
     Type.LET: r"\blet\b",
-    Type.IDENT: r"[a-zA-Z_][a-zA-Z0-9_]*",
+    Type.IDENT: r"\b[a-zA-Z_][a-zA-Z0-9_]*\b",
     Type.DECIMAL: r"(?:\d+\.\d*|\.\d+)",
     Type.NUMBER: r"\d+",
     Type.NLINE: r"\n",

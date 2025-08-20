@@ -19,7 +19,7 @@ def test_sline_comment(src):
     assert matches(Type.SLINE_COMMENT, src)
 
 
-@pytest.mark.parametrize("src", ['"hello"', "'world'", '"escaped \\" quote"'])
+@pytest.mark.parametrize("src", ['"hello"', '"escaped \\" quote"'])
 def test_string(src):
     assert matches(Type.STRING, src)
 
