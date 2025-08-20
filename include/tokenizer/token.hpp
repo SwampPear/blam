@@ -239,7 +239,7 @@ static std::unordered_map<Type, std::string> TOKEN_EXPR = {
     {Type::MIN, R"(-)"},
     {Type::DIV, R"(/)"},
     {Type::EXP, R"(\*\*)"},
-    {Type::MULT, R"(\*)"}
+    {Type::MULT, R"(^\*)"}
 };
 
 struct Token {
@@ -252,7 +252,7 @@ struct Token {
 
 inline std::string Token::toString(const std::string& src) {
     std::ostringstream oss;
-    oss << "Type: " << static_cast<int>(this->type)
+    oss << "Type: " << typeToString(this->type)
         << ", Pos: " << this->pos
         << ", Len: " << this->len
         << ", Content: " << std::endl
