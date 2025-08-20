@@ -1,15 +1,18 @@
 import pytest
 from blam.tokenizer import tokenize, Type
 from blam.parser import Parser
-from blam.ast import NumberExpr, VariableExpr, BinaryExpr
+from blam.ast import NumberExpr, VariableExpr, BinaryExpr, ExprStmt, Program
 
 
 def parse_one(src: str):
     toks = tokenize(src)
     p = Parser(toks.head, src)
-    ast = p.parse()
-    assert len(ast) == 1, f"expected 1 expr, got {len(ast)}"
-    return ast[0]
+    prog = p.parse_program()
+    assert isinstance(prog, Program)
+    assert len(prog.body) == 1, f"expected 1 top-level stmt, got {len(prog.body)}"
+    stmt = prog.body[0]
+    assert isinstance(stmt, ExprStmt), f"expected an expression statement, got {type(stmt).__name__}"
+    return stmt.expr
 
 
 def is_op(node, op):
