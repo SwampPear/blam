@@ -19,7 +19,7 @@ class Parser:
         return self.curr.data
 
     def skip_whitespace(self) -> None:
-        while self.curr and self.curr.data and self.curr.data.type in (Type.WHITESPACE, Type.RAW, Type.NLINE):
+        while self.curr and self.curr.data and self.curr.data.type in (Type.WHITESPACE, Type.RAW, Type.NLINE, Type.SLINE_COMMENT, Type.MLINE_COMMENT):
             self.curr = self.curr.next
 
     def advance(self) -> None:
