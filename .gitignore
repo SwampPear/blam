@@ -2,8 +2,6 @@ __pycache__/
 test/
 .vscode/
 .DS_Store
-old/
-ref/
 build/
 .venv
 .pytest_cache
