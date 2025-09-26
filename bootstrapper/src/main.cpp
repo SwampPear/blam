@@ -1,19 +1,36 @@
+// src/main.cpp (demo: parse and print a simple success/fail)
 #include <iostream>
-#include <filesystem>
-#include <utils.hpp>
-#include <lexer.hpp>
+#include <string>
+#include "utils.hpp"
+#include "parser.hpp"
+
+using namespace blam;
 
 int main(int argc, char **argv)
 {
-  using namespace blam;
-  std::filesystem::path path = (argc > 1) ? argv[1] : "-"; // "-" reads stdin
-  std::string src = read_file(path);
-  Lexer lx(src);
-  for (;;)
+  try
   {
-    Token t = lx.next();
-    std::cout << to_string(t.kind) << " '" << t.lexeme << "'\n";
-    if (t.kind == Tok::EOF_)
-      break;
+    std::string src = (argc > 1) ? blam::read_file(argv[1]) : R"(pub struct Point {
+  x: int
+  y: int
+}
+
+len(p: Point) -> int {
+  if p.x > 0 {
+    return p.x + p.y
+  } else {
+    return 0
+  }
+}
+)";
+    Parser p(src);
+    auto mod = p.parse_module();
+    std::cout << "Parsed module with " << mod->decls.size() << " top-level decl(s)\n";
+    return 0;
+  }
+  catch (const std::exception &e)
+  {
+    std::cerr << "Parse error: " << e.what() << "\n";
+    return 1;
   }
 }

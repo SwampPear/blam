@@ -1,4 +1,3 @@
-// include/utils.hpp
 #pragma once
 #include <filesystem>
 #include <fstream>
@@ -10,7 +9,7 @@
 namespace blam
 {
 
-  // Remove UTF-8 BOM if present
+  // remove UTF-8 BOM if present
   inline void strip_utf8_bom(std::string &s)
   {
     if (s.size() >= 3 &&
@@ -60,11 +59,4 @@ namespace blam
     strip_utf8_bom(data);
     return data;
   }
-
-  // Convenience overload
-  inline std::string read_file(std::string_view p)
-  {
-    return read_file(std::filesystem::path(p));
-  }
-
 } // namespace blam

@@ -1,193 +1,55 @@
-(* Blam Grammar — grammar.ebnf (newline-terminated, no parens in control headers) *)
+Grammar         ::= { NL | TopLevelDecl } EOF ;
 
-Grammar           ::= { NL | TopLevelDecl } EOF ;
+TopLevelDecl    ::= PubOpt (StructDecl | FunctionDecl) ;
+PubOpt          ::= "pub"? ;
 
-TopLevelDecl      ::= FunctionDecl
-                    | StructDecl
-                    | MethodDef
-                    | ImportDecl
-                    | ConstDecl
-                    | Comment ;
+StructDecl      ::= "struct" Identifier "{" { FieldDecl NL+ } "}" ;
+FieldDecl       ::= PubOpt Identifier ":" Type ;
 
-Comment           ::= HASH_LINE | HASH_BLOCK ;
+FunctionDecl    ::= Identifier "(" ParamListOpt ")" RetTypeOpt Block ;
+ParamListOpt    ::= /* empty */ | Param { "," Param } ;
+Param           ::= Identifier [ ":" Type ] ;
+RetTypeOpt      ::= /* empty */ | "->" Type ;
+Block           ::= "{" { Stmt NL* } "}" ;
 
-ImportDecl        ::= "import" Identifier [ "as" Identifier ] NL ;
+Stmt            ::= IfStmt
+                  | WhileStmt
+                  | ForInLoop
+                  | TryCatchStmt
+                  | ReturnStmt
+                  | BreakStmt
+                  | ContinueStmt
+                  | RaiseStmt
+                  | ExpressionStmt ;
 
-ConstDecl         ::= "const" Identifier "=" Expression NL ;
+IfStmt          ::= "if" Expression Block [ "else" (IfStmt | Block) ] ;
+WhileStmt       ::= "while" Expression Block ;
+ForInLoop       ::= "for" Identifier "in" Expression Block ;
+TryCatchStmt    ::= "try" Block "catch" [ Identifier ] Block ;
 
-(* ===== Functions ===== *)
-(* Execution begins in `main`. `main` must not specify a return type and must not return a value (semantic check). *)
+ReturnStmt      ::= "return" [ Expression ] NL ;
+BreakStmt       ::= "break" NL ;
+ContinueStmt    ::= "continue" NL ;
+RaiseStmt       ::= "raise" Expression NL ;
+ExpressionStmt  ::= Expression NL ;
 
-FunctionDecl      ::= Identifier "(" [ ParamList ] ")" [ "->" Type ] Block ;
+Expression      ::= LogicalOr ;
+LogicalOr       ::= LogicalAnd { "||" LogicalAnd } ;
+LogicalAnd      ::= Equality  { "&&" Equality  } ;
+Equality        ::= Relational { ( "==" | "!=" ) Relational } ;
+Relational      ::= Additive  { ( "<" | "<=" | ">" | ">=" ) Additive } ;
+Additive        ::= Multiplicative { ( "+" | "-" ) Multiplicative } ;
+Multiplicative  ::= Unary { ( "*" | "/" | "%" ) Unary } ;
+Unary           ::= ( "!" | "-" ) Unary | Postfix ;
+Postfix         ::= Primary { "(" [ ArgList ] ")" | "." Identifier } ;
+Primary         ::= Literal | Identifier | "(" Expression ")" ;
+ArgList         ::= Expression { "," Expression } ;
 
-ParamList         ::= Param { "," Param } ;
-Param             ::= (Type Identifier) | Identifier ;
+Type            ::= Identifier | "any" | "int" | "uint" | "i8" | "i16" | "i32" | "i64"
+                  | "u8" | "u16" | "u32" | "u64" | "bool" | "char" | "str" ;
 
-Block             ::= "{" { NL | Statement } "}" ;
-
-Statement         ::= VarDecl
-                    | Assignment
-                    | ExpressionStmt
-                    | IfStmt
-                    | SwitchStmt
-                    | LoopStmt
-                    | BreakStmt
-                    | ContinueStmt
-                    | TryCatchStmt
-                    | ReturnStmt
-                    | ErrorRaise
-                    | ConstDecl
-                    | Comment ;
-
-ExpressionStmt    ::= Expression NL ;
-
-VarDecl           ::= (Type Identifier "=" Expression) NL
-                    | (Identifier "=" Expression) NL ;
-
-Assignment        ::= LValue "=" Expression NL ;
-LValue            ::= Identifier | MemberAccess | IndexExpr ;
-
-ReturnStmt        ::= "return" [ Expression ] NL ;
-BreakStmt         ::= "break" NL ;
-ContinueStmt      ::= "continue" NL ;
-
-(* ===== Expressions ===== *)
-
-Expression        ::= LogicalOr ;
-
-LogicalOr         ::= LogicalAnd { "||" LogicalAnd } ;
-LogicalAnd        ::= Equality  { "&&" Equality  } ;
-Equality          ::= Relational { ( "==" | "!=" ) Relational } ;
-Relational        ::= Additive { ( "<" | "<=" | ">" | ">=" ) Additive } ;
-Additive          ::= Multiplicative { ( "+" | "-" ) Multiplicative } ;
-Multiplicative    ::= Unary { ( "*" | "/" | "%" ) Unary } ;
-
-Unary             ::= ( "!" | "-" | "+" | "*" | "&" ) Unary
-                    | Postfix ;
-
-Postfix           ::= Primary
-                      {   "(" [ ArgList ] ")"         (* Call *)
-                        | "." Identifier              (* Member access *)
-                        | "[" Expression "]"          (* Index *)
-                        | "++" | "--"                 (* Postfix inc/dec *)
-                      } ;
-
-Primary           ::= Literal
-                    | Identifier
-                    | "(" Expression ")"
-                    | ArrayOrCollectionLiteral
-                    | VectorLiteral ;
-
-ArgList           ::= Expression { "," Expression } ;
-
-MemberAccess      ::= Primary "." Identifier ;
-IndexExpr         ::= Primary "[" Expression "]" ;
-
-(* ===== Control Flow (no parentheses in headers) ===== *)
-
-IfStmt            ::= "if" Expression Block [ "else" Block ] ;
-
-SwitchStmt        ::= "sw" Expression "{"
-                        { CaseClause | DefaultClause | NL }
-                      "}" ;
-
-(* Case bodies use a block for clarity; tooling may later allow fall-through or statement lists *)
-CaseClause        ::= "case" CaseLabel ":" Block ;
-CaseLabel         ::= Literal ;
-DefaultClause     ::= "default" ":" Block ;
-
-LoopStmt          ::= WhileLoop | DoWhileLoop | ForLoop | ForInLoop ;
-
-WhileLoop         ::= "while" Expression Block ;
-
-DoWhileLoop       ::= "do" Block "while" Expression NL ;
-
-(* C-style three-part for: init, cond, step — no parentheses, comma-separated *)
-ForLoop           ::= "for" ForInit "," Expression "," ForStep Block ;
-ForInit           ::= AssignmentStarter | VarDeclStarter ;
-ForStep           ::= Expression | AssignmentStarter ;
-
-(* Starters let us parse headers without consuming final NL; full statements appear inside blocks *)
-AssignmentStarter ::= LValue "=" Expression ;
-VarDeclStarter    ::= (Type Identifier "=" Expression)
-                    | (Identifier "=" Expression) ;
-
-(* Collection-controlled for *)
-ForInLoop         ::= "for" Identifier "in" Expression Block ;
-
-(* ===== Error Handling ===== *)
-
-TryCatchStmt      ::= "try" Block { CatchClause } ;
-CatchClause       ::= "catch" Type [ Identifier ] Block ;
-
-ErrorRaise        ::= "raise" ConstructorCall NL ;
-ConstructorCall   ::= Identifier "(" [ ArgList ] ")" ;
-
-(* ===== Structs & Methods ===== *)
-
-StructDecl        ::= "struct" Identifier "{"
-                        { NL | StructMember }
-                      "}" ;
-
-StructMember      ::= FieldDecl NL
-                    | [ "pub" ] FunctionSignature NL ;
-
-FieldDecl         ::= Type Identifier ;   (* fields have no initializers in struct body *)
-
-FunctionSignature ::= Identifier "(" [ ParamList ] ")" [ "->" Type ] ;
-
-(* Method / constructor definition outside the struct *)
-MethodDef         ::= Identifier "::" Identifier "(" [ ParamList ] ")"
-                      [ "->" Type ] Block ;
-
-(* ===== Types ===== *)
-
-Type              ::= UnionType ;
-
-UnionType         ::= IntersectType { "|" IntersectType } ;
-IntersectType     ::= SimpleType { "&" SimpleType } ;
-
-SimpleType        ::= FunctionType
-                    | Identifier
-                    | "any" ;
-
-FunctionType      ::= "(" [ TypeList ] ")" "->" Type ;
-TypeList          ::= Type { "," Type } ;
-
-(* ===== Literals ===== *)
-
-Literal           ::= IntLiteral
-                    | BoolLiteral
-                    | CharLiteral
-                    | StringLiteral ;
-
-IntLiteral        ::= Digit { Digit } ;
-BoolLiteral       ::= "true" | "false" ;
-CharLiteral       ::= "'" Char "'" ;
-StringLiteral     ::= '"' { StringChar } '"' ;
-
-(* Arrays and heterogeneous collections share bracket form; typing mode disambiguates. *)
-ArrayOrCollectionLiteral ::= "[" [ Expression { "," Expression } ] "]" ;
-
-(* Vectors are growable and use angle-bracket literal form *)
-VectorLiteral     ::= "<" [ Expression { "," Expression } ] ">" ;
-
-(* ===== Identifiers & Tokens ===== *)
-
-Identifier        ::= IdentStart { IdentCont } ;
-
-(* ===== Lexical (abstract) ===== *)
-
-NL                ::= /* one or more newline tokens produced by the lexer; blank lines are allowed */ ;
-Digit             ::= "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9" ;
-Letter            ::= "A"…"Z" | "a"…"z" ;
-IdentStart        ::= Letter | "_" ;
-IdentCont         ::= Letter | Digit | "_" ;
-
-Char              ::= /* any Unicode scalar except "'" and newline, with escapes */ ;
-StringChar        ::= /* any Unicode scalar except '"' and newline, with escapes */ ;
-
-HASH_LINE         ::= /* token produced by lexer for #…\n */ ;
-HASH_BLOCK        ::= /* token produced by lexer for #* … *# */ ;
-
-EOF               ::= /* end of file marker from lexer */ ;
+Literal         ::= IntLiteral | BoolLiteral | CharLiteral | StringLiteral ;
+IntLiteral      ::= /* lexer token Int */ ;
+BoolLiteral     ::= "true" | "false" ;
+CharLiteral     ::= /* lexer token Char */ ;
+StringLiteral   ::= /* lexer token String */ ;

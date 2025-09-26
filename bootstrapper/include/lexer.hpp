@@ -5,6 +5,7 @@
 #include <string_view>
 #include <vector>
 #include <unordered_map>
+#include <optional>
 #include "tokens.hpp"
 
 namespace blam
@@ -105,7 +106,6 @@ namespace blam
     Token handle_newline()
     {
       Pos s = pos_;
-      // if we see \r\n, consume both but emit single NL
       if (ch() == '\r' && ch(1) == '\n')
       {
         bump();
@@ -134,7 +134,6 @@ namespace blam
     {
       while (!at_end() && is_space_non_nl(ch()))
       {
-        // normalize stray CR to nothing (CRLF handled in handle_newline)
         if (ch() == '\r' && ch(1) != '\n')
         {
           bump();
@@ -198,36 +197,34 @@ namespace blam
       return make(Tok::Identifier, lex, s, pos_);
     }
 
-    Token scan_number_or_float()
+    // returns a token if a number/float was scanned; otherwise std::nullopt
+    std::optional<Token> scan_number_or_float()
     {
       Pos s = pos_;
       size_t start = i_;
       bool seen_dot = false;
 
-      auto is_num = [&](char c)
+      auto is_num = [](char c)
       { return std::isdigit(static_cast<unsigned char>(c)); };
 
       // patterns allowed: 123, 123., .123, 123.456
       if (ch() == '.')
       {
         // .123
-        seen_dot = true;
-        bump();
-        if (!is_num(ch()))
+        if (!is_num(ch(1)))
         {
-          // this was just a '.', let caller handle as operator
-          // revert
-          i_--;
-          pos_.index--;
-          pos_.col--;
-          return {}; // signal no number
+          return std::nullopt; // just a dot; let caller handle as operator
         }
+        seen_dot = true;
+        bump(); // '.'
         while (is_num(ch()))
           bump();
       }
       else
       {
         // digits
+        if (!is_num(ch()))
+          return std::nullopt;
         while (is_num(ch()))
           bump();
         if (ch() == '.')
@@ -240,7 +237,8 @@ namespace blam
       }
 
       std::string_view lex = src_.substr(start, i_ - start);
-      return seen_dot ? make(Tok::Float, lex, s, pos_) : make(Tok::Int, lex, s, pos_);
+      return seen_dot ? std::optional<Token>(make(Tok::Float, lex, s, pos_))
+                      : std::optional<Token>(make(Tok::Int, lex, s, pos_));
     }
 
     Token scan_string_like(char quote, Tok kind)
@@ -416,12 +414,10 @@ namespace blam
       {
         if (keep_comments_ && surfaced.has_value())
           return *surfaced;
-        // after comment, if end-of-line was a single-line comment, we may be at '\n'
         if (!at_end() && (ch() == '\n' || (ch() == '\r' && ch(1) == '\n')))
         {
           return handle_newline();
         }
-        // otherwise continue scanning
         return next_impl();
       }
 
@@ -432,12 +428,9 @@ namespace blam
       }
 
       // Numbers (int/float). Special-case leading '.' -> float like .5; otherwise '.' is Dot
-      if (is_digit(ch()) || (ch() == '.' && is_digit(ch(1))))
+      if (auto num = scan_number_or_float())
       {
-        Token n = scan_number_or_float();
-        if (n.kind != Tok::EOF_)
-          return n;
-        // fallthrough to operator if it was just '.'
+        return *num;
       }
 
       // Strings / chars
