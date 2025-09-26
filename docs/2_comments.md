@@ -1,15 +1,18 @@
 # Comments
-Comments are chunks of text that are ignored in the formal grammar. Blam supports some different comment types.
+Comments are ignored in formal grammar. Blam supports single-line, multi-line, and docstring comments.
 
 ```
-# this is a single line comment
+# single-line
+# this is a comment
 
+# multi-line
 #*
-  multi line comment
+  this is ignored because it it a comment
 *#
 
+# docstring (content-addressable metadata)
 #*
- * Here is a docstring with a metadata tag.
- * @author Edgar Allen Poe
+ * @author Example Author
+ * @version 1.0
  *#
 ```

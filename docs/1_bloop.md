@@ -1,7 +1,10 @@
 # Bloop Package Manager
-Bloop is the package, build, and publishing tool for Blam projects. It emphasizes transparent upgrades (no breaking 
-changes within declared ranges), reliable versioning, tree-shakeable builds, and content-addressable artifacts for 
-reproducible results.
+Bloop is the package, build, and publishing tool for Blam projects. It emphasizes transparent upgrades, reproducible 
+builds, and deterministic toolchains with content-addressable artifacts.
+
+# Quick Start
+bloop init my-app
+...
 
 # Quick Start
 ```

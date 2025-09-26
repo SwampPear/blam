@@ -1,13 +1,12 @@
 # Blam
-The objective of Blam is to provide a language combining the ease-of-use of Python (general scripting functionality, 
-mixed typing system, e.t.c), strong security like that in Rust, interoperability between existing technologies 
-(C-flavored interoperability present in the C family of languages and Carbon), and strong concurrency features (such as
-that famously presented in Go). Blam's philosophy:
+The objective of Blam is to provide a language combining the ease-of-use of Python, strong security like Rust, 
+interoperability with existing technologies, and strong concurrency features (as in Go).
 
-- Simplicity & Reasonability (core philosophy)
-- Expressiveness without complexity (abstractions)
-- Efficient & Transparent builds (code structure)
-- Performance-conscious design (memory model)
+Blam's philosophy:
+- Simplicity & Reasonability
+- Expressiveness without complexity
+- Efficient & Transparent builds
+- Performance-conscious, predictable memory
 
 # Bloop Package Manager
 Similar to Python's PIP, Bloop should provide reliable package management and versioning, as well as 
@@ -28,11 +27,11 @@ inference system. Blam projects' directory structure is as follows:
 # Features
 ## Core Language Philosophy
 - data-first functional programming with subject–verb–object (SVO) syntax
-- mutability by default with explicit const values
+- immutability by default; mutability explicit
 - dynamic typing for development, static typing for production with type inference
 - eager evaluation with mostly call-by-value semantics
-- helpful error messages (Cargo-like clarity)
-- no null, no exceptions by default, no garbage collector
+- clear, helpful error messages
+- no null, no exceptions by default, no garbage collector (predictable memory)
 
 ## Expressiveness & Abstractions
 - multiple dispatch pattern, including operator overloading

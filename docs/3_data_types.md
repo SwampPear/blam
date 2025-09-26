@@ -1,7 +1,7 @@
 # Data Types
 ## Weak vs. Strong Typing
-Blam supports both weakly typed (dynamic) and strongly typed (static) variables. This allows for rapid prototyping with 
-weak typing and secure, optimized production code with strong typing.
+## Weak vs. Strong Typing
+Blam supports weak typing for prototyping and strong typing for production.
 ```
 // weak typing
 a = 0
@@ -9,7 +9,6 @@ a = 0
 // strong typing
 i8 a = 0
 ```
-
 
 ## Primitive Data Types
 Blam provides conventional primitive types. Unless specified, all primitives are immutable and use two’s complement for 
@@ -33,7 +32,7 @@ signed integers.
 ```
 
 ## Strings
-Strings in Blam are UTF-8 encoded and dynamically sized. They are immutable by default.
+Strings are UTF-8 encoded and mutable by default. Use `const` for explicit immutability.
 ```
 str a = "this is a string"
 ```
@@ -46,7 +45,8 @@ i16 array[] = [1, 2, 3]
 ```
 
 ## Collections
-Collections are heterogeneous containers that may hold any type. They are weakly typed and growable.
+Collections are heterogeneous, weakly typed, and growable. Intended for prototyping only; avoid in production where 
+static typing and vectors are preferred.
 ```
 collection = [1, true]
 ```
