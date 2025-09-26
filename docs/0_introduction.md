@@ -66,7 +66,17 @@ inference system. Blam projects' directory structure is as follows:
 - async via blocking/sync interface with non-blocking I/O under the hood
 - parallelizable pipelines without added complexity
 
-# Non-Features
+## Non-Features
 - multi-paradigm sprawl
 - heavy metaprogramming
 - DSL proliferation
+
+# Standard Libraries
+- http
+- socket
+- io
+- fs
+- json
+- re
+- os
+- thx

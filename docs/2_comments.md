@@ -1,8 +1,5 @@
 # Comments
-Comments are chunks of text that are ignored in the formal grammar.
-
-### Basic Comments
-Blam supports some different comment types.
+Comments are chunks of text that are ignored in the formal grammar. Blam supports some different comment types.
 
 ```
 # this is a single line comment
