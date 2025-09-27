@@ -1,4 +1,4 @@
-// main.cpp — read file, lex to tokens, parse module
+// main.cpp — read file, lex to tokens, parse module, semantic analyze
 #include <cstdlib>
 #include <fstream>
 #include <iostream>
@@ -12,6 +12,7 @@
 #include "parser.hpp"
 #include "tokens.hpp"
 #include "ast.hpp"
+#include "sem.hpp" // <-- new
 
 using namespace blam;
 
@@ -149,8 +150,7 @@ int main(int argc, char **argv)
         const Token &t = tokens[i];
         std::cerr << i << ": kind=" << static_cast<int>(t.kind)
                   << " lexeme=\"" << safe_lexeme(t.lexeme) << "\""
-                  << " ["
-                  << "start@" << t.range.start.line << ":" << t.range.start.col
+                  << " [start@" << t.range.start.line << ":" << t.range.start.col
                   << " end@" << t.range.end.line << ":" << t.range.end.col
                   << "]\n";
       }
@@ -161,14 +161,25 @@ int main(int argc, char **argv)
     Parser parser(std::move(tokens));
     std::shared_ptr<Module> mod = parser.parse_module();
 
+    // ---- SEMANTIC ANALYSIS ----
+    SemAnalyzer sem;
+    sem.analyze(mod);
+
     std::cout << "OK: parsed module with " << mod->decls.size()
-              << " top-level decl(s)\n";
+              << " top-level decl(s); semantic analysis passed\n";
     return 0;
   }
   catch (const ParseError &e)
   {
     std::cerr << "parse error: " << e.what() << "\n";
     return 1;
+  }
+  catch (const SemError &e)
+  {
+    const auto &w = e.where;
+    std::cerr << "semantic error: line " << w.start.line << ", col " << w.start.col
+              << ": " << e.what() << "\n";
+    return 3;
   }
   catch (const std::exception &e)
   {

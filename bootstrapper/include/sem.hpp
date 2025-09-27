@@ -1,31 +1,29 @@
 #pragma once
+#include <memory>
+#include <optional>
+#include <stdexcept>
 #include <string>
 #include <string_view>
 #include <unordered_map>
 #include <vector>
-#include <memory>
-#include <optional>
-#include <stdexcept>
-#include <utility>
 
-// These come from your project:
-#include "ast.hpp" // Module, Decl/Stmt/Expr nodes, Range, etc.
-#include "tokens.hpp"
+#include "ast.hpp"
+#include "tokens.hpp" // for Range
 
 namespace blam
 {
 
-  // ------------------------ Errors ------------------------
+  // ---------- Errors ----------
   struct SemError : std::runtime_error
   {
     Range where{};
+    explicit SemError(const std::string &msg) : std::runtime_error(msg) {}
     SemError(const Range &r, const std::string &msg) : std::runtime_error(msg), where(r) {}
   };
 
-  // ------------------------ Types -------------------------
+  // ---------- Types ----------
   enum class TypeKind
   {
-    // primitives
     I8,
     I16,
     I32,
@@ -39,7 +37,6 @@ namespace blam
     Str,
     Any,
     Void,
-    // constructed
     Func,
     Struct,
     Vector,
@@ -55,28 +52,20 @@ namespace blam
   struct Type
   {
     TypeKind kind{TypeKind::Unknown};
+    std::vector<TypePtr> params;    // for Func
+    TypePtr ret;                    // for Func
+    std::string name;               // for Struct (nominal)
+    TypePtr elem;                   // for Array/Vector
+    std::optional<size_t> fixedLen; // for Array
 
-    // Function type: (params...) -> ret
-    std::vector<TypePtr> params;
-    TypePtr ret{};
-
-    // Named/nominal types (e.g., struct Foo)
-    std::string name;
-
-    // Array/Vector/etc.
-    TypePtr elem;
-    std::optional<size_t> fixedLen;
-
-    // For quick equality (nominal for structs, structural for funcs/prims)
     bool equals(const Type &other) const;
-
     static TypePtr prim(TypeKind k);
     static TypePtr func(std::vector<TypePtr> ps, TypePtr r);
     static TypePtr named(std::string n);
     static TypePtr array(TypePtr e, std::optional<size_t> n);
   };
 
-  // --------------------- Symbols & Scopes -----------------
+  // ---------- Symbols & Scopes ----------
   enum class SymKind
   {
     Var,
@@ -88,15 +77,11 @@ namespace blam
 
   struct Symbol
   {
-    SymKind kind;
+    SymKind kind{SymKind::Var};
     std::string name;
-    Range where;
-    // Overloads (for functions): same name, different signature
-    std::vector<TypePtr> overloadSigs;
-    // Resolved type (vars/params/fields/structs)
-    TypePtr type;
-    // Backref to AST, if helpful
-    Node *ast{nullptr};
+    std::vector<TypePtr> overloadSigs; // for functions
+    TypePtr type;                      // for non-functions
+    Node *ast{nullptr};                // optional backref
   };
 
   struct Scope
@@ -106,30 +91,25 @@ namespace blam
 
     Symbol *lookupLocal(std::string_view n);
     Symbol *lookup(std::string_view n);
-    Symbol &insertOrThrow(const Symbol &s);
+    Symbol &insertOrMergeFunc(const Symbol &s); // allow func overloads, reject other redecls
   };
 
-  // --------------------- Type Environment -----------------
+  // ---------- Type Environment ----------
   struct TypeEnv
   {
-    // nominal type registry (structs, aliases)
     std::unordered_map<std::string, TypePtr> named;
-    // predefined primitives
-    TypeEnv();
+    TypeEnv(); // fills primitives
 
-    TypePtr resolveName(const std::string &n) const; // returns nullptr if missing
+    TypePtr resolveName(const std::string &n) const;
   };
 
-  // --------------------- Semantic Analyzer ----------------
+  // ---------- Semantic Analyzer ----------
   class SemAnalyzer
   {
   public:
     explicit SemAnalyzer(TypeEnv env = TypeEnv{}) : tenv_(std::move(env)) {}
-
-    // Entry point
     void analyze(const std::shared_ptr<Module> &mod);
 
-    // After analyze(), you can inspect symbol tables, etc.
     Scope *global() { return &global_; }
     const TypeEnv &types() const { return tenv_; }
 
@@ -137,37 +117,7 @@ namespace blam
     TypeEnv tenv_;
     Scope global_{};
 
-    // Pass 1: collect top-level decls
-    void collectDecls(Module &m);
-
-    // Pass 2: resolve/validate inside decls
-    void resolveAndType(Module &m);
-
-    // Helpers
-    void collectStructDecl(StructDecl &s, Scope &sc);
-    void resolveStruct(StructDecl &s, Scope &sc);
-
-    void collectFuncDecl(FuncDecl &f, Scope &sc);
-    void resolveFunc(FuncDecl &f, Scope &sc);
-
-    // Statements/Expressions
-    void resolveStmt(Stmt &st, Scope &sc, std::optional<TypePtr> expectedRet);
-    TypePtr resolveExpr(Expr &e, Scope &sc);
-
-    // Type resolution from AST TypeName (handles `any`, primitives, dotted names)
-    TypePtr resolveTypeName(const TypeName &tn);
-
-    // Function call/type checking
-    TypePtr checkCall(const Range &callWhere,
-                      const std::string &calleeName,
-                      const std::vector<TypePtr> &argTypes,
-                      const std::vector<TypePtr> &candidateSigs);
-
-    // Unification (sketch; extend as needed)
-    bool unify(const TypePtr &a, const TypePtr &b);
-
-    // Error utilities
-    [[noreturn]] void semError(const Range &r, std::string msg);
+    void collectDecls(Module &m); // phase 1: index top-level decls
   };
 
 } // namespace blam
