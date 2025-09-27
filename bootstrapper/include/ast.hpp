@@ -69,6 +69,12 @@ namespace blam
     ExprPtr lhs, rhs;
   };
 
+  // For characters.
+  struct CharExpr : Expr
+  {
+    std::string value;
+  };
+
   // Function call.
   struct CallExpr : Expr
   {

@@ -766,6 +766,13 @@ namespace blam
         advance();
         return n;
       }
+      if (is(Tok::Char))
+      { // <-- add char literal support
+        auto n = std::make_shared<CharExpr>();
+        n->value = cur_.lexeme; // whatever your lexer stores ('Z', escaped, etc.)
+        advance();
+        return n;
+      }
       if (is(Tok::KwTrue))
       {
         auto n = std::make_shared<BoolExpr>();
@@ -780,22 +787,19 @@ namespace blam
         advance();
         return n;
       }
-
       if (is(Tok::Identifier))
       {
         auto id = std::make_shared<IdentExpr>();
-        id->value = cur_.lexeme; // IdentExpr stores the identifier text in .value
+        id->value = cur_.lexeme;
         advance();
         return id;
       }
-
       if (match(Tok::LParen))
       {
         auto inside = parse_expr();
         expect(Tok::RParen, "expected ')'");
         return inside;
       }
-
       error_here("expected expression");
     }
 

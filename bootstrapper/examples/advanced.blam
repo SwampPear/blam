@@ -137,11 +137,5 @@ main() {
   p = add(m, n)
   q: i8 = negate(p)
 
-  # nested blocks + bare return (void)
-  {
-    r = id(q)
-    log("nested block")
-  }
-
   return
 }
