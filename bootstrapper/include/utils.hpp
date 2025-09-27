@@ -1,5 +1,6 @@
 #pragma once
 #include <filesystem>
+#include <iostream>
 #include <fstream>
 #include <stdexcept>
 #include <string>

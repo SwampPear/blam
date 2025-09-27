@@ -1,11 +1,13 @@
 #pragma once
-#include <stdexcept>
+#include <cstdint>
 #include <string>
 #include <string_view>
-#include <utility>
-#include <optional>
+#include <vector>
 #include <memory>
-#include "lexer.hpp"
+#include <optional>
+#include <stdexcept>
+#include <utility>
+#include "tokens.hpp"
 #include "ast.hpp"
 
 namespace blam
@@ -19,27 +21,68 @@ namespace blam
   class Parser
   {
   public:
-    explicit Parser(std::string_view src) : lx_(src) { advance(); }
+    explicit Parser(std::vector<Token> toks) : toks_(std::move(toks))
+    {
+      if (toks_.empty() || toks_.back().kind != Tok::EOF_)
+      {
+        toks_.push_back(Token{Tok::EOF_, "", Range{}});
+      }
+      advance();
+    }
 
     std::shared_ptr<Module> parse_module()
     {
       auto mod = std::make_shared<Module>();
+      skip_newlines();
       while (!is(Tok::EOF_))
       {
-        skip_newlines();
-        if (is(Tok::EOF_))
-          break;
-        mod->decls.push_back(parse_decl());
+        mod->decls.push_back(parse_toplevel());
         skip_newlines();
       }
       return mod;
     }
 
   private:
-    Lexer lx_;
+    // -------- state --------
+    std::vector<Token> toks_;
+    size_t i_{0};
     Token cur_{};
 
-    // ---------- basic helpers ----------
+    // -------- error helpers --------
+    std::string make_loc_msg(std::string_view msg, const Token &at) const
+    {
+      const auto line = at.range.start.line;
+      const auto col = at.range.start.col;
+      std::string out;
+      out.reserve(msg.size() + 32);
+      out.append("line ").append(std::to_string(line)).append(", col ").append(std::to_string(col)).append(": ").append(msg);
+      return out;
+    }
+
+    [[noreturn]] void error_here(std::string_view msg) const
+    {
+      throw ParseError(make_loc_msg(msg, cur_));
+    }
+
+    void ensure(bool cond, std::string_view msg)
+    {
+      if (!cond)
+        error_here(msg);
+    }
+
+    // -------- cursor --------
+    void advance()
+    {
+      if (i_ < toks_.size())
+        cur_ = toks_[i_++];
+    }
+    const Token &peek() const
+    {
+      static Token eof{Tok::EOF_, "", Range{}};
+      if (i_ < toks_.size())
+        return toks_[i_];
+      return eof;
+    }
     bool is(Tok k) const { return cur_.kind == k; }
     bool match(Tok k)
     {
@@ -50,615 +93,625 @@ namespace blam
       }
       return false;
     }
-    void expect(Tok k, const char *msg)
+    void expect(Tok k, std::string_view msg)
     {
-      if (!is(k))
-        throw ParseError(msg);
-      advance();
+      if (!match(k))
+        error_here(msg);
     }
-    void advance() { cur_ = lx_.next(); }
     void skip_newlines()
     {
       while (is(Tok::NL))
         advance();
     }
+    bool at_stmt_end() const { return is(Tok::NL) || is(Tok::RBrace) || is(Tok::EOF_); }
 
-    // ---------- declarations ----------
-    DeclPtr parse_decl()
-    {
-      bool isPub = match(Tok::KwPub);
-
-      if (match(Tok::KwStruct))
-        return parse_struct_tail(isPub);
-      if (peek_is_func())
-        return parse_func_tail(isPub);
-
-      throw ParseError("Expected declaration (struct or function)");
-    }
-
-    bool peek_is_func()
-    {
-      if (cur_.kind != Tok::Identifier)
-        return false;
-      Token save = cur_;
-      advance();
-      bool r = is(Tok::LParen);
-      cur_ = save;
-      return r;
-    }
-
-    std::shared_ptr<StructDecl> parse_struct_tail(bool isPub)
+    // -------- small helpers --------
+    std::string parse_ident(std::string_view msg = "expected identifier")
     {
       if (!is(Tok::Identifier))
-        throw ParseError("Expected struct name");
-      auto s = std::make_shared<StructDecl>();
-      s->isPub = isPub;
-      s->name = cur_.lexeme;
+        error_here(msg);
+      auto s = cur_.lexeme;
       advance();
-      expect(Tok::LBrace, "Expected '{' after struct name");
-      skip_newlines();
-      while (!is(Tok::RBrace))
-      {
-        bool fieldPub = match(Tok::KwPub);
-        if (!is(Tok::Identifier))
-          throw ParseError("Expected field name");
-        std::string fname = cur_.lexeme;
-        advance();
-        expect(Tok::Colon, "Expected ':' after field name");
-        TypeName t{parse_type_name()};
-        s->fields.push_back(Field{fieldPub, fname, t});
-        skip_stmt_terminator();
-      }
-      advance(); // }
       return s;
     }
 
-    std::shared_ptr<FuncDecl> parse_func_tail(bool isPub)
+    // type name = dotted identifiers (verbatim text)
+    std::string parse_type_name_text()
+    {
+      if (!is(Tok::Identifier))
+        error_here("expected type name");
+      std::string t = cur_.lexeme;
+      advance();
+      while (match(Tok::Dot))
+      {
+        t += ".";
+        t += parse_ident("expected identifier after '.'");
+      }
+      return t;
+    }
+
+    TypeName parse_type_name()
+    {
+      TypeName tn{};
+      tn.name = parse_type_name_text();
+      return tn;
+    }
+
+    // -------- top-level --------
+    DeclPtr parse_toplevel()
+    {
+      bool isPub = match(Tok::KwPub);
+      if (match(Tok::KwStruct))
+        return parse_struct(isPub);
+      return parse_func(isPub);
+    }
+
+    DeclPtr parse_struct(bool isPub)
+    {
+      auto s = std::make_shared<StructDecl>();
+      s->isPub = isPub;
+      s->name = parse_ident("expected struct name");
+      expect(Tok::LBrace, "expected '{'");
+      skip_newlines();
+      while (!is(Tok::RBrace))
+      {
+        if (is(Tok::EOF_))
+          error_here("unterminated struct body");
+        Field f{};
+        f.isPub = match(Tok::KwPub); // optional 'pub'
+        f.type = parse_type_name();  // type
+        f.name = parse_ident("expected field name");
+        if (is(Tok::NL))
+          skip_newlines();
+        else if (!is(Tok::RBrace))
+          error_here("expected newline or '}' after field");
+      }
+      expect(Tok::RBrace, "expected '}'");
+      return s;
+    }
+
+    DeclPtr parse_func(bool isPub)
     {
       auto f = std::make_shared<FuncDecl>();
       f->isPub = isPub;
-
-      if (!is(Tok::Identifier))
-        throw ParseError("Expected function name");
-
-      const std::string fname = cur_.lexeme;
-      f->name = fname;
-      std::cout << cur_.lexeme << std::endl;
-      advance();
-      std::cout << cur_.lexeme << std::endl;
-      advance();
-      std::cout << cur_.lexeme << std::endl;
-      advance();
-      std::cout << cur_.lexeme << std::endl;
-      advance();
-      std::cout << cur_.lexeme << std::endl;
-      advance();
-      std::cout << cur_.lexeme << std::endl;
-      advance();
-      std::cout << cur_.lexeme << std::endl;
-      advance();
-      std::cout << cur_.lexeme << std::endl;
-      expect(Tok::LParen, ("Expected '(' after function name '" + fname + "'").c_str());
-
-      if (!is(Tok::RParen))
-      {
-        for (;;)
-        {
-          Param p{};
-          if (!is(Tok::Identifier))
-            throw ParseError(("Expected parameter name in function '" + fname + "'").c_str());
-          p.name = cur_.lexeme;
-          advance();
-
-          if (match(Tok::Colon))
-            p.type = TypeName{parse_type_name()};
-
-          f->params.push_back(std::move(p));
-          if (!match(Tok::Comma))
-            break;
-        }
-      }
-
-      expect(Tok::RParen, ("Expected ')' after parameters of function '" + fname + "'").c_str());
-
+      f->name = parse_ident("expected function name");
+      expect(Tok::LParen, "expected '(' after function name");
+      f->params = parse_params();
+      expect(Tok::RParen, "expected ')' after parameters");
       if (match(Tok::Arrow))
-        f->ret = TypeName{parse_type_name()};
-
-      // Body
+        f->ret = parse_type_name();
       f->body = parse_block();
       return f;
     }
 
-    std::string parse_type_name()
+    std::vector<Param> parse_params()
     {
-      if (!is(Tok::Identifier) &&
-          cur_.kind != Tok::KwInt && cur_.kind != Tok::KwUint &&
-          cur_.kind != Tok::KwI8 && cur_.kind != Tok::KwI16 && cur_.kind != Tok::KwI32 && cur_.kind != Tok::KwI64 &&
-          cur_.kind != Tok::KwU8 && cur_.kind != Tok::KwU16 && cur_.kind != Tok::KwU32 && cur_.kind != Tok::KwU64 &&
-          cur_.kind != Tok::KwBool && cur_.kind != Tok::KwChar && cur_.kind != Tok::KwStr && cur_.kind != Tok::KwAny)
+      std::vector<Param> out;
+      if (is(Tok::RParen))
+        return out;
+      for (;;)
       {
-        throw ParseError("Expected type name");
+        Param p{};
+        p.name = parse_ident("expected parameter name");
+        if (match(Tok::Colon))
+          p.type = parse_type_name();
+        out.push_back(std::move(p));
+        if (!match(Tok::Comma))
+          break;
       }
-      std::string t = cur_.lexeme;
-      advance();
-      return t;
+      return out;
     }
 
-    // ---------- blocks / statements ----------
+    // -------- blocks & statements --------
     std::shared_ptr<BlockStmt> parse_block()
     {
-      expect(Tok::LBrace, "Expected '{' to start block");
-      auto blk = std::make_shared<BlockStmt>();
+      expect(Tok::LBrace, "expected '{' to start block");
+      auto b = std::make_shared<BlockStmt>();
       skip_newlines();
       while (!is(Tok::RBrace))
       {
-        blk->stmts.push_back(parse_stmt());
-        skip_stmt_terminator();
+        if (is(Tok::EOF_))
+          error_here("unterminated block");
+        b->stmts.push_back(parse_stmt());
+        skip_newlines();
       }
-      advance(); // }
-      return blk;
-    }
-
-    void skip_stmt_terminator()
-    {
-      // statements are newline-terminated; allow NL* before closing brace
-      while (is(Tok::NL))
-        advance();
-    }
-
-    // lvalue helpers (Identifier { '.' Identifier })
-    bool is_lvalue_start() const { return cur_.kind == Tok::Identifier; }
-
-    ExprPtr parse_lvalue_expr()
-    {
-      if (cur_.kind != Tok::Identifier)
-        throw ParseError("Expected lvalue (identifier)");
-
-      // Start with the base identifier
-      ExprPtr lhs = std::make_shared<IdentExpr>();
-      static_cast<IdentExpr *>(lhs.get())->value = cur_.lexeme;
-      advance(); // consume ident
-
-      // Handle dotted member accesses: a.b.c
-      while (match(Tok::Dot))
-      {
-        if (cur_.kind != Tok::Identifier)
-          throw ParseError("Expected member after '.'");
-
-        auto mem = std::make_shared<MemberExpr>();
-        mem->obj = lhs;           // previous expression becomes the object
-        mem->field = cur_.lexeme; // current identifier is the member name
-        advance();                // consume member ident
-        lhs = mem;                // upcast to ExprPtr is fine
-      }
-
-      return lhs;
+      expect(Tok::RBrace, "expected '}' to end block");
+      return b;
     }
 
     StmtPtr parse_stmt()
     {
-      // --- control flow (no parens in headers) ---
-      if (match(Tok::KwIf))
-        return parse_if();
-      if (match(Tok::KwWhile))
-        return parse_while();
-      if (match(Tok::KwDo))
-        return parse_do_while();
-
-      if (match(Tok::KwFor))
-      {
-        if (cur_.kind == Tok::Identifier)
-        {
-          Token save = cur_;
-          advance();
-          bool isForIn = (cur_.kind == Tok::KwIn);
-          cur_ = save;
-          if (isForIn)
-            return parse_for_in();
-        }
-        return parse_cfor();
-      }
-
-      if (match(Tok::KwSw))
-        return parse_switch();
-      if (match(Tok::KwTry))
-        return parse_try_catches();
-
-      // --- returns / flow ---
+      // return
       if (match(Tok::KwReturn))
       {
-        if (is(Tok::NL) || is(Tok::RBrace))
-          return std::make_shared<ReturnStmt>();
-        auto rs = std::make_shared<ReturnStmt>();
-        rs->value = parse_expr();
-        return rs;
-      }
-      if (match(Tok::KwBreak))
-        return std::make_shared<BreakStmt>();
-      if (match(Tok::KwContinue))
-        return std::make_shared<ContinueStmt>();
-      if (match(Tok::KwRaise))
-      {
-        auto r = std::make_shared<RaiseStmt>();
-        r->value = parse_expr();
+        auto r = std::make_shared<ReturnStmt>();
+        if (!at_stmt_end())
+        {
+          auto e = parse_expr();
+          r->a = e;     // optional field in your AST
+          r->value = e; // also set .value (default is nullptr for bare return)
+        }
+        if (is(Tok::NL))
+          skip_newlines();
         return r;
       }
 
-      // --- const declaration ---
-      if (match(Tok::KwConst))
+      if (match(Tok::KwBreak))
       {
-        auto d = std::make_shared<VarDeclStmt>();
-        d->isConst = true;
-        if (cur_.kind != Tok::Identifier)
-          throw ParseError("Expected name after 'const'");
-        d->name = cur_.lexeme;
-        advance();
-        if (match(Tok::Colon))
-          d->type = TypeName{parse_type_name()};
-        expect(Tok::Eq, "Expected '=' in const declaration");
-        d->init = parse_expr();
-        return d;
+        auto n = std::make_shared<BreakStmt>();
+        if (is(Tok::NL))
+          skip_newlines();
+        return n;
+      }
+      if (match(Tok::KwContinue))
+      {
+        auto n = std::make_shared<ContinueStmt>();
+        if (is(Tok::NL))
+          skip_newlines();
+        return n;
       }
 
-      // --- mutable decl or assignment or expression-stmt ---
-      if (cur_.kind == Tok::Identifier)
+      if (match(Tok::KwRaise))
       {
-        Token save = cur_;
-        auto lhs = parse_lvalue_expr();
-        if (match(Tok::Colon))
-        {
-          auto d = std::make_shared<VarDeclStmt>();
-          d->isConst = false;
-          auto *id = dynamic_cast<IdentExpr *>(lhs.get());
-          if (!id)
-            throw ParseError("Left of ':' must be identifier");
-          d->name = id->value;
-          d->type = TypeName{parse_type_name()};
-          expect(Tok::Eq, "Expected '=' in variable declaration");
-          d->init = parse_expr();
-          return d;
-        }
-        if (match(Tok::Eq))
-        {
-          auto a = std::make_shared<AssignStmt>();
-          a->lhs = lhs;
-          a->rhs = parse_expr();
-          return a;
-        }
-        // Not decl/assign: continue parsing expression with existing lhs
-        return parse_expr_stmt_with_prefix(lhs);
+        auto n = std::make_shared<RaiseStmt>();
+        n->value = parse_expr();
+        if (is(Tok::NL))
+          skip_newlines();
+        return n;
       }
 
-      // Fallback: plain expression statement
-      return std::make_shared<ExprStmt>(parse_expr());
-    }
-
-    std::shared_ptr<IfStmt> parse_if()
-    {
-      auto n = std::make_shared<IfStmt>();
-      n->cond = parse_expr();
-      n->thenBlk = parse_block();
-      if (match(Tok::KwElse))
+      if (match(Tok::KwIf))
       {
-        if (match(Tok::KwIf))
-        {
-          auto chain = std::make_shared<BlockStmt>();
-          chain->stmts.push_back(parse_if());
-          n->elseBlk = chain;
-        }
-        else
-        {
-          n->elseBlk = parse_block();
-        }
-      }
-      return n;
-    }
-
-    std::shared_ptr<WhileStmt> parse_while()
-    {
-      auto n = std::make_shared<WhileStmt>();
-      n->cond = parse_expr();
-      n->body = parse_block();
-      return n;
-    }
-
-    std::shared_ptr<DoWhileStmt> parse_do_while()
-    {
-      auto n = std::make_shared<DoWhileStmt>();
-      n->body = parse_block();
-      expect(Tok::KwWhile, "Expected 'while' after do-block");
-      n->cond = parse_expr();
-      if (!match(Tok::NL))
-        throw ParseError("Expected newline after do-while header");
-      return n;
-    }
-
-    std::shared_ptr<ForInStmt> parse_for_in()
-    {
-      auto n = std::make_shared<ForInStmt>();
-      if (!is(Tok::Identifier))
-        throw ParseError("Expected loop variable name");
-      n->iter = cur_.lexeme;
-      advance();
-      expect(Tok::KwIn, "Expected 'in' in for-loop");
-      n->inExpr = parse_expr();
-      n->body = parse_block();
-      return n;
-    }
-
-    std::shared_ptr<CForStmt> parse_cfor()
-    {
-      auto n = std::make_shared<CForStmt>();
-
-      // init (optional)
-      if (!is(Tok::Comma))
-      {
-        if (match(Tok::KwConst))
-        {
-          // const decl init
-          auto d = std::make_shared<VarDeclStmt>();
-          d->isConst = true;
-          if (cur_.kind != Tok::Identifier)
-            throw ParseError("Expected name after 'const'");
-          d->name = cur_.lexeme;
-          advance();
-          if (match(Tok::Colon))
-            d->type = TypeName{parse_type_name()};
-          expect(Tok::Eq, "Expected '=' in const declaration");
-          d->init = parse_expr();
-          n->init = d;
-        }
-        else if (cur_.kind == Tok::Identifier)
-        {
-          Token save = cur_;
-          auto lhs = parse_lvalue_expr();
-          if (match(Tok::Colon))
-          {
-            auto d = std::make_shared<VarDeclStmt>();
-            d->isConst = false;
-            auto *id = dynamic_cast<IdentExpr *>(lhs.get());
-            if (!id)
-              throw ParseError("Left of ':' must be identifier");
-            d->name = id->value;
-            d->type = TypeName{parse_type_name()};
-            expect(Tok::Eq, "Expected '=' in variable declaration");
-            d->init = parse_expr();
-            n->init = d;
-          }
-          else if (match(Tok::Eq))
-          {
-            auto a = std::make_shared<AssignStmt>();
-            a->lhs = lhs;
-            a->rhs = parse_expr();
-            n->init = a;
-          }
-          else
-          {
-            n->init = std::make_shared<ExprStmt>(parse_expr_continuation(lhs));
-          }
-        }
-        else
-        {
-          n->init = std::make_shared<ExprStmt>(parse_expr());
-        }
-      }
-      expect(Tok::Comma, "Expected ',' after for-init");
-
-      // cond (optional)
-      if (!is(Tok::Comma))
+        auto n = std::make_shared<IfStmt>();
         n->cond = parse_expr();
-      expect(Tok::Comma, "Expected ',' after for-condition");
-
-      // step (optional)
-      if (!is(Tok::LBrace))
-      {
-        if (cur_.kind == Tok::Identifier)
+        n->thenBlk = parse_block();
+        skip_newlines();
+        if (match(Tok::KwElse))
         {
-          auto lhs = parse_lvalue_expr();
-          if (match(Tok::Eq))
+          if (match(Tok::KwIf))
           {
-            auto a = std::make_shared<AssignStmt>();
-            a->lhs = lhs;
-            a->rhs = parse_expr();
-            n->step = a;
+            n->elseBlk = std::make_shared<BlockStmt>();
+            auto chained = std::make_shared<IfStmt>();
+            chained->cond = parse_expr();
+            chained->thenBlk = parse_block();
+            n->elseBlk->stmts.push_back(chained);
           }
           else
           {
-            n->step = std::make_shared<ExprStmt>(parse_expr_continuation(lhs));
+            n->elseBlk = parse_block();
           }
+        }
+        return n;
+      }
+
+      if (match(Tok::KwWhile))
+      {
+        auto n = std::make_shared<WhileStmt>();
+        n->cond = parse_expr();
+        n->body = parse_block();
+        return n;
+      }
+
+      if (match(Tok::KwDo))
+      {
+        auto n = std::make_shared<DoWhileStmt>();
+        n->body = parse_block();
+        expect(Tok::KwWhile, "expected 'while' after do-block");
+        n->cond = parse_expr();
+        if (is(Tok::NL))
+          skip_newlines();
+        return n;
+      }
+
+      if (match(Tok::KwFor))
+      {
+        if (is(Tok::Identifier) && peek().kind == Tok::KwIn)
+        {
+          auto n = std::make_shared<ForInStmt>();
+          n->iter = parse_ident("expected loop variable");
+          expect(Tok::KwIn, "expected 'in' in for-in loop");
+          n->inExpr = parse_expr();
+          n->body = parse_block();
+          return n;
         }
         else
         {
-          n->step = std::make_shared<ExprStmt>(parse_expr());
+          auto n = std::make_shared<CForStmt>();
+          if (!is(Tok::Comma) && !is(Tok::LBrace))
+            n->init = parse_simple_stmt_as_stmt();
+          expect(Tok::Comma, "expected ',' after for init");
+          if (!is(Tok::Comma) && !is(Tok::LBrace))
+            n->cond = parse_expr();
+          expect(Tok::Comma, "expected ',' after for condition");
+          if (!is(Tok::LBrace))
+            n->step = parse_simple_stmt_as_stmt();
+          n->body = parse_block();
+          return n;
         }
       }
 
-      n->body = parse_block();
-      return n;
-    }
-
-    std::shared_ptr<SwitchStmt> parse_switch()
-    {
-      auto n = std::make_shared<SwitchStmt>();
-      n->discr = parse_expr();
-      expect(Tok::LBrace, "Expected '{' after switch expression");
-      skip_newlines();
-      while (!is(Tok::RBrace))
+      if (match(Tok::KwSw))
       {
-        if (match(Tok::KwDefault))
+        auto n = std::make_shared<SwitchStmt>();
+        n->discr = parse_expr();
+        expect(Tok::LBrace, "expected '{' to open switch");
+        skip_newlines();
+        while (!is(Tok::RBrace))
         {
-          expect(Tok::Colon, "Expected ':' after 'default'");
-          n->defaultBody = parse_block();
-          skip_newlines();
-          continue;
+          if (match(Tok::KwCase))
+          {
+            SwitchCase c{};
+            c.labels.push_back(parse_expr());
+            while (match(Tok::Comma))
+              c.labels.push_back(parse_expr());
+            expect(Tok::Colon, "expected ':' after case labels");
+            c.body = parse_block();
+            n->cases.push_back(std::move(c));
+            skip_newlines();
+          }
+          else if (match(Tok::KwDefault))
+          {
+            expect(Tok::Colon, "expected ':' after default");
+            n->defaultBody = parse_block();
+            skip_newlines();
+          }
+          else
+          {
+            error_here("expected 'case' or 'default' in switch");
+          }
         }
-        if (match(Tok::KwCase))
+        expect(Tok::RBrace, "expected '}' to close switch");
+        return n;
+      }
+
+      if (match(Tok::KwTry))
+      {
+        auto n = std::make_shared<TryCatchesStmt>();
+        n->tryBlk = parse_block();
+        skip_newlines();
+        bool sawCatch = false;
+        while (match(Tok::KwCatch))
         {
-          SwitchCase c{};
-          c.labels.push_back(parse_expr()); // single label for now
-          expect(Tok::Colon, "Expected ':' after case label");
+          sawCatch = true;
+          TypedCatch c{};
+          if (is(Tok::Identifier))
+            c.typeName = parse_type_name_text(); // optional type
+          if (is(Tok::Identifier))
+            c.bindName = parse_ident(); // optional name
           c.body = parse_block();
-          n->cases.push_back(std::move(c));
+          n->catches.push_back(std::move(c));
           skip_newlines();
-          continue;
         }
-        throw ParseError("Expected 'case' or 'default' in switch");
+        if (!sawCatch)
+          error_here("expected at least one 'catch' after try");
+        return n;
       }
-      advance(); // }
-      return n;
-    }
 
-    StmtPtr parse_try_catches()
-    {
-      auto n = std::make_shared<TryCatchesStmt>();
-      n->tryBlk = parse_block();
-      if (!match(Tok::KwCatch))
-        throw ParseError("Expected 'catch' after try-block");
-      do
+      if (is(Tok::KwConst) || is(Tok::Identifier))
       {
-        TypedCatch c{};
-        // optional type
-        if (cur_.kind == Tok::Identifier ||
-            cur_.kind == Tok::KwInt || cur_.kind == Tok::KwUint ||
-            cur_.kind == Tok::KwI8 || cur_.kind == Tok::KwI16 || cur_.kind == Tok::KwI32 || cur_.kind == Tok::KwI64 ||
-            cur_.kind == Tok::KwU8 || cur_.kind == Tok::KwU16 || cur_.kind == Tok::KwU32 || cur_.kind == Tok::KwU64 ||
-            cur_.kind == Tok::KwBool || cur_.kind == Tok::KwChar || cur_.kind == Tok::KwStr || cur_.kind == Tok::KwAny)
+        auto save = save_cursor();
+        try
         {
-          c.typeName = cur_.lexeme;
-          advance();
+          auto decl = parse_vardecl_maybe();
+          if (decl)
+          {
+            if (is(Tok::NL))
+              skip_newlines();
+            return *decl;
+          }
         }
-        // optional binding name
-        if (cur_.kind == Tok::Identifier)
+        catch (...)
         {
-          c.bindName = cur_.lexeme;
-          advance();
+          restore_cursor(save);
         }
-        c.body = parse_block();
-        n->catches.push_back(std::move(c));
-      } while (match(Tok::KwCatch));
-      return n;
-    }
 
-    // ---------- expressions (Pratt) ----------
-    int prec_of(const Token &t) const
-    {
-      switch (t.kind)
-      {
-      case Tok::OrOr:
-        return 1;
-      case Tok::AndAnd:
-        return 2;
-      case Tok::EqEq:
-      case Tok::BangEq:
-        return 3;
-      case Tok::Lt:
-      case Tok::Lte:
-      case Tok::Gt:
-      case Tok::Gte:
-        return 4;
-      case Tok::Plus:
-      case Tok::Minus:
-        return 5;
-      case Tok::Star:
-      case Tok::Slash:
-      case Tok::Percent:
-        return 6;
-      case Tok::Dot:
-        return 8; // keep a.b tight
-      default:
-        return -1;
+        save = save_cursor();
+        try
+        {
+          auto asg = parse_assign_stmt_maybe();
+          if (asg)
+          {
+            if (is(Tok::NL))
+              skip_newlines();
+            return *asg;
+          }
+        }
+        catch (...)
+        {
+          restore_cursor(save);
+        }
       }
+
+      // Expression statement (uses ExprStmt(ExprPtr) ctor)
+      auto e = parse_expr();
+      auto es = std::make_shared<ExprStmt>(e);
+      if (is(Tok::NL))
+        skip_newlines();
+      return es;
     }
 
-    StmtPtr parse_expr_stmt_with_prefix(ExprPtr prefix)
+    StmtPtr parse_simple_stmt_as_stmt()
     {
-      return std::make_shared<ExprStmt>(parse_expr_continuation(prefix));
+      if (is(Tok::KwConst) || is(Tok::Identifier))
+      {
+        auto save = save_cursor();
+        try
+        {
+          if (auto vd = parse_vardecl_maybe())
+            return *vd;
+        }
+        catch (...)
+        {
+          restore_cursor(save);
+        }
+
+        save = save_cursor();
+        try
+        {
+          if (auto as = parse_assign_stmt_maybe())
+            return *as;
+        }
+        catch (...)
+        {
+          restore_cursor(save);
+        }
+      }
+
+      auto e = parse_expr();
+      return std::make_shared<ExprStmt>(e); // ExprStmt has an explicit (ExprPtr) ctor
     }
 
-    ExprPtr parse_expr(int minPrec = 0)
+    struct CursorSave
     {
-      ExprPtr lhs = parse_prefix();
-      return parse_expr_continuation(lhs, minPrec);
+      size_t i;
+      Token cur;
+    };
+    CursorSave save_cursor() const { return CursorSave{i_, cur_}; }
+    void restore_cursor(CursorSave s)
+    {
+      i_ = s.i;
+      cur_ = s.cur;
     }
 
-    ExprPtr parse_expr_continuation(ExprPtr lhs, int minPrec = 0)
+    std::optional<StmtPtr> parse_vardecl_maybe()
     {
-      // postfix chain: calls, member, ++/--
+      bool isConst = match(Tok::KwConst);
+      if (!isConst && !is(Tok::Identifier))
+        return std::nullopt;
+
+      std::string name = parse_ident("expected variable name");
+      std::optional<TypeName> ty;
+      if (match(Tok::Colon))
+        ty = parse_type_name();
+      expect(Tok::Eq, "expected '=' in variable declaration");
+      auto init = parse_expr();
+
+      auto n = std::make_shared<VarDeclStmt>();
+      n->isConst = isConst;
+      n->name = std::move(name);
+      n->type = ty;
+      n->init = init;
+      return StmtPtr(n);
+    }
+
+    std::optional<StmtPtr> parse_assign_stmt_maybe()
+    {
+      auto lhsSave = save_cursor();
+      auto lhs = parse_lvalue_maybe();
+      if (!lhs)
+      {
+        restore_cursor(lhsSave);
+        return std::nullopt;
+      }
+      if (!match(Tok::Eq))
+      {
+        restore_cursor(lhsSave);
+        return std::nullopt;
+      }
+      auto rhs = parse_expr();
+      auto n = std::make_shared<AssignStmt>();
+      n->lhs = *lhs;
+      n->rhs = rhs;
+      return StmtPtr(n);
+    }
+
+    std::optional<ExprPtr> parse_lvalue_maybe()
+    {
+      if (!is(Tok::Identifier))
+        return std::nullopt;
+
+      auto ident = std::make_shared<IdentExpr>();
+      ident->value = cur_.lexeme;
+      advance();
+
+      ExprPtr base = ident;
+      while (match(Tok::Dot))
+      {
+        auto m = std::make_shared<MemberExpr>();
+        m->obj = base;
+        m->field = parse_ident("expected member name after '.'");
+        base = m;
+      }
+      return base;
+    }
+
+    // -------- expressions --------
+    ExprPtr parse_expr() { return parse_assign_expr(); }
+
+    ExprPtr parse_assign_expr()
+    {
+      auto lhsSave = save_cursor();
+      auto lhs = parse_lvalue_maybe();
+      if (lhs && match(Tok::Eq))
+      {
+        auto n = std::make_shared<BinaryExpr>();
+        n->op = "=";
+        n->lhs = *lhs;
+        n->rhs = parse_assign_expr();
+        return n;
+      }
+      restore_cursor(lhsSave);
+      return parse_or();
+    }
+
+    ExprPtr parse_or()
+    {
+      auto e = parse_and();
+      while (match(Tok::OrOr))
+        e = make_binary("||", e, parse_and());
+      return e;
+    }
+
+    ExprPtr parse_and()
+    {
+      auto e = parse_eq();
+      while (match(Tok::AndAnd))
+        e = make_binary("&&", e, parse_eq());
+      return e;
+    }
+
+    ExprPtr parse_eq()
+    {
+      auto e = parse_rel();
       for (;;)
       {
-        if (match(Tok::LParen))
+        if (match(Tok::EqEq))
+          e = make_binary("==", e, parse_rel());
+        else if (match(Tok::BangEq))
+          e = make_binary("!=", e, parse_rel());
+        else
+          break;
+      }
+      return e;
+    }
+
+    ExprPtr parse_rel()
+    {
+      auto e = parse_add();
+      for (;;)
+      {
+        if (match(Tok::Lt))
+          e = make_binary("<", e, parse_add());
+        else if (match(Tok::Lte))
+          e = make_binary("<=", e, parse_add());
+        else if (match(Tok::Gt))
+          e = make_binary(">", e, parse_add());
+        else if (match(Tok::Gte))
+          e = make_binary(">=", e, parse_add());
+        else
+          break;
+      }
+      return e;
+    }
+
+    ExprPtr parse_add()
+    {
+      auto e = parse_mul();
+      for (;;)
+      {
+        if (match(Tok::Plus))
+          e = make_binary("+", e, parse_mul());
+        else if (match(Tok::Minus))
+          e = make_binary("-", e, parse_mul());
+        else
+          break;
+      }
+      return e;
+    }
+
+    ExprPtr parse_mul()
+    {
+      auto e = parse_unary();
+      for (;;)
+      {
+        if (match(Tok::Star))
+          e = make_binary("*", e, parse_unary());
+        else if (match(Tok::Slash))
+          e = make_binary("/", e, parse_unary());
+        else if (match(Tok::Percent))
+          e = make_binary("%", e, parse_unary());
+        else
+          break;
+      }
+      return e;
+    }
+
+    ExprPtr parse_unary()
+    {
+      if (match(Tok::Bang))
+      {
+        auto u = std::make_shared<UnaryExpr>();
+        u->op = "!";
+        u->rhs = parse_unary();
+        return u;
+      }
+      if (match(Tok::Plus))
+      {
+        auto u = std::make_shared<UnaryExpr>();
+        u->op = "+";
+        u->rhs = parse_unary();
+        return u;
+      }
+      if (match(Tok::Minus))
+      {
+        auto u = std::make_shared<UnaryExpr>();
+        u->op = "-";
+        u->rhs = parse_unary();
+        return u;
+      }
+      return parse_postfix();
+    }
+
+    ExprPtr parse_postfix()
+    {
+      auto e = parse_primary();
+      for (;;)
+      {
+        if (match(Tok::PlusPlus))
         {
-          auto call = std::make_shared<CallExpr>();
-          call->callee = lhs;
+          auto p = std::make_shared<PostfixUpdateExpr>();
+          p->op = "++";
+          p->target = e;
+          e = p;
+        }
+        else if (match(Tok::MinusMinus))
+        {
+          auto p = std::make_shared<PostfixUpdateExpr>();
+          p->op = "--";
+          p->target = e;
+          e = p;
+        }
+        else if (match(Tok::LParen))
+        {
+          auto c = std::make_shared<CallExpr>();
+          c->callee = e;
           if (!is(Tok::RParen))
           {
             for (;;)
             {
-              call->args.push_back(parse_expr());
+              c->args.push_back(parse_expr());
               if (!match(Tok::Comma))
                 break;
             }
           }
-          expect(Tok::RParen, "Expected ')'");
-          lhs = call;
-          continue;
+          expect(Tok::RParen, "expected ')' after arguments");
+          e = c;
         }
-        if (match(Tok::Dot))
+        else if (match(Tok::Dot))
         {
-          if (cur_.kind != Tok::Identifier)
-            throw ParseError("Expected member name after '.'");
-          auto mem = std::make_shared<MemberExpr>();
-          mem->obj = lhs;
-          mem->field = cur_.lexeme;
-          advance();
-          lhs = mem;
-          continue;
+          auto m = std::make_shared<MemberExpr>();
+          m->obj = e;
+          m->field = parse_ident("expected member name after '.'");
+          e = m;
         }
-        if (is(Tok::PlusPlus) || is(Tok::MinusMinus))
-        {
-          std::string op = cur_.lexeme;
-          advance();
-          auto up = std::make_shared<PostfixUpdateExpr>();
-          up->op = op;
-          up->target = lhs;
-          lhs = up;
-          continue;
-        }
-        break;
-      }
-
-      // infix
-      for (;;)
-      {
-        int p = prec_of(cur_);
-        if (p < minPrec)
+        else
           break;
-        std::string op = cur_.lexeme;
-        advance();
-        ExprPtr rhs = parse_expr(p + 1);
-        auto bin = std::make_shared<BinaryExpr>();
-        bin->op = op;
-        bin->lhs = lhs;
-        bin->rhs = rhs;
-        lhs = bin;
       }
-      return lhs;
+      return e;
     }
 
-    ExprPtr parse_prefix()
+    ExprPtr parse_primary()
     {
-      // unary: '-' '!' only for now
-      if (is(Tok::Minus) || is(Tok::Bang))
-      {
-        std::string op = cur_.lexeme;
-        advance();
-        auto node = std::make_shared<UnaryExpr>();
-        node->op = op;
-        node->rhs = parse_prefix();
-        return node;
-      }
-
-      // literals / identifiers / paren expr
       if (is(Tok::Int))
       {
         auto n = std::make_shared<IntExpr>();
@@ -697,20 +750,29 @@ namespace blam
 
       if (is(Tok::Identifier))
       {
-        auto n = std::make_shared<IdentExpr>();
-        n->value = cur_.lexeme;
+        auto id = std::make_shared<IdentExpr>();
+        id->value = cur_.lexeme; // IdentExpr stores the identifier text in .value
         advance();
-        return n;
+        return id;
       }
 
       if (match(Tok::LParen))
       {
-        auto e = parse_expr();
-        expect(Tok::RParen, "Expected ')' to close parenthesized expression");
-        return e;
+        auto inside = parse_expr();
+        expect(Tok::RParen, "expected ')'");
+        return inside;
       }
 
-      throw ParseError("Expected expression");
+      error_here("expected expression");
+    }
+
+    ExprPtr make_binary(std::string op, ExprPtr a, ExprPtr b)
+    {
+      auto n = std::make_shared<BinaryExpr>();
+      n->op = std::move(op);
+      n->lhs = std::move(a);
+      n->rhs = std::move(b);
+      return n;
     }
   };
 

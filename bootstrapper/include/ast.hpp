@@ -5,7 +5,7 @@
 #include <vector>
 #include <optional>
 
-namespace Blam
+namespace blam
 {
   // Basic syntax node.
   struct Node

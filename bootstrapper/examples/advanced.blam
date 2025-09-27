@@ -1,0 +1,147 @@
+struct Vec2 {
+  i8 x
+  i8 y
+}
+
+add(i8 a, i8 b) -> i8 {
+  return a + b
+}
+
+negate(i8 a) -> i8 {
+  return -a
+}
+
+log(str msg) {
+  print(msg)
+}
+
+id(any x) -> any {
+  return x
+}
+
+getVec() -> Vec2 {
+  const v: Vec2 = newVec(1, 2)
+  return v
+}
+
+newVec(i8 x, i8 y) -> Vec2 {
+  # pretend constructor; parser only cares about syntax
+  const v: Vec2 = 0
+  v.x = x
+  v.y = y
+  return v
+}
+
+callChain(any x) -> any {
+  # call chaining + member access
+  return id(x).again().finally()
+}
+
+# ---------- Main ----------
+main() {
+  # literals & simple ops
+  const a: i8 = 1
+  const b: i8 = 2
+  c = a + b * 3
+  d = (a + b) * 3
+  f = 12.5
+  s = "hello"
+  ch = 'Z'
+  t = true
+  u = false
+  t_or_u = t || u
+  both = t && u
+  eq = a == b
+  neq = a != b
+  lt = a < b
+  le = a <= b
+  gt = a > b
+  ge = a >= b
+
+  # unary and postfix
+  pos = +a
+  neg = -b
+  notu = !u
+  i = 0
+  i++           # postfix increment
+  i--           # postfix decrement
+
+  # member access & call chain
+  v = getVec()
+  xcomp = v.x
+  ycomp = v.y
+  use = callChain(v).finish()
+
+  # if / else (no parentheses)
+  if a < b {
+    log("a < b")
+  }
+  else {
+    log("a >= b")
+  }
+
+  # while (no parentheses)
+  while i < 5 {
+    i = i + 1
+    if i == 3 {
+      continue
+    }
+    tmp = add(i, 1)
+  }
+
+  # do ... while (no parentheses)
+  do {
+    i = i + 2
+  } while i < 12
+
+  # for-in (no parentheses). Iterable can be any expr; parser checks syntax only.
+  for ch in "abc" {
+    log("loop ch")
+  }
+
+  # C-style for: init, cond, step (comma-separated)
+  for j = 0, j < 3, j++ {
+    if j == 2 {
+      break
+    }
+    log("c-for body")
+  }
+
+  # switch with multiple case labels + default; case bodies are blocks
+  sw i {
+    case 0: {
+      log("zero")
+    }
+    case 1, 2: {
+      log("one or two")
+    }
+    default: {
+      log("other")
+    }
+  }
+
+  # try/catch: typed + bound, and typed only
+  try {
+    raise Error("boom")
+  }
+  catch Error e {
+    log("caught Error")
+  }
+  catch OtherError {
+    log("caught OtherError")
+  }
+
+  # assignment vs var-decl with type or inferred
+  m = 10
+  const n: i8 = 11
+  p = add(m, n)
+  q: i8 = negate(p)
+
+  # nested blocks + bare return (void)
+  {
+    r = id(q)
+    log("nested block")
+  }
+
+  return
+}
