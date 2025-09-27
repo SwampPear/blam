@@ -1,20 +1,27 @@
-// main.cpp — read file, lex to tokens, parse module, semantic analyze
+// main.cpp — lex → parse → semantic analysis → (optional) LLVM IR emit
 #include <cstdlib>
 #include <fstream>
 #include <iostream>
 #include <sstream>
 #include <string>
-#include <vector>
 #include <type_traits>
 #include <utility>
+#include <vector>
 
 #include "lexer.hpp"
 #include "parser.hpp"
 #include "tokens.hpp"
 #include "ast.hpp"
-#include "sem.hpp" // <-- new
+#include "sem.hpp"
+#include "codegen_llvm.hpp"
 
 using namespace blam;
+
+// ---------- helpers ----------
+static void print_usage()
+{
+  std::cerr << "Usage: blamc <file.blam> [--emit-ll out.ll] [--dump-tokens]\n";
+}
 
 static std::string slurp_file(const std::string &path)
 {
@@ -46,7 +53,7 @@ static const char *safe_lexeme(const std::string &s)
   return buf.c_str();
 }
 
-// ---- Compile-time detection helpers ----
+// ---- compile-time detection helpers for different lexer APIs ----
 template <typename T, typename = void>
 struct has_tokenize : std::false_type
 {
@@ -117,16 +124,57 @@ static std::vector<Token> lex_all(L &lx)
   }
 }
 
+// ---------- main ----------
 int main(int argc, char **argv)
 {
-  if (argc != 2)
+  // args: <file.blam> [--emit-ll out.ll] [--dump-tokens]
+  std::string input;
+  bool dumpTokens = env_debug_tokens();
+  bool emitLL = false;
+  std::string outLL;
+
+  for (int i = 1; i < argc; ++i)
   {
-    std::cerr << "Usage: blamc <file.blam>\n";
+    std::string a = argv[i];
+    if (a == "--emit-ll")
+    {
+      if (i + 1 >= argc)
+      {
+        std::cerr << "error: --emit-ll needs a path\n";
+        print_usage();
+        return 2;
+      }
+      emitLL = true;
+      outLL = argv[++i];
+      continue;
+    }
+    if (a == "--dump-tokens")
+    {
+      dumpTokens = true;
+      continue;
+    }
+    if (!a.empty() && a[0] == '-')
+    {
+      std::cerr << "error: unknown option: " << a << "\n";
+      print_usage();
+      return 2;
+    }
+    if (input.empty())
+      input = a;
+    else
+    {
+      std::cerr << "error: extra positional arg: " << a << "\n";
+      print_usage();
+      return 2;
+    }
+  }
+  if (input.empty())
+  {
+    print_usage();
     return 2;
   }
 
-  const std::string path = argv[1];
-  const std::string src = slurp_file(path);
+  const std::string src = slurp_file(input);
 
   try
   {
@@ -136,13 +184,12 @@ int main(int argc, char **argv)
       Lexer lx(src);
       tokens = lex_all(lx);
     }
-
     if (tokens.empty() || tokens.back().kind != Tok::EOF_)
     {
       tokens.push_back(Token{Tok::EOF_, "", Range{}});
     }
 
-    if (env_debug_tokens())
+    if (dumpTokens)
     {
       std::cerr << "== TOKENS ==\n";
       for (size_t i = 0; i < tokens.size(); ++i)
@@ -158,12 +205,25 @@ int main(int argc, char **argv)
     }
 
     // ---- PARSE ----
-    Parser parser(std::move(tokens));
+    Parser parser(std::move(tokens)); // your parser takes a token vector
     std::shared_ptr<Module> mod = parser.parse_module();
 
     // ---- SEMANTIC ANALYSIS ----
     SemAnalyzer sem;
     sem.analyze(mod);
+
+    // ---- CODEGEN (optional LLVM IR emit) ----
+    if (emitLL)
+    {
+      CodegenLLVM cg("blam");
+      cg.emitModule(mod);
+      if (!cg.writeToFile(outLL))
+      {
+        std::cerr << "error: failed to write IR to " << outLL << "\n";
+        return 4;
+      }
+      std::cout << "wrote LLVM IR: " << outLL << "\n";
+    }
 
     std::cout << "OK: parsed module with " << mod->decls.size()
               << " top-level decl(s); semantic analysis passed\n";
@@ -176,9 +236,13 @@ int main(int argc, char **argv)
   }
   catch (const SemError &e)
   {
-    const auto &w = e.where;
-    std::cerr << "semantic error: line " << w.start.line << ", col " << w.start.col
-              << ": " << e.what() << "\n";
+    // e.where may be default if your AST doesn't carry ranges
+    std::cerr << "semantic error";
+    if (e.where.start.line)
+    {
+      std::cerr << ": line " << e.where.start.line << ", col " << e.where.start.col;
+    }
+    std::cerr << ": " << e.what() << "\n";
     return 3;
   }
   catch (const std::exception &e)

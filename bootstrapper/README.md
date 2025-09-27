@@ -1,3 +1,3 @@
-cmake -S . -B build
-cmake --build build
-./build/blamc examples/hello.blam
+cmake --build build -j
+./build/blamc examples/hello.blam --emit-ll out.ll
+sed -n '1,80p' out.ll

@@ -126,4 +126,3 @@ namespace blam
   }
 
 } // namespace blam
-#endif
