@@ -115,9 +115,42 @@ namespace blam
       return s;
     }
 
-    // type name = dotted identifiers (verbatim text)
+    // helper (adjust Tok names to match your tokens.hpp)
+    bool is_primitive_type_tok(Tok k) const
+    {
+      switch (k)
+      {
+      case Tok::KwI8:
+      case Tok::KwI16:
+      case Tok::KwI32:
+      case Tok::KwI64:
+      case Tok::KwU8:
+      case Tok::KwU16:
+      case Tok::KwU32:
+      case Tok::KwU64:
+      case Tok::KwInt:
+      case Tok::KwBool:
+      case Tok::KwChar:
+      case Tok::KwStr:
+      case Tok::KwAny: // dynamic "any"
+        return true;
+      default:
+        return false;
+      }
+    }
+
+    // type name = primitive | dotted identifiers
     std::string parse_type_name_text()
     {
+      // primitives (including 'any') — no dotted qualifiers allowed
+      if (is_primitive_type_tok(cur_.kind))
+      {
+        std::string t = cur_.lexeme; // or map Tok->string if lexeme is empty
+        advance();
+        return t;
+      }
+
+      // user types: Identifier(.Identifier)*
       if (!is(Tok::Identifier))
         error_here("expected type name");
       std::string t = cur_.lexeme;

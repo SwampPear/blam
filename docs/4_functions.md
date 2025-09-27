@@ -11,7 +11,7 @@ the `any` type can be used. Blam also supports omitting explicit return types in
 
 ```
 # returns a string
-someFunc(str a) -> str {
+someFunc(a: str) -> str {
   return a
 }
 
@@ -29,11 +29,11 @@ someTypeOptionalFunc() -> any {
 ## First-Class Functions
 Functions in Blam are first-class meaning they can be passed as objects and can be called with () syntax.
 ```
-someFunc(str a) -> str {
+someFunc(a: str) -> str {
   return a
 }
 
-callFunc((str) -> str callback) {
+callFunc(callback: (str) -> str) {
   callback()
 }
 

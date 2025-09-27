@@ -3,19 +3,19 @@ struct Vec2 {
   i8 y
 }
 
-add(i8 a, i8 b) -> i8 {
+add(a: i8, b: i8) -> i8 {
   return a + b
 }
 
-negate(i8 a) -> i8 {
+negate(a: i8) -> i8 {
   return -a
 }
 
-log(str msg) {
+log(msg: str) {
   print(msg)
 }
 
-id(any x) -> any {
+id(x: any) -> any {
   return x
 }
 
@@ -24,7 +24,7 @@ getVec() -> Vec2 {
   return v
 }
 
-newVec(i8 x, i8 y) -> Vec2 {
+newVec(x: i8, y: i8) -> Vec2 {
   # pretend constructor; parser only cares about syntax
   const v: Vec2 = 0
   v.x = x
@@ -32,7 +32,7 @@ newVec(i8 x, i8 y) -> Vec2 {
   return v
 }
 
-callChain(any x) -> any {
+callChain(x: any) -> any {
   # call chaining + member access
   return id(x).again().finally()
 }
