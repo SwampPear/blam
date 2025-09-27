@@ -117,30 +117,54 @@ namespace blam
     {
       auto f = std::make_shared<FuncDecl>();
       f->isPub = isPub;
+
       if (!is(Tok::Identifier))
         throw ParseError("Expected function name");
-      f->name = cur_.lexeme;
+
+      const std::string fname = cur_.lexeme;
+      f->name = fname;
+      std::cout << cur_.lexeme << std::endl;
       advance();
-      expect(Tok::LParen, "Expected '(' after function name");
+      std::cout << cur_.lexeme << std::endl;
+      advance();
+      std::cout << cur_.lexeme << std::endl;
+      advance();
+      std::cout << cur_.lexeme << std::endl;
+      advance();
+      std::cout << cur_.lexeme << std::endl;
+      advance();
+      std::cout << cur_.lexeme << std::endl;
+      advance();
+      std::cout << cur_.lexeme << std::endl;
+      advance();
+      std::cout << cur_.lexeme << std::endl;
+      expect(Tok::LParen, ("Expected '(' after function name '" + fname + "'").c_str());
+
       if (!is(Tok::RParen))
       {
         for (;;)
         {
           Param p{};
           if (!is(Tok::Identifier))
-            throw ParseError("Expected parameter name");
+            throw ParseError(("Expected parameter name in function '" + fname + "'").c_str());
           p.name = cur_.lexeme;
           advance();
+
           if (match(Tok::Colon))
             p.type = TypeName{parse_type_name()};
+
           f->params.push_back(std::move(p));
           if (!match(Tok::Comma))
             break;
         }
       }
-      expect(Tok::RParen, "Expected ')' after parameters");
+
+      expect(Tok::RParen, ("Expected ')' after parameters of function '" + fname + "'").c_str());
+
       if (match(Tok::Arrow))
         f->ret = TypeName{parse_type_name()};
+
+      // Body
       f->body = parse_block();
       return f;
     }

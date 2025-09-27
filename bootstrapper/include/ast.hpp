@@ -5,9 +5,9 @@
 #include <vector>
 #include <optional>
 
-namespace blam
+namespace Blam
 {
-  // Basic tree node.
+  // Basic syntax node.
   struct Node
   {
     virtual ~Node() = default;
@@ -55,14 +55,14 @@ namespace blam
     bool value{false};
   };
 
-  // Unary operator (prefix).
+  // For negative numbers, negations, e.t.c.
   struct UnaryExpr : Expr
   {
     std::string op; // operator text, e.g. "-" or "!"
     ExprPtr rhs;    // operand
   };
 
-  // Binary infix operator.
+  // For arithmetic/boolean expressions
   struct BinaryExpr : Expr
   {
     std::string op; // operator text, e.g. "+", "=="
@@ -104,23 +104,24 @@ namespace blam
     explicit ExprStmt(ExprPtr e) : expr(std::move(e)) {}
   };
 
-  // return [expr]
+  // Return statement.
   struct ReturnStmt : Stmt
   {
-    std::optional<ExprPtr> value; // missing => bare 'return'
+    std::optional<ExprPtr> a;
+    ExprPtr value; // missing => bare 'return'
   };
 
-  // break
+  // Breaks a loop.
   struct BreakStmt : Stmt
   {
   };
 
-  // continue
+  // Continues a loop.
   struct ContinueStmt : Stmt
   {
   };
 
-  // raise expr
+  // Raises an error.
   struct RaiseStmt : Stmt
   {
     ExprPtr value;

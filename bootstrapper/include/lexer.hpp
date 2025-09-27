@@ -1,4 +1,5 @@
 #pragma once
+
 #include <cctype>
 #include <stdexcept>
 #include <string>
@@ -11,6 +12,7 @@
 namespace blam
 {
 
+  // Error in lexing.
   struct LexError : std::runtime_error
   {
     Range range{};
