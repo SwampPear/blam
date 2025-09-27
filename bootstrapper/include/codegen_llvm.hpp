@@ -11,6 +11,10 @@ namespace blam
   public:
     explicit CodegenLLVM(std::string moduleName);
     ~CodegenLLVM();
+    CodegenLLVM(CodegenLLVM &&) noexcept = default;
+    CodegenLLVM &operator=(CodegenLLVM &&) noexcept = default;
+    CodegenLLVM(const CodegenLLVM &) = delete;
+    CodegenLLVM &operator=(const CodegenLLVM &) = delete;
 
     // Produce IR for the module (currently: function prototypes + trivial bodies).
     void emitModule(const std::shared_ptr<Module> &mod);
