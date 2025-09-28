@@ -11,8 +11,6 @@
 
 namespace blam
 {
-
-  // Error in lexing.
   struct LexError : std::runtime_error
   {
     Range range{};
@@ -25,7 +23,7 @@ namespace blam
     explicit Lexer(std::string_view src, bool keep_comments = false)
         : src_(src), keep_comments_(keep_comments) {}
 
-    // Get all tokens (including NL), ending with EOF_
+    // Get all tokens (including NL), ending with EOF_.
     std::vector<Token> tokenize()
     {
       std::vector<Token> out;
@@ -35,10 +33,11 @@ namespace blam
         t = next();
         out.push_back(t);
       } while (t.kind != Tok::EOF_);
+
       return out;
     }
 
-    // Peek next token without consuming (cheap: caches one lookahead)
+    // Peek next token without consuming (cheap: caches one lookahead).
     const Token &peek()
     {
       if (!has_peek_)

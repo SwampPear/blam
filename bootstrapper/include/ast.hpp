@@ -106,7 +106,6 @@ namespace blam
   struct ExprStmt : Stmt
   {
     ExprPtr expr;
-
     explicit ExprStmt(ExprPtr e) : expr(std::move(e)) {}
   };
 
@@ -268,5 +267,4 @@ namespace blam
   {
     std::vector<DeclPtr> decls;
   };
-
 } // namespace blam

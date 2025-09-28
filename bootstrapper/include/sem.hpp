@@ -1,29 +1,48 @@
 #pragma once
 #include <memory>
-#include <optional>
-#include <stdexcept>
 #include <string>
 #include <string_view>
-#include <unordered_map>
 #include <vector>
+#include <optional>
+#include <unordered_map>
+#include <stdexcept>
 
-#include "ast.hpp"
-#include "tokens.hpp" // for Range
+// Forward decls for AST (match your ast.hpp)
+namespace blam
+{
+  struct Module;
+  struct Decl;
+  struct StructDecl;
+  struct FuncDecl;
+  struct BlockStmt;
+  struct Stmt;
+  struct Expr;
+  struct ReturnStmt;
+  struct ExprStmt;
+
+  // Expressions used below
+  struct IdentExpr;
+  struct CallExpr;
+  struct IntExpr;
+  struct BoolExpr;
+  struct CharExpr;
+  struct StrExpr;
+  struct FloatExpr;
+}
 
 namespace blam
 {
 
-  // ---------- Errors ----------
-  struct SemError : std::runtime_error
-  {
-    Range where{};
-    explicit SemError(const std::string &msg) : std::runtime_error(msg) {}
-    SemError(const Range &r, const std::string &msg) : std::runtime_error(msg), where(r) {}
-  };
+  using ExprPtr = std::shared_ptr<Expr>;
+  using StmtPtr = std::shared_ptr<Stmt>;
 
-  // ---------- Types ----------
+  // -------- Types --------
   enum class TypeKind
   {
+    Unknown,
+    Any,
+    Void,
+    // primitives
     I8,
     I16,
     I32,
@@ -35,15 +54,11 @@ namespace blam
     Bool,
     Char,
     Str,
-    Any,
-    Void,
+    // composites
     Func,
     Struct,
-    Vector,
-    Array,
-    Union,
-    Intersect,
-    Unknown
+    Array, // fixed length
+    Vector // growable
   };
 
   struct Type;
@@ -52,36 +67,47 @@ namespace blam
   struct Type
   {
     TypeKind kind{TypeKind::Unknown};
-    std::vector<TypePtr> params;    // for Func
-    TypePtr ret;                    // for Func
-    std::string name;               // for Struct (nominal)
-    TypePtr elem;                   // for Array/Vector
-    std::optional<size_t> fixedLen; // for Array
 
-    bool equals(const Type &other) const;
+    // func
+    std::vector<TypePtr> params;
+    TypePtr ret;
+
+    // named/struct
+    std::string name;
+
+    // array/vector
+    TypePtr elem;
+    std::optional<size_t> fixedLen; // present => Array, absent => Vector
+
+    bool equals(const Type &o) const;
+
     static TypePtr prim(TypeKind k);
     static TypePtr func(std::vector<TypePtr> ps, TypePtr r);
     static TypePtr named(std::string n);
-    static TypePtr array(TypePtr e, std::optional<size_t> n);
+    static TypePtr array(TypePtr e, std::optional<size_t> n = std::nullopt);
   };
 
-  // ---------- Symbols & Scopes ----------
+  // -------- Symbols / Scopes --------
   enum class SymKind
   {
     Var,
     Func,
-    Struct,
-    Param,
-    Field
+    Struct
   };
 
   struct Symbol
   {
     SymKind kind{SymKind::Var};
     std::string name;
-    std::vector<TypePtr> overloadSigs; // for functions
-    TypePtr type;                      // for non-functions
-    Node *ast{nullptr};                // optional backref
+    TypePtr type; // for Var/Struct; for Func this may be null if using overloads
+    // Overloads: each entry corresponds to a concrete function decl + its func type
+    struct Overload
+    {
+      FuncDecl *f;
+      TypePtr sig;
+    };
+    std::vector<Overload> overloads;
+    void *ast{nullptr}; // optional backref
   };
 
   struct Scope
@@ -91,33 +117,67 @@ namespace blam
 
     Symbol *lookupLocal(std::string_view n);
     Symbol *lookup(std::string_view n);
-    Symbol &insertOrMergeFunc(const Symbol &s); // allow func overloads, reject other redecls
+
+    // insert func; merges overloads
+    Symbol &insertOrMergeFunc(const Symbol &s);
+    // insert non-func (var/struct); rejects redecl
+    Symbol &insert(const Symbol &s)
+    {
+      auto [it, fresh] = table.emplace(s.name, s);
+      if (!fresh)
+        throw std::runtime_error("redeclaration of '" + s->first + "'");
+      return it->second;
+    }
   };
 
-  // ---------- Type Environment ----------
+  // -------- Type Environment --------
   struct TypeEnv
   {
     std::unordered_map<std::string, TypePtr> named;
-    TypeEnv(); // fills primitives
-
+    TypeEnv();
     TypePtr resolveName(const std::string &n) const;
   };
 
-  // ---------- Semantic Analyzer ----------
+  // -------- Semantic Analyzer --------
+  struct SemError : std::runtime_error
+  {
+    using std::runtime_error::runtime_error;
+  };
+
   class SemAnalyzer
   {
   public:
-    explicit SemAnalyzer(TypeEnv env = TypeEnv{}) : tenv_(std::move(env)) {}
     void analyze(const std::shared_ptr<Module> &mod);
 
-    Scope *global() { return &global_; }
-    const TypeEnv &types() const { return tenv_; }
+    // After analyze:
+    const Scope &globals() const { return global_; }
+    const TypeEnv &tenv() const { return tenv_; }
 
   private:
     TypeEnv tenv_;
     Scope global_{};
 
-    void collectDecls(Module &m); // phase 1: index top-level decls
+    // Phases
+    void collectDecls(Module &m);
+    void buildFunctionTypes(Module &m); // attach concrete function types to overloads
+    void checkBodies(Module &m);
+
+    // Function / block / stmt
+    void checkFunction(FuncDecl *f, const Symbol &fnSym, const Symbol::Overload &ovl);
+    void checkBlock(BlockStmt *b, Scope &scope, std::optional<TypePtr> expectedReturn);
+    void checkStmt(const StmtPtr &s, Scope &scope, std::optional<TypePtr> expectedReturn);
+
+    // Expr typing
+    TypePtr typeOf(const ExprPtr &e, Scope &scope);
+    TypePtr typeOfIdent(IdentExpr *e, Scope &scope);
+    TypePtr typeOfCall(CallExpr *e, Scope &scope);
+
+    // Helpers
+    static bool isAssignableTo(const TypePtr &from, const TypePtr &to);
+    static bool isNumeric(TypeKind k);
+    static TypePtr widenNumeric(const TypePtr &a, const TypePtr &b); // trivial int32 bias
+    static void requireAssignable(const TypePtr &from, const TypePtr &to, const std::string &ctx);
+    static void requireVoidReturnAllowed(std::optional<TypePtr> expected, const std::string &where);
   };
 
 } // namespace blam
