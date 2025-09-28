@@ -1,4 +1,5 @@
 #pragma once
+
 #include <filesystem>
 #include <iostream>
 #include <fstream>
@@ -10,7 +11,7 @@
 namespace blam
 {
 
-  // remove UTF-8 BOM if present
+  // Remove UTF-8 BOM if present.
   inline void strip_utf8_bom(std::string &s)
   {
     if (s.size() >= 3 &&
