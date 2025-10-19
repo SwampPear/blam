@@ -1,4 +1,5 @@
-#include "codegen_llvm.hpp"
+#include "blam/codegen_llvm.hpp"
+
 #include <memory>
 #include <vector>
 #include <string>
@@ -15,6 +16,7 @@
 #include <llvm/IR/GlobalVariable.h>
 #include <llvm/Support/raw_ostream.h>
 
+/*
 namespace blam
 {
 
@@ -49,7 +51,7 @@ namespace blam
     {
       if (putsFn)
         return putsFn;
-      auto *fty = llvm::FunctionType::get(i32(), {i8ptr()}, /*isVarArg=*/false);
+      auto *fty = llvm::FunctionType::get(i32(), {i8ptr()}, isVarArg=false);
       putsFn = llvm::Function::Create(fty, llvm::Function::ExternalLinkage, "puts", mod.get());
       return putsFn;
     }
@@ -61,12 +63,12 @@ namespace blam
       // Ensure it ends with '\n' if you want print to add newline; keep as-is otherwise.
       // Here we keep exactly what caller passes.
       auto &C = *ctx;
-      auto data = llvm::ConstantDataArray::getString(C, s, /*AddNull=*/true);
+      auto data = llvm::ConstantDataArray::getString(C, s, /*AddNull=true);
       auto *arrTy = data->getType(); // [N x i8]
 
       auto *gv = new llvm::GlobalVariable(
           *mod, arrTy,
-          /*isConstant=*/true,
+          /*isConstant=true,
           llvm::GlobalValue::PrivateLinkage,
           data, symBase);
       gv->setUnnamedAddr(llvm::GlobalValue::UnnamedAddr::Global);
@@ -203,7 +205,7 @@ namespace blam
       bool returnsVoid = !f->ret.has_value();
       auto *retTy = returnsVoid ? voidT() : i32();
       auto paramTys = dummyParamTypes(f->params.size());
-      auto *fnTy = llvm::FunctionType::get(retTy, paramTys, /*isVarArg*/ false);
+      auto *fnTy = llvm::FunctionType::get(retTy, paramTys, /*isVarArg false);
 
       auto *fn = llvm::Function::Create(fnTy, llvm::Function::ExternalLinkage, f->name, mod.get());
 
@@ -274,3 +276,4 @@ namespace blam
   }
 
 } // namespace blam
+*/

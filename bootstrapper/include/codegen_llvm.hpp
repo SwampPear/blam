@@ -4,6 +4,7 @@
 #include <string>
 #include "ast.hpp"
 
+/*
 namespace blam
 {
 
@@ -28,5 +29,5 @@ namespace blam
     struct Impl;
     Impl *impl_; // PIMPL so we can stub when LLVM isn't available
   };
-
 } // namespace blam
+*/

@@ -1,5 +1,3 @@
-#pragma once
-
 #include <cctype>
 #include <stdexcept>
 #include <string>
@@ -7,170 +5,156 @@
 #include <vector>
 #include <unordered_map>
 #include <optional>
-#include "blam/lexer.hpp"
+#include "lexer.hpp"
 
-namespace blam
-{
+namespace blam {
+  std::vector<Token> Lexer::tokenize() {
+    std::vector<Token> out; // token stream
+    Token t{};              // current token
 
-  std::vector<Token> Lexer::tokenize()
-  {
-    std::vector<Token> out;
-    Token t{};
-    do
-    {
-      t = next();
-      out.push_back(t);
+    do {
+      t = next();       // process, iterate
+      out.push_back(t); // push to token stream
     } while (t.kind != Tok::EOF_);
-
+    
     return out;
   }
 
-  const Token &Lexer::peek()
-  {
-    if (!has_peek_)
-    {
+  const Token &Lexer::peek() {
+    // lookahead not cached
+    if (!has_peek_) {
       look_ = next_impl();
       has_peek_ = true;
     }
+
     return look_;
   }
 
   Token Lexer::next()
   {
-    if (has_peek_)
-    {
+    // lookahead cached
+    if (has_peek_) {
       has_peek_ = false;
       return look_;
     }
+
     return next_impl();
   }
 
-  bool Lexer::at_end() const
-  {
-    return i_ >= src_.size();
-  }
+  bool Lexer::at_end() const { return i_ >= src_.size(); }
+  char Lexer::ch(size_t k) const { return (i_ + k < src_.size()) ? src_[i_ + k] : '\0'; }
 
-  char Lexer::ch(size_t k = 0) const
-  {
-    return (i_ + k < src_.size()) ? src_[i_ + k] : '\0';
-  }
+  void Lexer::bump() {
+    if (at_end()) return;
 
-  void Lexer::bump()
-  {
-    if (at_end())
-      return;
-    if (ch() == '\n')
-    {
+    if (ch() == '\n') {
       pos_.line++;
       pos_.col = 1;
-    }
-    else
-    {
+    } else {
       pos_.col++;
     }
+
     i_++;
     pos_.index = i_;
   }
 
-  void Lexer::bump_n(size_t n)
-  {
-    while (n--)
-      bump();
+  void Lexer::bump_n(size_t n) {
+    while (n--) bump();
   }
 
-  Token Lexer::make(Tok k, std::string_view lex, Pos start, Pos end) const
-  {
+  Token Lexer::make(Tok k, std::string_view lex, Pos start, Pos end) const {
     return Token{k, std::string(lex), Range{start, end}};
   }
 
-  Token Lexer::handle_newline()
-  {
+  Token Lexer::handle_newline() {
     Pos s = pos_;
-    if (ch() == '\r' && ch(1) == '\n')
-    {
+
+    if (ch() == '\r' && ch(1) == '\n') {
       bump();
       bump();
-    }
-    else
-    {
+    } else {
       bump();
     }
+
     return make(Tok::NL, "\n", s, pos_);
   }
 
-  bool Lexer::match_str(const char *s)
-  {
+  bool Lexer::match_str(const char *s) {
     size_t n = std::char_traits<char>::length(s);
-    if (src_.substr(i_, n) == s)
-    {
+
+    if (src_.substr(i_, n) == s) {
       bump_n(n);
       return true;
     }
+
     return false;
   }
 
-  void Lexer::skip_horizontal_ws()
-  {
-    while (!at_end() && is_space_non_nl(ch()))
-    {
-      if (ch() == '\r' && ch(1) != '\n')
-      {
+  void Lexer::skip_horizontal_ws() {
+    while (!at_end() && is_space_non_nl(ch())) {
+      if (ch() == '\r' && ch(1) != '\n') {
         bump();
         continue;
       }
+
       bump();
     }
   }
 
-  bool Lexer::skip_comment_if_any(std::optional<Token> &surfaced)
-  {
-    if (ch() == '#')
-    {
+  bool Lexer::skip_comment_if_any(std::optional<Token> &surfaced) {
+    if (ch() == '#') {
       Pos s = pos_;
-      if (ch(1) == '*')
-      {
+      if (ch(1) == '*') {
         // multi-line
         bump_n(2);
-        while (!at_end() && !(ch() == '*' && ch(1) == '#'))
-        {
+        while (!at_end() && !(ch() == '*' && ch(1) == '#')) {
           bump();
         }
+
         if (at_end())
           throw LexError("Unterminated multi-line comment", Range{s, pos_});
+
         bump_n(2); // consume *#
-        if (keep_comments_)
-        {
+
+        if (keep_comments_) {
           surfaced = make(Tok::MlComment, "", s, pos_);
         }
+
         return true;
-      }
-      else
+      } else
       {
-        // single-line: consume until \n or EOF
+        // consume '#
         bump(); // consume '#'
+
+        // consume comment
         while (!at_end() && ch() != '\n')
           bump();
-        if (keep_comments_)
-        {
+
+        if (keep_comments_) {
           surfaced = make(Tok::SlComment, "", s, pos_);
         }
+
         return true;
       }
     }
+
     return false;
   }
 
-  Token Lexer::scan_identifier_or_keyword()
-  {
+  Token Lexer::scan_identifier_or_keyword() {
     Pos s = pos_;
     size_t start = i_;
+
     bump(); // first char
+
     while (!at_end() && is_ident_cont(ch()))
       bump();
+
     std::string_view lex = src_.substr(start, i_ - start);
+
     auto it = keyword_map().find(std::string(lex));
-    if (it != keyword_map().end())
-      return make(it->second, lex, s, pos_);
+    if (it != keyword_map().end()) return make(it->second, lex, s, pos_);
+
     return make(Tok::Identifier, lex, s, pos_);
   }
 

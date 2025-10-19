@@ -1,4 +1,3 @@
-// main.cpp — lex → parse → semantic analysis → (optional) LLVM IR emit
 #include <cstdlib>
 #include <fstream>
 #include <iostream>
@@ -8,12 +7,12 @@
 #include <utility>
 #include <vector>
 
-#include "lexer.hpp"
-#include "parser.hpp"
-#include "tokens.hpp"
-#include "ast.hpp"
-#include "sem.hpp"
-#include "codegen_llvm.hpp"
+#include "blam/lexer.hpp"
+#include "blam/parser.hpp"
+#include "blam/tokens.hpp"
+#include "blam/ast.hpp"
+#include "blam/sem.hpp"
+#include "blam/codegen_llvm.hpp"
 
 using namespace blam;
 

@@ -1,5 +1,5 @@
-#include "sem.hpp"
-#include "ast.hpp" // make sure this provides the AST types used here
+#include "blam/sem.hpp"
+#include "blam/ast.hpp"
 
 #include <sstream>
 
@@ -136,7 +136,7 @@ namespace blam
   // Phase 1: collect top-level names
   void SemAnalyzer::collectDecls(Module &m)
   {
-    for (auto &dptr : m.decls)
+    for (auto &dptr : m->decls)
     {
       if (auto *s = dynamic_cast<StructDecl *>(dptr.get()))
       {

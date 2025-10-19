@@ -1,4 +1,5 @@
 #pragma once
+
 #include <memory>
 #include <string>
 #include <string_view>
@@ -7,9 +8,9 @@
 #include <unordered_map>
 #include <stdexcept>
 
-// Forward decls for AST (match your ast.hpp)
-namespace blam
-{
+#include "blam/tokens.hpp"
+
+namespace blam {
   struct Module;
   struct Decl;
   struct StructDecl;
@@ -19,8 +20,6 @@ namespace blam
   struct Expr;
   struct ReturnStmt;
   struct ExprStmt;
-
-  // Expressions used below
   struct IdentExpr;
   struct CallExpr;
   struct IntExpr;
@@ -30,8 +29,7 @@ namespace blam
   struct FloatExpr;
 }
 
-namespace blam
-{
+namespace blam {
 
   using ExprPtr = std::shared_ptr<Expr>;
   using StmtPtr = std::shared_ptr<Stmt>;
@@ -125,7 +123,7 @@ namespace blam
     {
       auto [it, fresh] = table.emplace(s.name, s);
       if (!fresh)
-        throw std::runtime_error("redeclaration of '" + s->first + "'");
+        throw std::runtime_error("redeclaration of '" + s.name + "'");
       return it->second;
     }
   };
@@ -141,7 +139,9 @@ namespace blam
   // -------- Semantic Analyzer --------
   struct SemError : std::runtime_error
   {
-    using std::runtime_error::runtime_error;
+    Range where{};
+    explicit SemError(const std::string &msg) : std::runtime_error(msg) {}
+    SemError(std::string msg, Range r) : std::runtime_error(std::move(msg)), where(r) {}
   };
 
   class SemAnalyzer

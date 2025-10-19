@@ -1,9 +1,9 @@
 #define CATCH_CONFIG_MAIN
-#include <catch2/catch.hpp>
+#include <catch2/catch_all.hpp>
 #include <string>
 #include <vector>
 #include "lexer.hpp"
-#include "tokens.hpp"
+#include <tokens.hpp>
 
 using namespace blam;
 
