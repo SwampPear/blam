@@ -1,9 +1,3 @@
-#pragma once
-
-#include <memory>
-#include <string>
-#include "ast.hpp"
-
 /*
 namespace blam
 {

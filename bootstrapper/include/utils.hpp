@@ -1,3 +1,4 @@
+/*
 #pragma once
 
 #include <filesystem>
@@ -62,3 +63,4 @@ namespace blam
     return data;
   }
 } // namespace blam
+*/

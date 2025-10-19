@@ -1,3 +1,4 @@
+/*
 #include "blam/sem.hpp"
 #include "blam/ast.hpp"
 
@@ -157,7 +158,7 @@ namespace blam
 
       if (auto *f = dynamic_cast<FuncDecl *>(dptr.get()))
       {
-        Symbol::Overload ovl{f, nullptr /*to be filled in phase 2*/};
+        Symbol::Overload ovl{f, nullptr /*to be filled in phase 2};
 
         Symbol sym;
         sym.kind = SymKind::Func;
@@ -476,3 +477,4 @@ namespace blam
   }
 
 } // namespace blam
+*/

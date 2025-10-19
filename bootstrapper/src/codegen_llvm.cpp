@@ -1,3 +1,4 @@
+/*
 #include "blam/codegen_llvm.hpp"
 
 #include <memory>
@@ -15,6 +16,7 @@
 #include <llvm/IR/Constants.h>
 #include <llvm/IR/GlobalVariable.h>
 #include <llvm/Support/raw_ostream.h>
+*/
 
 /*
 namespace blam

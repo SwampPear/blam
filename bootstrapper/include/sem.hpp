@@ -1,3 +1,4 @@
+/*
 #pragma once
 
 #include <memory>
@@ -181,3 +182,4 @@ namespace blam {
   };
 
 } // namespace blam
+*/
