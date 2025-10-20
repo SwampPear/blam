@@ -183,7 +183,7 @@ StmtPtr Parser::parse_stmt() {
     auto r = std::make_shared<ReturnStmt>();
     if (!at_stmt_end()) {
       auto e = parse_expr();
-      r->value = e;/// also set .value (default is nullptr for bare return)
+      r->value = e;
     }
 
     if (is(Tok::NL))

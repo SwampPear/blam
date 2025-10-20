@@ -156,6 +156,10 @@ namespace blam {
     ExprPtr init; // initializer
   };
 
+  struct AssignStmt : VarDeclStmt {
+    ExprPtr lhs, rhs;
+  };
+
   // top leve declaration
   struct Decl : Node {};
   using DeclPtr = std::shared_ptr<Decl>;
