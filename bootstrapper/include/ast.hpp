@@ -166,7 +166,7 @@ namespace blam {
   };
 
   struct FuncDecl : Decl {
-    bool isPublic{false};
+    bool isPub{false};
     std::string name;
     std::vector<Param> params;
     std::optional<TypeName> ret;
