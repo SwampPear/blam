@@ -72,3 +72,10 @@ between existing technologies, and strong concurrency features.
 - re
 - os
 - thx
+
+cmake -S . -B build
+cmake --build build -j
+ctest --test-dir build --output-on-failure
+
+./build/tests --gtest_filter=Lexer.OperatorsAndPunctuators
+./build/tests --gtest_list_tests  

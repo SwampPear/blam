@@ -18,7 +18,7 @@ struct LexError : std::runtime_error {
 
   class Lexer {
   public:
-    explicit Lexer(std::string_view src, bool comments) : src(src), comments(comments) {}
+    explicit Lexer(std::string_view src, bool comments = false) : src(src), comments(comments) {}
 
     std::vector<Token> tokenize();
     const Token &peek();
@@ -36,9 +36,49 @@ struct LexError : std::runtime_error {
     static bool is_ident_cont(char c) { return std::isalnum(static_cast<unsigned char>(c)) || c == '_'; }
     static bool is_digit(char c) { return std::isdigit(static_cast<unsigned char>(c)); }
     static bool is_space_non_nl(char c) { return c == ' ' || c == '\t' || c == '\v' || c == '\f' || c == '\r'; }
+    static bool is_operator_start(char c) {
+      switch(c) {
+      case '+': 
+        return true;
+      case '-':
+        return true;
+      case '*':
+        return true;
+      case '/':
+        return true;
+      case '=':
+        return true;
+      case '<':
+        return true;
+      case '>':
+        return true;
+      case '(':
+        return true;
+      case ')':
+        return true;
+      case '{':
+        return true;
+      case '}':
+        return true;
+      case '[':
+        return true;
+      case ']':
+        return true;
+      case ',':
+        return true;
+      case '.':
+        return true;
+      case ':':
+        return true;
+      default:
+        break;
+      }
 
-    bool Lexer::at_end() const { return i >= src.size(); }
-    char Lexer::ch(size_t k = 0) const { return (i + k < src.size()) ? src[i + k] : '\0'; }
+      return false;
+    }
+
+    bool at_end() const { return i >= src.size(); }
+    char ch(size_t k = 0) const { return (i + k < src.size()) ? src[i + k] : '\0'; }
 
     void bump();
     void bump_n(size_t n);

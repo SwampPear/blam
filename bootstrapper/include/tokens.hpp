@@ -68,7 +68,7 @@ constexpr std::array<TokDirEntry, N_KEYWORDS> tokDir{{
 }};
 
 
-inline const Tok string_to_token(std::string_view s) {
+inline Tok string_to_token(std::string_view s) {
   size_t low = 0;
   size_t high = tokDir.size();
 

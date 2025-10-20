@@ -5,6 +5,7 @@
 #include <vector>
 #include <unordered_map>
 #include <optional>
+#include <iostream>
 #include "lexer.hpp"
 
 namespace blam {
@@ -12,6 +13,8 @@ namespace blam {
 // Tokenizes some source.
 std::vector<Token> Lexer::tokenize() {
   std::vector<Token> out;
+
+  std::cout << "a" << std::endl;
 
   while (true) {
     Token t = next();
@@ -172,18 +175,22 @@ Token Lexer::scan_number_or_float() {
   Pos s = pos;
   size_t start = i;
 
-  Tok tok = Tok::Int;
+  // consume leading digits (must have at least one because caller checked is_digit)
+  while (!at_end() && is_digit(ch())) bump();
 
-  while (is_digit(ch()) || ch() == '.') {
-    bump();
-
-    if (ch() == '.') tok = Tok::Float;
+  // optional fractional part, but only if '.' is followed by a digit
+  if (!at_end() && ch() == '.' && is_digit(ch(1))) {
+    bump(); // consume '.'
+    while (!at_end() && is_digit(ch())) bump();
+    std::string_view lex = src.substr(start, i - start);
+    return Token{Tok::Float, lex, Range{s, pos}};
   }
 
+  // if we see '.' not followed by digit, leave it for operator scanner (so "42." -> Int '42', then Dot)
   std::string_view lex = src.substr(start, i - start);
-
-  return Token{tok, lex, Range{s, pos}};
+  return Token{Tok::Int, lex, Range{s, pos}};
 }
+
 
 /*
   Token Lexer::scan_string_like(char quote, Tok kind)
@@ -225,12 +232,20 @@ Token Lexer::scan_operator_or_punct() {
   Pos s = pos;
 
   // 2-char operators
-  if (ch() == '=' && ch(1) == '=')
+  if (ch() == '=' && ch(1) == '=') {
+    bump_n(2);
     return Token{Tok::EqEq, "==", Range{s, pos}};
-  if (ch() == '<' && ch(1) == '=')
+  }
+
+  if (ch() == '<' && ch(1) == '=') {
+    bump_n(2);
     return Token{Tok::Lte, "<=", Range{s, pos}};
-  if (ch() == '>' && ch(1) == '=')
+  }
+
+  if (ch() == '>' && ch(1) == '=') {
+    bump_n(2);
     return Token{Tok::Gte, ">=", Range{s, pos}};
+  }
   
   // 1-char punctuators/operators
   switch (ch()) {
@@ -283,12 +298,15 @@ Token Lexer::scan_operator_or_punct() {
     bump();
     return Token{Tok::Colon, ":", Range{s, pos}};
   default:
-    break;
+    char bad = ch();
+    bump();
+    throw LexError(std::string("Unknown operator/punct: '") + bad + "'", Range{s, pos});
   }
 
   return Token{Tok::Invalid, "", Range{s, s}}; // treat as invalid
 }
 
+// Get the next implementation.
 Token Lexer::next_impl() {
   // skip spaces, tabs, cr
   skip_horizontal_ws();
@@ -317,7 +335,8 @@ Token Lexer::next_impl() {
     return scan_identifier_or_keyword();
   }
 
-  if (is_digit(ch()) || ch() == '.') {
+  // numbers
+  if (is_digit(ch())) {
     return scan_number_or_float();
   }
 
@@ -330,10 +349,11 @@ Token Lexer::next_impl() {
     */
 
   // operators / punctuators
-  Token op = scan_operator_or_punct();
-  if (op.kind != Tok::Invalid) return op;
+  if (is_operator_start(ch())) {
+    return scan_operator_or_punct();
+  }
 
-  // Unknown character
+  // unknown character
   Pos s = pos;
   char bad = ch();
   bump();
