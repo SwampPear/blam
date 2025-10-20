@@ -71,6 +71,9 @@ private:
   bool match(Tok k);
   void expect(Tok k, std::string_view msg);
 
+  CursorSave save_cursor();
+  void restore_cursor(CursorSave s);
+
   void skip_newlines();
   bool at_stmt_end();
 
@@ -85,81 +88,9 @@ private:
   StmtPtr parse_stmt();
   StmtPtr parse_simple_stmt_as_stmt();
 
-  CursorSave save_cursor() const { return CursorSave{i, cur}; }
-  void restore_cursor(CursorSave s) {
-    i = s.i;
-    cur = s.cur;
-  }
-
-  StmtPtr parse_vardecl_maybe() {
-    // optional const
-    bool isConst = match(Tok::KwConst);
-    if (!isConst && !is(Tok::Ident))
-      throw ParseError("expected identifier");
-
-    // type
-    std::optional<TypeName> type;
-    if (match(Tok::Ident))
-      type = parse_type_name();
-
-    // name
-    std::string_view name = parse_ident_name("expected variable name");
-
-    // =
-    expect(Tok::Eq, "expected '=' in variable declaration");
-
-    // rhs
-    auto init = parse_expr();
-
-    auto n = std::make_shared<VarDeclStmt>();
-    n->isConst = isConst;
-    n->name = std::move(name);
-    n->type = type;
-    n->init = init;
-
-    return StmtPtr(n);
-  }
-
-  std::optional<StmtPtr> parse_assign_stmt_maybe() {
-    auto lhsSave = save_cursor();
-
-    auto lhs = parse_lvalue_maybe();
-    if (!lhs) {
-      restore_cursor(lhsSave);
-      return std::nullopt;
-    }
-
-    if (!match(Tok::Eq)) {
-      restore_cursor(lhsSave);
-      return std::nullopt;
-    }
-
-    auto rhs = parse_expr();
-    auto n = std::make_shared<AssignStmt>();
-    n->lhs = *lhs;
-    n->rhs = rhs;
-
-    return StmtPtr(n);
-  }
-
-  std::optional<ExprPtr> parse_lvalue_maybe() {
-    if (!is(Tok::Ident))
-      return std::nullopt;
-
-    auto ident = std::make_shared<IdentExpr>();
-    ident->value = cur.value;
-    advance();
-
-    ExprPtr base = ident;
-    while (match(Tok::Dot))
-    {
-      auto m = std::make_shared<MemberExpr>();
-      m->obj = base;
-      m->field = parse_ident_name("expected member name after '.'");
-      base = m;
-    }
-    return base;
-  }
+  StmtPtr parse_vardecl();
+  StmtPtr parse_assign_stmt();
+  ExprPtr parse_lvalue();
 
     // -------- expressions --------
   ExprPtr parse_expr() { 
@@ -168,11 +99,11 @@ private:
 
   ExprPtr parse_assign_expr() {
     auto lhsSave = save_cursor();
-    auto lhs = parse_lvalue_maybe();
+    auto lhs = parse_lvalue();
     if (lhs && match(Tok::Eq)) {
       auto n = std::make_shared<BinaryExpr>();
       n->op = "=";
-      n->lhs = *lhs;
+      n->lhs = lhs;
       n->rhs = parse_assign_expr();
 
       return n;

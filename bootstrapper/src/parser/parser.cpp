@@ -49,6 +49,17 @@ void Parser::expect(Tok k, std::string_view msg) {
     error_here(msg, cur);
 }
 
+// Save cursor position;
+CursorSave Parser::save_cursor() { 
+  return CursorSave{i, cur}; 
+}
+
+// Restore cursor position.
+void Parser::restore_cursor(CursorSave s) {
+  i = s.i;
+  cur = s.cur;
+}
+
 // Obvious.
 void Parser::skip_newlines() {
   while (is(Tok::NL))
@@ -63,7 +74,7 @@ bool Parser::at_stmt_end() {
 // Parse identifier name.
 std::string_view Parser::parse_ident_name(std::string_view msg) {
   if (!is(Tok::Ident))
-    error_here(msg);
+    error_here(msg, cur);
 
   auto s = cur.value;
 
@@ -138,13 +149,13 @@ std::vector<Param> Parser::parse_params() {
 }
 
 StmtPtr Parser::parse_simple_stmt_as_stmt() {
-  if (is(Tok::KwConst) || is(Tok::Identifier)) {
+  if (is(Tok::KwConst) || is(Tok::Ident)) {
     auto save = save_cursor();
 
     try {
       if (auto vd = parse_vardecl_maybe())
-        return *vd;
-    } catch  {
+        return vd;
+    } catch (std::runtime_error)  {
       restore_cursor(save);
     }
 
@@ -152,7 +163,7 @@ StmtPtr Parser::parse_simple_stmt_as_stmt() {
     try {
       if (auto as = parse_assign_stmt_maybe())
         return *as;
-    } catch {
+    } catch (std::runtime_error) {
       restore_cursor(save);
     }
   }
@@ -169,7 +180,7 @@ std::shared_ptr<BlockStmt> Parser::parse_block() {
   while (!is(Tok::RBrace))
   {
     if (is(Tok::EOF_))
-      error_here("unterminated block");
+      error_here("unterminated block", cur);
     b->stmts.push_back(parse_stmt());
     skip_newlines();
   }
@@ -196,8 +207,9 @@ StmtPtr Parser::parse_stmt() {
   if (is(Tok::KwConst) || is(Tok::Ident)) {
     auto save = save_cursor();
 
+    // variable declarations
     try {
-      auto decl = parse_vardecl_maybe();
+      auto decl = parse_vardecl();
 
       if (decl) {
         if (is(Tok::NL))
@@ -210,13 +222,13 @@ StmtPtr Parser::parse_stmt() {
     }
 
     try {
-      auto asg = parse_assign_stmt_maybe();
+      auto asg = parse_assign_stmt();
 
       if (asg) {
         if (is(Tok::NL))
           skip_newlines();
 
-        return *asg;
+        return asg;
       }
     } catch (std::runtime_error) {
       restore_cursor(save);
@@ -231,6 +243,79 @@ StmtPtr Parser::parse_stmt() {
     skip_newlines();
     
   return es;
+}
+
+// Parses a variable declaration.
+StmtPtr Parser::parse_vardecl() {
+  // optional const
+  bool isConst = match(Tok::KwConst);
+  if (!isConst && !is(Tok::Ident))
+    throw ParseError("expected identifier");
+
+  // type
+  std::optional<TypeName> type;
+  if (match(Tok::Ident))
+    type = parse_type_name();
+
+  // name
+  std::string_view name = parse_ident_name("expected variable name");
+
+  // =
+  expect(Tok::Eq, "expected '=' in variable declaration");
+
+  // rhs
+  auto init = parse_expr();
+
+  auto n = std::make_shared<VarDeclStmt>();
+  n->isConst = isConst;
+  n->name = std::move(name);
+  n->type = type;
+  n->init = init;
+
+  return StmtPtr(n);
+}
+
+// Parses an assignment statement
+StmtPtr Parser::parse_assign_stmt() {
+  auto lhsSave = save_cursor();
+
+  auto lhs = parse_lvalue();
+  if (!lhs) {
+    restore_cursor(lhsSave);
+    throw ParseError("expected a lhs");
+  }
+
+  if (!match(Tok::Eq)) {
+    restore_cursor(lhsSave);
+    throw ParseError("expected '=");
+  }
+
+  auto rhs = parse_expr();
+  auto n = std::make_shared<AssignStmt>();
+  n->lhs = lhs;
+  n->rhs = rhs;
+
+  return StmtPtr(n);
+}
+
+// Parses a lvalue
+ExprPtr Parser::parse_lvalue() {
+  if (!is(Tok::Ident))
+    throw ParseError("expected identifier");
+
+  auto ident = std::make_shared<IdentExpr>();
+  ident->value = cur.value;
+  advance();
+
+  ExprPtr base = ident;
+  while (match(Tok::Dot)) {
+    auto m = std::make_shared<MemberExpr>();
+    m->obj = base;
+    m->field = parse_ident_name("expected member name after '.'");
+    base = m;
+  }
+  
+  return base;
 }
 
 }  // namespace blam
