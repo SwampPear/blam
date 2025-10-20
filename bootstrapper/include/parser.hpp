@@ -37,6 +37,12 @@ std::string make_loc_msg(std::string_view msg, const Token &at) {
   throw ParseError(make_loc_msg(msg, cur));
 }
 
+// Cursor state.
+struct CursorSave {
+  size_t i;
+  Token cur;
+};
+
 class Parser {
 public:
   explicit Parser(std::vector<Token> toks);
@@ -74,286 +80,44 @@ private:
 
   DeclPtr parse_func(bool isPub);
   std::vector<Param> parse_params();
+  std::shared_ptr<BlockStmt> Parser::parse_block();
 
-  // Parses a scoped block.
-  std::shared_ptr<BlockStmt> parse_block() {
-    expect(Tok::LBrace, "expected '{' to start block");
-    auto b = std::make_shared<BlockStmt>();
-    skip_newlines();
-    while (!is(Tok::RBrace))
-    {
-      if (is(Tok::EOF_))
-        error_here("unterminated block");
-      b->stmts.push_back(parse_stmt());
-      skip_newlines();
-    }
-    expect(Tok::RBrace, "expected '}' to end block");
-    return b;
-  }
+  StmtPtr parse_stmt();
+  StmtPtr parse_simple_stmt_as_stmt();
 
-  StmtPtr parse_stmt() {
-    // return
-    if (match(Tok::KwReturn)) {
-      auto r = std::make_shared<ReturnStmt>();
-      if (!at_stmt_end())
-      {
-        auto e = parse_expr();
-        r->value = e;/// also set .value (default is nullptr for bare return)
-      }
-      if (is(Tok::NL))
-        skip_newlines();
-
-      return r;
-    }
-
-    if (match(Tok::KwBreak)) {
-      auto n = std::make_shared<BreakStmt>();
-      if (is(Tok::NL))
-        skip_newlines();
-      return n;
-    }
-
-    if (match(Tok::KwContinue)) {
-      auto n = std::make_shared<ContinueStmt>();
-      if (is(Tok::NL))
-        skip_newlines();
-      return n;
-    }
-
-    if (match(Tok::KwRaise)) {
-      auto n = std::make_shared<RaiseStmt>();
-      n->value = parse_expr();
-      if (is(Tok::NL))
-        skip_newlines();
-      return n;
-    }
-
-    if (match(Tok::KwIf)) {
-      auto n = std::make_shared<IfStmt>();
-      n->cond = parse_expr();
-      n->thenBlock = parse_block();
-
-      skip_newlines();
-
-      if (match(Tok::KwElse)) {
-        if (match(Tok::KwIf)) {
-          n->elseBlock = std::make_shared<BlockStmt>();
-          auto chained = std::make_shared<IfStmt>();
-          chained->cond = parse_expr();
-          chained->thenBlock = parse_block();
-          n->elseBlock->stmts.push_back(chained);
-        } else {
-          n->elseBlock = parse_block();
-        }
-      }
-
-      return n;
-    }
-
-    if (match(Tok::KwWhile)) {
-      auto n = std::make_shared<WhileStmt>();
-      n->cond = parse_expr();
-      n->body = parse_block();
-
-      return n;
-    }
-
-    if (match(Tok::KwDo)) {
-      auto n = std::make_shared<DoWhileStmt>();
-      n->body = parse_block();
-      expect(Tok::KwWhile, "expected 'while' after do-block");
-      n->cond = parse_expr();
-
-      if (is(Tok::NL))
-        skip_newlines();
-
-      return n;
-    }
-
-    if (match(Tok::KwFor)) {
-      if (is(Tok::Ident) && peek().kind == Tok::KwIn) {
-        auto n = std::make_shared<ForInStmt>();
-        n->iter = parse_ident("expected loop variable");
-        expect(Tok::KwIn, "expected 'in' in for-in loop");
-        n->inExpr = parse_expr();
-        n->body = parse_block();
-        return n;
-      } else {
-        auto n = std::make_shared<ForStmt>();
-        if (!is(Tok::Comma) && !is(Tok::LBrace))
-          n->init = parse_simple_stmt_as_stmt();
-
-        expect(Tok::Comma, "expected ',' after for init");
-        if (!is(Tok::Comma) && !is(Tok::LBrace))
-          n->cond = parse_expr();
-
-        expect(Tok::Comma, "expected ',' after for condition");
-        if (!is(Tok::LBrace))
-          n->step = parse_simple_stmt_as_stmt();
-        n->body = parse_block();
-        return n;
-      }
-    }
-
-    /*
-    if (match(Tok::KwSw)) {
-      auto n = std::make_shared<SwitchStmt>();
-      n->discr = parse_expr();
-      expect(Tok::LBrace, "expected '{' to open switch");
-      skip_newlines();
-      while (!is(Tok::RBrace))
-      {
-        if (match(Tok::KwCase))
-        {
-          SwitchCase c{};
-          c.labels.push_back(parse_expr());
-          while (match(Tok::Comma))
-            c.labels.push_back(parse_expr());
-          expect(Tok::Colon, "expected ':' after case labels");
-          c.body = parse_block();
-          n->cases.push_back(std::move(c));
-          skip_newlines();
-        }
-        else if (match(Tok::KwDefault))
-        {
-          expect(Tok::Colon, "expected ':' after default");
-          n->defaultBody = parse_block();
-          skip_newlines();
-        }
-        else
-        {
-          error_here("expected 'case' or 'default' in switch");
-        }
-      }
-      expect(Tok::RBrace, "expected '}' to close switch");
-      return n;
-    }
-
-    if (match(Tok::KwTry))
-    {
-      auto n = std::make_shared<TryCatchesStmt>();
-      n->tryBlk = parse_block();
-      skip_newlines();
-      bool sawCatch = false;
-      while (match(Tok::KwCatch))
-      {
-        sawCatch = true;
-        TypedCatch c{};
-        if (is(Tok::Identifier))
-          c.typeName = parse_type_name_text(); // optional type
-        if (is(Tok::Identifier))
-          c.bindName = parse_ident(); // optional name
-        c.body = parse_block();
-        n->catches.push_back(std::move(c));
-        skip_newlines();
-      }
-      if (!sawCatch)
-        error_here("expected at least one 'catch' after try");
-      return n;
-    }*/
-
-    /*
-    if (is(Tok::KwConst) || is(Tok::Identifier))
-    {
-      auto save = save_cursor();
-      try
-      {
-        auto decl = parse_vardecl_maybe();
-        if (decl)
-        {
-          if (is(Tok::NL))
-            skip_newlines();
-          return *decl;
-        }
-      }
-      catch (...)
-      {
-        restore_cursor(save);
-      }
-
-      save = save_cursor();
-      try
-      {
-        auto asg = parse_assign_stmt_maybe();
-        if (asg)
-        {
-          if (is(Tok::NL))
-            skip_newlines();
-          return *asg;
-        }
-      }
-      catch (...)
-      {
-        restore_cursor(save);
-      }
-    }
-
-    // Expression statement (uses ExprStmt(ExprPtr) ctor)
-    auto e = parse_expr();
-    auto es = std::make_shared<ExprStmt>(e);
-    if (is(Tok::NL))
-      skip_newlines();
-    return es;
-  }*/
-
-  StmtPtr parse_simple_stmt_as_stmt() {
-    if (is(Tok::KwConst) || is(Tok::Identifier)) {
-      auto save = save_cursor();
-      try {
-        if (auto vd = parse_vardecl_maybe())
-          return *vd;
-      }
-      catch {
-        restore_cursor(save);
-      }
-
-      save = save_cursor();
-      try
-      {
-        if (auto as = parse_assign_stmt_maybe())
-          return *as;
-      }
-      catch (...)
-      {
-        restore_cursor(save);
-      }
-    }
-
-    auto e = parse_expr();
-    return std::make_shared<ExprStmt>(e); // ExprStmt has an explicit (ExprPtr) ctor
-  };
-
-  struct CursorSave {
-    size_t i;
-    Token cur;
-  };
   CursorSave save_cursor() const { return CursorSave{i, cur}; }
   void restore_cursor(CursorSave s) {
     i_= s.i;
     cur = s.cur;
   }
 
-    StmtPtr parse_vardecl_maybe() {
-      //bool isConst = match(Tok::KwConst);
-      //if (!isConst && !is(Tok::Identifier))
-      //  return std::nullopt;
+  StmtPtr parse_vardecl_maybe() {
+    // optional const
+    bool isConst = match(Tok::KwConst);
+    if (!isConst && !is(Tok::Ident))
+      throw ParseError("expected identifier");
 
-      std::string name = parse_ident("expected variable name");
-      std::optional<TypeName> ty;
-      if (match(Tok::Colon))
-        ty = parse_type_name();
+    // optional type
+    std::optional<TypeName> type;
+    if (match(Tok::Ident))
+      type = parse_type_name();
 
-      expect(Tok::Eq, "expected '=' in variable declaration");
-      auto init = parse_expr();
+    std::string_view name = parse_ident_name("expected variable name");
+    std::optional<TypeName> ty;
+    if (match(Tok::Colon))
+      ty = parse_type_name();
 
-      auto n = std::make_shared<VarDeclStmt>();
-      //n->isConst = isConst;
-      n->name = std::move(name);
-      n->type = ty;
-      n->init = init;
+    expect(Tok::Eq, "expected '=' in variable declaration");
+    auto init = parse_expr();
 
-      return StmtPtr(n);
-    }
+    auto n = std::make_shared<VarDeclStmt>();
+    //n->isConst = isConst;
+    n->name = std::move(name);
+    n->type = ty;
+    n->init = init;
+
+    return StmtPtr(n);
+  }
 
     std::optional<StmtPtr> parse_assign_stmt_maybe()
     {

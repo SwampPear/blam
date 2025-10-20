@@ -110,7 +110,7 @@ DeclPtr Parser::parse_func(bool isPub) {
 // Parse function parameters.
 std::vector<Param> Parser::parse_params() {
   std::vector<Param> out;
-  
+
   // immediate end
   if (is(Tok::RParen))
     return out;
@@ -132,9 +132,105 @@ std::vector<Param> Parser::parse_params() {
   }
 
   // right parentheses
-  match(Tok::RParen);
+  expect(Tok::RParen, "Expected ')'");
 
   return out;
+}
+
+StmtPtr Parser::parse_simple_stmt_as_stmt() {
+  if (is(Tok::KwConst) || is(Tok::Identifier)) {
+    auto save = save_cursor();
+
+    try {
+      if (auto vd = parse_vardecl_maybe())
+        return *vd;
+    } catch  {
+      restore_cursor(save);
+    }
+
+    save = save_cursor();
+    try {
+      if (auto as = parse_assign_stmt_maybe())
+        return *as;
+    } catch {
+      restore_cursor(save);
+    }
+  }
+
+  auto e = parse_expr();
+  return std::make_shared<ExprStmt>(e); // ExprStmt has an explicit (ExprPtr) ctor
+}
+
+// Parses a scoped block.
+std::shared_ptr<BlockStmt> Parser::parse_block() {
+  expect(Tok::LBrace, "expected '{' to start block");
+  auto b = std::make_shared<BlockStmt>();
+  skip_newlines();
+  while (!is(Tok::RBrace))
+  {
+    if (is(Tok::EOF_))
+      error_here("unterminated block");
+    b->stmts.push_back(parse_stmt());
+    skip_newlines();
+  }
+  expect(Tok::RBrace, "expected '}' to end block");
+  return b;
+}
+
+StmtPtr Parser::parse_stmt() {
+  // return
+  if (match(Tok::KwReturn)) {
+    auto r = std::make_shared<ReturnStmt>();
+    if (!at_stmt_end()) {
+      auto e = parse_expr();
+      r->value = e;/// also set .value (default is nullptr for bare return)
+    }
+
+    if (is(Tok::NL))
+      skip_newlines();
+
+    return r;
+  }
+
+  // const ident
+  if (is(Tok::KwConst) || is(Tok::Ident)) {
+    auto save = save_cursor();
+
+    try {
+      auto decl = parse_vardecl_maybe();
+
+      if (decl) {
+        if (is(Tok::NL))
+          skip_newlines();
+
+        return decl;
+      }
+    } catch (std::runtime_error) {
+      restore_cursor(save);
+    }
+
+    try {
+      auto asg = parse_assign_stmt_maybe();
+
+      if (asg) {
+        if (is(Tok::NL))
+          skip_newlines();
+
+        return *asg;
+      }
+    } catch (std::runtime_error) {
+      restore_cursor(save);
+    }
+  }
+
+  // expression statement
+  auto e = parse_expr();
+  auto es = std::make_shared<ExprStmt>(e);
+
+  if (is(Tok::NL))
+    skip_newlines();
+    
+  return es;
 }
 
 }  // namespace blam
