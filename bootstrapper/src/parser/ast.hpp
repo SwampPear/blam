@@ -1,13 +1,17 @@
-/*#pragma once
+#pragma once
 
+#include <map>
 #include <memory>
 #include <string>
+#include <vector>
 #include <iostream>
-#include <map>
 
-#include <llvm/IR/Value.h>
+#include <llvm/ADT/APFloat.h>
+#include <llvm/IR/Constants.h>
 #include <llvm/IR/IRBuilder.h>
 #include <llvm/IR/LLVMContext.h>
+#include <llvm/IR/Module.h>
+#include <llvm/IR/Value.h>
 
 namespace Blam {
 
@@ -88,16 +92,4 @@ struct ReturnStmt : Stmt {
 
 void printAST(const std::unique_ptr<Stmt>& stmt, int indent);
 
-/*
-struct VariableExpr : Expr {
-    std::string name;
-    llvm::Value* codegen(llvm::LLVMContext& ctx, llvm::IRBuilder<>& builder) override;
-};
-
-struct BinaryExpr : Expr {
-    std::unique_ptr<Expr> op, lhs, rhs;
-    llvm::Value* codegen(llvm::LLVMContext& ctx, llvm::IRBuilder<>& builder) override;
-};
-
-
-}  // namespace Blam*/
+}  // namespace Blam

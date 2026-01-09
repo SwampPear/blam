@@ -1,6 +1,10 @@
 #include <cstdlib>
 
+#include <vector>
+
+#include "codegen/codegen.hpp"
 #include "core/llist.hpp"
+#include "parser/parser.hpp"
 #include "tokenizer/token.hpp"
 #include "tokenizer/tokenizer.hpp"
 
@@ -15,31 +19,17 @@ int main() {
     log("File read.");
 
     std::shared_ptr<LList<Token>> tokens = tokenize(src);
-    /*
-    std::vector<Token> tokens = tokenizeFile(fp);
+    std::vector<Token> tokenVec;
+    tokenVec.reserve(256);
+    for (auto node = tokens->head; node; node = node->next) {
+        if (node->data) {
+            tokenVec.push_back(*node->data);
+        }
+    }
 
-    //printTokens(tokens, contents);
-    std::unique_ptr<Stmt> program = parseProgram(tokens, contents);
+    std::unique_ptr<Stmt> program = parseProgram(tokenVec, src);
 
-    printAST(program, 0);
-
-    generateIR(program);
-    */
-
-    /*
-    llvm::LLVMContext ctx;
-    llvm::Module module("SyscallModule", ctx);
-
-    generateSyscallPrint(module, ctx);
-
-    std::error_code ec;
-    llvm::raw_fd_ostream outFile("output.ll", ec, llvm::sys::fs::OF_None);
-    module.print(outFile, nullptr);  // writes human-readable LLVM IR
-    outFile.close();
-    */
-
-    //generateSyscallPrint(module, ctx);
-    //module.print(llvm::outs(), nullptr); // emit IR
+    generateIR(std::move(program), "output.ll");
 
     return EXIT_SUCCESS;
 }

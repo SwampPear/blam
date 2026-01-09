@@ -7,47 +7,94 @@
 
 namespace Blam {
 
-std::shared_ptr<LListNode<Token>> processToken(std::shared_ptr<LListNode<Token>> token, Type type, const std::string& src) {
-    // bounds
-    uint16_t pos = token->data->pos;
-    uint16_t len = token->data->len;
+namespace {
 
-    // build new list 
+std::shared_ptr<LListNode<Token>> buildNode(Type type, size_t pos, size_t len) {
+    auto node = std::make_shared<LListNode<Token>>();
+    node->data = std::make_shared<Token>();
+    node->data->type = type;
+    node->data->pos = pos;
+    node->data->len = len;
+    return node;
+}
+
+std::shared_ptr<LListNode<Token>> processMultilineComment(
+    std::shared_ptr<LListNode<Token>> token,
+    const std::string& src
+) {
+    size_t pos = token->data->pos;
+    size_t len = token->data->len;
+    size_t end = pos + len;
+
     std::shared_ptr<LListNode<Token>> head = nullptr;
     std::shared_ptr<LListNode<Token>> tail = nullptr;
 
-    // match regex
-    std::regex reg(TOKEN_EXPR[type]);
-    auto it = std::sregex_iterator(src.begin() + pos, src.begin() + pos + len, reg);
-    auto regex_end = std::sregex_iterator();
-    if (it == regex_end) return token;     // no matches
+    size_t lastPos = pos;
+    size_t searchPos = pos;
+    while (searchPos < end) {
+        size_t start = src.find("#*", searchPos);
+        if (start == std::string::npos || start >= end) break;
+        size_t close = src.find("*#", start + 2);
+        if (close == std::string::npos || close + 2 > end) break;
 
-    uint16_t lastPos = pos;
-    for (; it != regex_end; ++it) {
-        const std::smatch& match = *it;
-        uint16_t matchStart = static_cast<uint16_t>(match.position() + pos);
-        uint16_t matchLen   = static_cast<uint16_t>(match.length());
-
-        // add raw segment before match
-        if (matchStart > lastPos) {
-            auto raw = std::make_shared<LListNode<Token>>();
-            raw->data = std::make_shared<Token>();
-            raw->data->type = Type::RAW;
-            raw->data->pos = lastPos;
-            raw->data->len = static_cast<uint16_t>(matchStart - lastPos);
-
+        if (start > lastPos) {
+            auto raw = buildNode(Type::RAW, lastPos, start - lastPos);
             if (!head) head = raw;
             else tail->next = raw, raw->prev = tail;
             tail = raw;
         }
 
-        // add matched token
-        auto tok = std::make_shared<LListNode<Token>>();
-        tok->data = std::make_shared<Token>();
-        tok->data->type = type;
-        tok->data->pos = matchStart;
-        tok->data->len = matchLen;
+        auto comment = buildNode(Type::MLINE_COMMENT, start, (close + 2) - start);
+        if (!head) head = comment;
+        else tail->next = comment, comment->prev = tail;
+        tail = comment;
 
+        lastPos = close + 2;
+        searchPos = lastPos;
+    }
+
+    if (lastPos < end) {
+        auto raw = buildNode(Type::RAW, lastPos, end - lastPos);
+        if (!head) head = raw;
+        else tail->next = raw, raw->prev = tail;
+        tail = raw;
+    }
+
+    return head ? head : token;
+}
+
+}  // namespace
+
+std::shared_ptr<LListNode<Token>> processToken(std::shared_ptr<LListNode<Token>> token, Type type, const std::string& src) {
+    if (type == Type::MLINE_COMMENT) {
+        return processMultilineComment(token, src);
+    }
+
+    size_t pos = token->data->pos;
+    size_t len = token->data->len;
+
+    std::shared_ptr<LListNode<Token>> head = nullptr;
+    std::shared_ptr<LListNode<Token>> tail = nullptr;
+
+    std::regex reg(TOKEN_EXPR[type]);
+    auto it = std::sregex_iterator(src.begin() + pos, src.begin() + pos + len, reg);
+    auto regex_end = std::sregex_iterator();
+    if (it == regex_end) return token;
+
+    size_t lastPos = pos;
+    for (; it != regex_end; ++it) {
+        const std::smatch& match = *it;
+        size_t matchStart = static_cast<size_t>(match.position() + pos);
+        size_t matchLen = static_cast<size_t>(match.length());
+
+        if (matchStart > lastPos) {
+            auto raw = buildNode(Type::RAW, lastPos, matchStart - lastPos);
+            if (!head) head = raw;
+            else tail->next = raw, raw->prev = tail;
+            tail = raw;
+        }
+
+        auto tok = buildNode(type, matchStart, matchLen);
         if (!head) head = tok;
         else tail->next = tok, tok->prev = tail;
         tail = tok;
@@ -55,14 +102,8 @@ std::shared_ptr<LListNode<Token>> processToken(std::shared_ptr<LListNode<Token>>
         lastPos = matchStart + matchLen;
     }
 
-    // raw token after last match
     if (lastPos < pos + len) {
-        auto raw = std::make_shared<LListNode<Token>>();
-        raw->data = std::make_shared<Token>();
-        raw->data->type = Type::RAW;
-        raw->data->pos = lastPos;
-        raw->data->len = static_cast<uint16_t>((pos + len) - lastPos);
-
+        auto raw = buildNode(Type::RAW, lastPos, (pos + len) - lastPos);
         tail->next = raw;
         raw->prev = tail;
         tail = raw;
@@ -93,7 +134,9 @@ std::shared_ptr<LList<Token>> tokenize(const std::string& src) {
                 std::shared_ptr<LListNode<Token>> next = curr->next;
 
                 std::shared_ptr<LListNode<Token>> processed = processToken(curr, type, src);
-                list.replace(curr, processed);
+                if (processed != curr) {
+                    list.replace(curr, processed);
+                }
 
                 curr = next;
             } else {

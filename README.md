@@ -73,7 +73,6 @@ technologies.
 
 maf00026@mix.wvu.edu
 
-<<<<<<< HEAD
 ### [Http](docs/http/http.md)
 - http functionality similar to Python requests module
 

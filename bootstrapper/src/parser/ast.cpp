@@ -1,5 +1,4 @@
-/* #include "parser/ast.hpp"
-#include <map>
+#include "parser/ast.hpp"
 
 namespace Blam {
 
@@ -23,18 +22,18 @@ llvm::Value* VarDeclStmt::codegen(llvm::LLVMContext& ctx, llvm::IRBuilder<>& bui
     if (!val) return nullptr;
 
     namedValues[name] = val;
-    return val; // optional: could return void or store ptr
+    return val;
 }
 
 llvm::Value* FuncDeclStmt::codegen(llvm::LLVMContext& ctx, llvm::IRBuilder<>& builder, llvm::Module& module) {
     std::cout << "Generating function: " << name << std::endl;
     llvm::FunctionType* funcType = llvm::FunctionType::get(
-        llvm::Type::getDoubleTy(ctx), // return type
-        false // no args yet
+        llvm::Type::getDoubleTy(ctx),
+        false
     );
 
     llvm::Function* func = llvm::Function::Create(
-        funcType,       
+        funcType,
         llvm::Function::ExternalLinkage,
         name,
         module
@@ -48,7 +47,9 @@ llvm::Value* FuncDeclStmt::codegen(llvm::LLVMContext& ctx, llvm::IRBuilder<>& bu
         stmt->codegen(ctx, builder, module);
     }
 
-    builder.CreateRet(llvm::ConstantFP::get(ctx, llvm::APFloat(0.0)));
+    if (!builder.GetInsertBlock()->getTerminator()) {
+        builder.CreateRet(llvm::ConstantFP::get(ctx, llvm::APFloat(0.0)));
+    }
 
     return func;
 }
@@ -57,7 +58,7 @@ llvm::Value* PubStmt::codegen(llvm::LLVMContext& ctx, llvm::IRBuilder<>& builder
     return body->codegen(ctx, builder, module);
 }
 
-void printAST(const std::unique_ptr<Stmt>& stmt, int indent = 0) {
+void printAST(const std::unique_ptr<Stmt>& stmt, int indent) {
     if (!stmt) return;
 
     std::string indentation(indent, ' ');
@@ -87,7 +88,7 @@ void printAST(const std::unique_ptr<Stmt>& stmt, int indent = 0) {
             for (const auto& stmt : pStmt->body->body) {
                 printAST(stmt, indent + 2);
             }
-            
+
             break;
         }
         case StmtType::VAR_DECL: {
@@ -95,13 +96,10 @@ void printAST(const std::unique_ptr<Stmt>& stmt, int indent = 0) {
             std::cout << indentation << "VarDecl(" << pStmt->name << ")" << std::endl;
             break;
         }
-
         case StmtType::RETURN: {
-            auto pStmt = static_cast<ReturnStmt*>(stmt.get());
             std::cout << indentation << "Return" << std::endl;
             break;
         }
-
         default:
             std::cout << indentation << "Unknown StmtType" << std::endl;
             break;
@@ -129,4 +127,4 @@ llvm::Value* ReturnStmt::codegen(llvm::LLVMContext& ctx, llvm::IRBuilder<>& buil
     return builder.CreateRet(val);
 }
 
-}  // namespace Blam*/
+}  // namespace Blam

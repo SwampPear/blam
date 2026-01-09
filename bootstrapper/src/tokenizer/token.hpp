@@ -95,7 +95,7 @@ enum class Type : int8_t {
 };
 
 static std::unordered_map<Type, std::string> TOKEN_EXPR = {
-    {Type::MLINE_COMMENT, R"(?s:#\*.*?\*#)"},
+    {Type::MLINE_COMMENT, R"(#\*[^*]*\*#)"},
     {Type::SLINE_COMMENT, R"(#([^\n]*)(\n|$))"},
     {Type::STRING, R"("(\\.|[^"\\])*"|'(\\.|[^'\\])*')"},
     {Type::AND, R"(\band\b)"},

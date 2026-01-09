@@ -1,10 +1,10 @@
-/*
 #pragma once
 
 #include <string>
-#include <stack>
-#include "tokenizer/token.hpp"
+#include <vector>
+
 #include "parser/ast.hpp"
+#include "tokenizer/token.hpp"
 
 namespace Blam {
 
@@ -30,4 +30,3 @@ std::unique_ptr<Stmt> processToken(const std::vector<Token>& tokens, size_t& ind
 std::unique_ptr<Stmt> parseProgram(const std::vector<Token>& tokens, const std::string& src);
 
 }  // namespace Blam
-  */
