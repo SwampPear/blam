@@ -20,7 +20,19 @@ technologies.
 - reasonability, fast onboarding of new users
 - dynamic typing for development, static for production (with sound inference)
 
-# Features
+# Status
+
+# Implemented (bootstrapper)
+- tokenizer and parser for a minimal subset
+- function declarations with empty parameter lists
+- return statements with numeric expressions
+- variable declarations with numeric literals
+- numeric literals (int and decimal)
+- string literals (for print)
+- print statement for string and int literals (uses libc puts/printf in LLVM IR)
+- LLVM IR generation and native compilation via clang
+
+# Planned / Future
 - multiple dispatch pattern, including operators
 - no data piping or explicit currying of functions (lacks reasonability)
 - data first functional programming with svo syntax
@@ -37,13 +49,7 @@ technologies.
 - helpful error messages (like cargo)
 - generics, algebraic data types, no null, no exceptions by default, no garbage
   collector
-
-# Interoperability
-
 - transpiles to JS, TS, and/or WASM (would be nice)
-
-# Concurrency
-
 - concurrency via goroutines and the async unbounded buffered channels
 - aggressively parallelizable and concurrent (like Go)
 - scales transparently from single cpu to multi-core devices and distributed
@@ -57,17 +63,17 @@ technologies.
 - meta programming
 - DSLs
 
-# Bloop Package Managaer
+# Bloop Package Managaer (planned)
 
 - transparent upgrades without breaking any changes
 - reliable package management
 
-# Documentation
+# Documentation (planned)
 
 - code compiles into mardown format
 - docstrings compile
 
-# Auxiliary Features
+# Auxiliary Features (planned)
 
 - interactive VSCODE plugin, shows content of data structures while coding
 
