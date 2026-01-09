@@ -5,3 +5,5 @@ test/
 old/
 ref/
 bootstrapper/build/*
+blam_exec
+blam_output.ll
