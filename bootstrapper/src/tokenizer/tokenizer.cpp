@@ -120,7 +120,7 @@ std::shared_ptr<LList<Token>> tokenize(const std::string& src) {
     list.head->data = std::make_shared<Token>();
     list.head->data->type = Type::RAW;
     list.head->data->pos = 0;
-    list.head->data->len = static_cast<uint16_t>(src.length());
+    list.head->data->len = src.length();
 
     // loop over each token type
     for (int i = static_cast<int>(Type::RAW); i <= static_cast<int>(Type::MULT); ++i) {

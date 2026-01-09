@@ -14,5 +14,6 @@
 namespace Blam {
 
 void generateIR(std::unique_ptr<Stmt> program, const std::string& outputPath);
+bool compileIRToExecutable(const std::string& irPath, const std::string& exePath, const std::string& clangPath);
 
 }  // namespace Blam

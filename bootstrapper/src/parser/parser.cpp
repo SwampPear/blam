@@ -102,6 +102,7 @@ std::unique_ptr<Stmt> processDef(const std::vector<Token>& tokens, size_t& index
 
     expect(tokens, index, Type::SMBRACKET_L);
     index += 1;
+    skip(tokens, index);
     expect(tokens, index, Type::SMBRACKET_R);
     index += 1;
 
@@ -121,6 +122,10 @@ std::unique_ptr<Stmt> processDef(const std::vector<Token>& tokens, size_t& index
         stmt->body->body.push_back(processToken(tokens, index, stmt->name, src));
     }
 
+    if (index >= tokens.size()) {
+        throw std::runtime_error("Compiler Error: Expected closing '}' for function body.");
+    }
+
     index += 1;
 
     return stmt;
@@ -136,9 +141,44 @@ std::unique_ptr<Stmt> processRet(const std::vector<Token>& tokens, size_t& index
     skip(tokens, index);
 
     stmt->value = processExpression(tokens, index, scope, src, Type::NLINE);
-    index += 1;
 
     return stmt;
+}
+
+std::unique_ptr<Stmt> processPrint(const std::vector<Token>& tokens, size_t& index, std::string scope, const std::string& src) {
+    std::cout << "Processing print token" << std::endl;
+
+    auto stmt = std::make_unique<PrintStmt>();
+    stmt->stmtType = StmtType::PRINT;
+    index += 1;
+
+    skip(tokens, index);
+
+    if (index >= tokens.size()) {
+        throw std::runtime_error("Compiler Error: Expected expression after print.");
+    }
+
+    if (tokens[index].type == Type::STRING) {
+        std::string raw = extractString(tokens[index], src);
+        if (raw.size() >= 2 &&
+            ((raw.front() == '"' && raw.back() == '"') ||
+             (raw.front() == '\'' && raw.back() == '\''))) {
+            raw = raw.substr(1, raw.size() - 2);
+        }
+        stmt->isString = true;
+        stmt->text = raw;
+        index += 1;
+        return stmt;
+    }
+
+    if (tokens[index].type == Type::NUMBER) {
+        stmt->isString = false;
+        stmt->number = std::stoll(extractString(tokens[index], src));
+        index += 1;
+        return stmt;
+    }
+
+    throw std::runtime_error("Compiler Error: Expected string or int literal for print.");
 }
 
 std::unique_ptr<Stmt> processText(const std::vector<Token>& tokens, size_t& index, std::string scope, const std::string& src) {
@@ -169,8 +209,6 @@ std::unique_ptr<Stmt> processText(const std::vector<Token>& tokens, size_t& inde
             throw std::runtime_error("Compiler Error: Expected expression.");
         }
 
-        index += 1;
-
         return stmt;
     }
 
@@ -189,12 +227,21 @@ std::unique_ptr<Stmt> processExpression(const std::vector<Token>& tokens, size_t
             auto expr = std::make_unique<NumberExpr>();
             expr->value = std::stod(extractString(tokens[index], src));
             stmt->expr = std::move(expr);
+            index += 1;
+            break;
+        }
+        case Type::DECIMAL: {
+            auto expr = std::make_unique<NumberExpr>();
+            expr->value = std::stod(extractString(tokens[index], src));
+            stmt->expr = std::move(expr);
+            index += 1;
             break;
         }
         case Type::TEXT: {
             auto expr = std::make_unique<VarExpr>();
             expr->name = extractString(tokens[index], src);
             stmt->expr = std::move(expr);
+            index += 1;
             break;
         }
         default: {
@@ -215,6 +262,9 @@ std::unique_ptr<Stmt> processToken(const std::vector<Token>& tokens, size_t& ind
         }
         case Type::RET: {
             return processRet(tokens, index, scope, src);
+        }
+        case Type::PRINT: {
+            return processPrint(tokens, index, scope, src);
         }
         case Type::TEXT: {
             return processText(tokens, index, scope, src);

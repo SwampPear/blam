@@ -41,6 +41,7 @@ enum class Type : int8_t {
     PUB,                 // pub
     CONST,               // const
     LET,                 // let
+    PRINT,               // print
 
     // any text
     TEXT,
@@ -116,6 +117,7 @@ static std::unordered_map<Type, std::string> TOKEN_EXPR = {
     {Type::PUB, R"(\bpub\b)"},
     {Type::CONST, R"(\bconst\b)"},
     {Type::LET, R"(\blet\b)"},
+    {Type::PRINT, R"(\bprint\b)"},
     {Type::TEXT, R"([a-zA-Z_][a-zA-Z0-9_]*)"},
     {Type::DECIMAL, R"((?:\d+\.\d*|\.\d+))"},
     {Type::NUMBER, R"(\d+)"},

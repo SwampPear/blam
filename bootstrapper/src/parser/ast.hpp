@@ -5,6 +5,7 @@
 #include <string>
 #include <vector>
 #include <iostream>
+#include <cstdint>
 
 #include <llvm/ADT/APFloat.h>
 #include <llvm/IR/Constants.h>
@@ -39,7 +40,8 @@ enum class StmtType {
     FUNC_DECL,
     CONST_DECL,
     VAR_DECL,
-    RETURN
+    RETURN,
+    PRINT
 };
 
 struct Stmt {
@@ -87,6 +89,13 @@ struct VarDeclStmt : Stmt {
 
 struct ReturnStmt : Stmt {
     std::unique_ptr<Stmt> value;
+    llvm::Value* codegen(llvm::LLVMContext& ctx, llvm::IRBuilder<>& builder, llvm::Module& module) override;
+};
+
+struct PrintStmt : Stmt {
+    bool isString;
+    std::string text;
+    int64_t number;
     llvm::Value* codegen(llvm::LLVMContext& ctx, llvm::IRBuilder<>& builder, llvm::Module& module) override;
 };
 

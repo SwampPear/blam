@@ -1,5 +1,60 @@
 #include "parser/ast.hpp"
 
+#include <llvm/IR/DerivedTypes.h>
+#include <llvm/IR/Type.h>
+
+namespace {
+
+llvm::Function* getOrCreatePuts(llvm::LLVMContext& ctx, llvm::Module& module) {
+    if (auto* func = module.getFunction("puts")) {
+        return func;
+    }
+    llvm::Type* i8Ptr = llvm::PointerType::getUnqual(llvm::Type::getInt8Ty(ctx));
+    llvm::FunctionType* funcType = llvm::FunctionType::get(
+        llvm::Type::getInt32Ty(ctx),
+        {i8Ptr},
+        false
+    );
+    return llvm::Function::Create(
+        funcType,
+        llvm::Function::ExternalLinkage,
+        "puts",
+        module
+    );
+}
+
+llvm::Function* getOrCreatePrintf(llvm::LLVMContext& ctx, llvm::Module& module) {
+    if (auto* func = module.getFunction("printf")) {
+        return func;
+    }
+    llvm::Type* i8Ptr = llvm::PointerType::getUnqual(llvm::Type::getInt8Ty(ctx));
+    llvm::FunctionType* funcType = llvm::FunctionType::get(
+        llvm::Type::getInt32Ty(ctx),
+        {i8Ptr},
+        true
+    );
+    return llvm::Function::Create(
+        funcType,
+        llvm::Function::ExternalLinkage,
+        "printf",
+        module
+    );
+}
+
+llvm::Value* createGlobalStringPtr(
+    llvm::LLVMContext& ctx,
+    llvm::IRBuilder<>& builder,
+    llvm::Module& module,
+    const std::string& value,
+    const char* name
+) {
+    llvm::Value* zero = llvm::ConstantInt::get(llvm::Type::getInt32Ty(ctx), 0);
+    llvm::GlobalVariable* global = builder.CreateGlobalString(value, name, 0, &module);
+    return builder.CreateInBoundsGEP(global->getValueType(), global, {zero, zero});
+}
+
+}  // namespace
+
 namespace Blam {
 
 llvm::Value* NumberExpr::codegen(llvm::LLVMContext& ctx, llvm::IRBuilder<>& builder, llvm::Module& module) {
@@ -27,6 +82,7 @@ llvm::Value* VarDeclStmt::codegen(llvm::LLVMContext& ctx, llvm::IRBuilder<>& bui
 
 llvm::Value* FuncDeclStmt::codegen(llvm::LLVMContext& ctx, llvm::IRBuilder<>& builder, llvm::Module& module) {
     std::cout << "Generating function: " << name << std::endl;
+    namedValues.clear();
     llvm::FunctionType* funcType = llvm::FunctionType::get(
         llvm::Type::getDoubleTy(ctx),
         false
@@ -100,6 +156,10 @@ void printAST(const std::unique_ptr<Stmt>& stmt, int indent) {
             std::cout << indentation << "Return" << std::endl;
             break;
         }
+        case StmtType::PRINT: {
+            std::cout << indentation << "Print" << std::endl;
+            break;
+        }
         default:
             std::cout << indentation << "Unknown StmtType" << std::endl;
             break;
@@ -107,11 +167,18 @@ void printAST(const std::unique_ptr<Stmt>& stmt, int indent) {
 }
 
 llvm::Value* ScopedStmt::codegen(llvm::LLVMContext& ctx, llvm::IRBuilder<>& builder, llvm::Module& module) {
-    return nullptr;
+    llvm::Value* last = nullptr;
+    for (auto& stmt : body) {
+        last = stmt->codegen(ctx, builder, module);
+    }
+    return last;
 }
 
 llvm::Value* ExprStmt::codegen(llvm::LLVMContext& ctx, llvm::IRBuilder<>& builder, llvm::Module& module) {
-    return nullptr;
+    if (!expr) {
+        return nullptr;
+    }
+    return expr->codegen(ctx, builder, module);
 }
 
 llvm::Value* ConstDeclStmt::codegen(llvm::LLVMContext& ctx, llvm::IRBuilder<>& builder, llvm::Module& module) {
@@ -125,6 +192,19 @@ llvm::Value* ReturnStmt::codegen(llvm::LLVMContext& ctx, llvm::IRBuilder<>& buil
     if (!val) return nullptr;
 
     return builder.CreateRet(val);
+}
+
+llvm::Value* PrintStmt::codegen(llvm::LLVMContext& ctx, llvm::IRBuilder<>& builder, llvm::Module& module) {
+    if (isString) {
+        llvm::Function* putsFn = getOrCreatePuts(ctx, module);
+        llvm::Value* strPtr = createGlobalStringPtr(ctx, builder, module, text, ".str");
+        return builder.CreateCall(putsFn, {strPtr});
+    }
+
+    llvm::Function* printfFn = getOrCreatePrintf(ctx, module);
+    llvm::Value* format = createGlobalStringPtr(ctx, builder, module, "%d\n", ".fmt");
+    llvm::Value* value = llvm::ConstantInt::get(llvm::Type::getInt32Ty(ctx), number, true);
+    return builder.CreateCall(printfFn, {format, value});
 }
 
 }  // namespace Blam
