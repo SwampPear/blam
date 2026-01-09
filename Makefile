@@ -3,7 +3,9 @@ build-bootstrapper:
 	cd bootstrapper && $(MAKE)
 
 bootstrap:
-	./bootstrapper/build/main
+	mkdir -p build
+	./bootstrapper/build/main compiler/src/main.blam build/output.ll build/blam_exec
+	./build/blam_exec
 
 clean:
 	cd bootstrapper && $(MAKE) clean
