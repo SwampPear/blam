@@ -9,4 +9,4 @@
 # Compilation/Execution
 make -C bootstrapper
 ./bootstrapper/build/main compiler/src/main.blam blam_output.ll blam_exec
-/tmp/blam_exec
+rm

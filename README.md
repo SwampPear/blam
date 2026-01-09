@@ -1,5 +1,5 @@
 <p align="center">
-  <img alt="dream logo" src=".github/logo.svg" style="width: 25%">   
+  <img alt="Blam Logo" src=".github/logo.svg" style="width: 25%">   
 </p>
 
 <p align="center" style="height: 32px">
@@ -9,10 +9,8 @@
 </p>
 
 # Blam
-
-The objective of Blam is to provide a programming language that combines
-ease-of-use, strong security, and interoperability between existing
-technologies.
+The objective of Blam is to provide a programming language that combines ease-of-use, strong security, interoperability 
+between existing technologies, and strong concurrency features.
 
 # Syntax
 - file extensions: .blam
@@ -58,7 +56,6 @@ technologies.
 - async via blocking/sync interface but non-blocking I/O
 
 # Non-Features
-
 - multi paradigm
 - meta programming
 - DSLs
